@@ -1,0 +1,34 @@
+\name{profoc-package}
+\alias{profoc-package}
+\docType{package}
+\title{
+Package Info
+}
+\description{
+Use multiple online-aggregation algorithms to combine probabilistic forecasts using CRPS Learning as described in Berrisch, Ziel: "CRPS Learning", 2021. The primary function of this package is called profoc.
+}
+\details{
+
+\packageIndices{profoc}
+
+}
+\author{
+
+\packageAuthor{profoc}
+
+Maintainer: Jonathan Berrisch \url{mailto:Jonathan@Berrisch.biz}
+}
+\references{
+Berrisch, Ziel: "CRPS Learning", 2021
+}
+
+\keyword{ package }
+\seealso{
+
+Source Code: \url{https://github.com/BerriJ/profoc}
+
+BugReports: \url{https://github.com/BerriJ/profoc/issues}
+
+}
+\examples{
+}

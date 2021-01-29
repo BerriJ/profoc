@@ -1,0 +1,15 @@
+Package: profoc
+Type: Package
+Title: Probabilistic Forecast Combination Using CRPS Learning
+Version: 0.5.2
+Date: 2020-01-27
+Author: Jonathan Berrisch 
+Maintainer: Jonathan Berrisch <Jonathan@Berrisch.biz>
+Description: Use multiple online-aggregation algorithms to combine Probabilistic forecasts using CRPS learning as described in Berrisch, Ziel: "CRPS Learning", 2021.
+License: GPL-3
+Encoding: UTF-8
+Imports: Rcpp (>= 1.0.5), RcppArmadillo
+LinkingTo: Rcpp, RcppArmadillo, RcppProgress
+URL: https://github.com/BerriJ/profoc
+BugReports: https://github.com/BerriJ/profoc/issues
+RoxygenNote: 7.1.1
