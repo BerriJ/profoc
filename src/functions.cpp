@@ -260,7 +260,7 @@ Rcpp::List profoc(
 
   Progress prog(T * X + X, true);
 
-  cube weights(T + 1, K, P, fill::zeros);
+  cube weights(T + 1, P, K, fill::zeros);
   cube w(P, K, X);
   w = w.fill(1 / double(K));
   cube w_temp(P, K, X, fill::ones);
@@ -351,7 +351,7 @@ Rcpp::List profoc(
     experts_mat = experts.row(t);
     // Save Weights and Prediction
     // Note that w_temp != w in ex post setting and w_temp = w otherwise
-    weights.row(t) = w_temp.slice(opt_index).t();
+    weights.row(t) = w_temp.slice(opt_index);
     predictions.row(t) = sum(w_temp.slice(opt_index) % experts_mat, 1).t();
 
     for (unsigned int x = 0; x < X; x++)
@@ -515,7 +515,7 @@ Rcpp::List profoc(
   }
 
   // Save Weights and Prediction
-  weights.row(T) = w_temp.slice(opt_index).t();
+  weights.row(T) = w_temp.slice(opt_index);
 
   // Save losses suffered by forecaster and experts
   mat loss_for = pinball_loss(y, predictions, tau);
