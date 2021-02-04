@@ -310,6 +310,10 @@ Rcpp::List profoc(
 
   field<mat> hat_mats(param_grid.n_rows);
 
+  // Only if smoothing is possible (tau.size > 1)
+
+  if(P > 1){
+
   // Init hat matrix field
   for (unsigned int x = 0; x < X; x++)
   {
@@ -338,6 +342,7 @@ Rcpp::List profoc(
     }
     R_CheckUserInterrupt();
     prog.increment(); // Update progress
+  }
   }
 
   for (unsigned int t = 0; t < T; t++)
