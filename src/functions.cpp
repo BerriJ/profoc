@@ -289,6 +289,7 @@ Rcpp::List profoc(
   // Smoothing Setup
 
   field<mat> hat_mats(param_grid.n_rows);
+  vec spline_basis_x = regspace(1, P) / (P + 1);
 
   // Only if smoothing is possible (tau.size > 1)
 
@@ -313,7 +314,7 @@ Rcpp::List profoc(
         int nseg = std::min(std::max(double(1), ceil(P * param_grid(x, 4))), double(P));
 
         // Create bspline basis mat B = bbase(tau, nseg, deg);
-        mat B = bbase(tau, nseg, param_grid(x, 5));
+        mat B = bbase(spline_basis_x, nseg, param_grid(x, 5));
 
         // Create roughness measure
         mat D(B.n_cols, B.n_cols, fill::eye);
