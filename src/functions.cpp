@@ -143,7 +143,7 @@ mat get_combinations(const mat &x, const vec &y)
 //' @export
 // [[Rcpp::export]]
 Rcpp::List profoc(
-    const vec &y,
+    mat &y,
     const cube &experts,
     const vec &tau,
     const bool &ex_post_smooth = false,
@@ -166,6 +166,12 @@ Rcpp::List profoc(
   const int T = experts.n_rows;
   const int P = experts.n_cols;
   const int K = experts.n_slices;
+
+  // Expand y matrix if necessary
+  if (y.n_cols == 1)
+  {
+    y = repmat(y, 1, P);
+  }
 
   // Convert to arma::vec
   vec lambda_vec(lambda);
@@ -346,14 +352,14 @@ Rcpp::List profoc(
 
         for (unsigned int k = 0; k < K; k++)
         {
-          past_performance(t, p, x) = loss(y(t),
+          past_performance(t, p, x) = loss(y(t, p),
                                            y_tilde,
                                            9999,   // where to evaluate gradient
                                            "ql",   // method
                                            tau(p), // tau
                                            2,      // alpha
                                            false);
-          lexp(k) = loss(y(t),
+          lexp(k) = loss(y(t, p),
                          experts_vec(k),
                          forecasters_pred(0), // where to evaluate gradient
                          "ql",                // method
@@ -362,7 +368,7 @@ Rcpp::List profoc(
                          gradient);
         }
 
-        lpred = loss(y(t),
+        lpred = loss(y(t, p),
                      forecasters_pred(0),
                      forecasters_pred(0), // where to evaluate gradient
                      "ql",                // method
@@ -521,7 +527,7 @@ Rcpp::List profoc(
       for (unsigned int k = 0; k < K; k++)
       {
         loss_exp(t, p, k) =
-            loss(y(t),
+            loss(y(t, p),
                  experts(t, p, k),
                  9999,   // where to evaluate the gradient
                  "ql",   // method
@@ -529,7 +535,7 @@ Rcpp::List profoc(
                  2,      // alpha
                  false); // gradient
       }
-      loss_for(t, p) = loss(y(t),
+      loss_for(t, p) = loss(y(t, p),
                             predictions(t, p),
                             9999,   // where to evaluate the gradient
                             "ql",   // method
