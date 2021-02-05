@@ -1,3 +1,4 @@
 .devcontainer/*
+.vscode/*
 .package_dev/*
 test/*

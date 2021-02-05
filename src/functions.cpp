@@ -58,49 +58,23 @@ vec pmin_arma(const vec &x,
   return out;
 }
 
-vec loss_pred(const vec &x,
-              const double &y,
-              const vec &pred,
-              const double &tau,
-              const bool &gradient = true)
+double loss(const double &y,
+            const double &x,
+            const double &pred = 0,
+            const std::string method = "ql",
+            const double &tau = 0.5,
+            const double &alpha = 2,
+            const bool &gradient = true)
 {
-  vec loss(x.size());
-  vec y_(x.size());
-  y_ = y_.fill(y);
-  vec tau_(x.size());
-  tau_ = tau_.fill(tau);
+  double loss;
 
   if (gradient)
   {
-    loss = (as_scalar(y < pred) - tau) * x;
+    loss = ((y < pred) - tau) * x;
   }
   else
   {
-    loss = (vectorise(y_ < x) - tau_) % (x - y_);
-  }
-
-  return loss;
-}
-
-//' Pinball Loss
-//'
-//' This function returns the pinball loss (also called quantile score)
-//' of pointwise probabilistic predictions.
-//'
-//' @param real A numeric vector of realizations
-//' @param pred A matrix of predictions. Columns
-//' correspond to quantiles, rows to observations
-//' @param prob A numeric vector of probabilities
-//' corresponding to the columns of pred
-//' @export
-// [[Rcpp::export]]
-mat pinball_loss(const vec &real, const mat &pred, const vec &prob)
-{
-  mat loss(real.size(), prob.size());
-
-  for (unsigned int prob_ = 0; prob_ < prob.size(); prob_++)
-  {
-    loss.col(prob_) = (conv_to<colvec>::from(real < pred.col(prob_)) - prob(prob_)) % (pred.col(prob_) - real);
+    loss = ((y < x) - tau) * (x - y);
   }
   return loss;
 }
@@ -286,7 +260,7 @@ Rcpp::List profoc(
   vec r_reg(K);
   mat mean_pb_loss(param_grid.n_rows, P);
   vec crps_approx(param_grid.n_rows);
-  mat y_tilde(1, tau.size());
+  double y_tilde;
   cube loss_cube(T, P, K, fill::zeros);
 
   // Init loss array (if existent)
@@ -312,71 +286,91 @@ Rcpp::List profoc(
 
   // Only if smoothing is possible (tau.size > 1)
 
-  if(P > 1){
-
-  // Init hat matrix field
-  for (unsigned int x = 0; x < X; x++)
+  if (P > 1)
   {
-    // In second step: skip if recalc is not necessary:
-    if (x > 0 &&
-        param_grid(x, 0) == param_grid(x - 1, 0) &&
-        param_grid(x, 4) == param_grid(x - 1, 4) &&
-        param_grid(x, 5) == param_grid(x - 1, 5) &&
-        param_grid(x, 6) == param_grid(x - 1, 6))
+
+    // Init hat matrix field
+    for (unsigned int x = 0; x < X; x++)
     {
-      hat_mats(x) = hat_mats(x - 1);
+      // In second step: skip if recalc is not necessary:
+      if (x > 0 &&
+          param_grid(x, 0) == param_grid(x - 1, 0) &&
+          param_grid(x, 4) == param_grid(x - 1, 4) &&
+          param_grid(x, 5) == param_grid(x - 1, 5) &&
+          param_grid(x, 6) == param_grid(x - 1, 6))
+      {
+        hat_mats(x) = hat_mats(x - 1);
+      }
+      else
+      {
+        // Number of segments
+        int nseg = std::min(std::max(double(1), ceil(P * param_grid(x, 4))), double(P));
+
+        // Create bspline basis mat B = bbase(tau, nseg, deg);
+        mat B = bbase(tau, nseg, param_grid(x, 5));
+
+        // Create roughness measure
+        mat D(B.n_cols, B.n_cols, fill::eye);
+        D = diff(D, param_grid(x, 6));
+
+        hat_mats(x) = B * inv(B.t() * B + param_grid(x, 0) * D.t() * D) * B.t();
+      }
+      R_CheckUserInterrupt();
+      prog.increment(); // Update progress
     }
-    else
-    {
-      // Number of segments
-      int nseg = std::min(std::max(double(1), ceil(P * param_grid(x, 4))), double(P));
-
-      // Create bspline basis mat B = bbase(tau, nseg, deg);
-      mat B = bbase(tau, nseg, param_grid(x, 5));
-
-      // Create roughness measure
-      mat D(B.n_cols, B.n_cols, fill::eye);
-      D = diff(D, param_grid(x, 6));
-
-      hat_mats(x) = B * inv(B.t() * B + param_grid(x, 0) * D.t() * D) * B.t();
-    }
-    R_CheckUserInterrupt();
-    prog.increment(); // Update progress
-  }
   }
 
   for (unsigned int t = 0; t < T; t++)
   {
 
-    experts_mat = experts.row(t);
     // Save Weights and Prediction
     // Note that w_temp != w in ex post setting and w_temp = w otherwise
+    experts_mat = experts.row(t);
     weights.row(t) = w_temp.slice(opt_index);
     predictions.row(t) = sum(w_temp.slice(opt_index) % experts_mat, 1).t();
 
     for (unsigned int x = 0; x < X; x++)
     {
 
-      y_tilde.row(0) = sum(w_temp.slice(x) % experts_mat, 1).t();
-      vec y_real(1);
-      y_real(0) = y(t);
-      past_performance(span(t), span::all, span(x)) = pinball_loss(y_real, y_tilde, tau);
-      crps_approx(x) = accu(past_performance.slice(x));
-
       for (unsigned int p = 0; p < P; p++)
       {
 
+        // Forecasters prediction w.r.t. specific parameters (ex-post)
+        y_tilde = sum(
+            vectorise(w_temp(span(p), span::all, span(x))) %
+            vectorise(experts(span(t), span(p), span::all)));
         experts_vec = experts(span(t), span(p), span::all);
-        forecasters_pred = experts_vec.t() * vectorise(w(span(p), span::all, span(x)));
+        // Forecasters prediction w.r.t. specific parameters (ex-ante)
+        forecasters_pred = experts_vec.t() *
+                           vectorise(w(span(p), span::all, span(x)));
 
-        lpred = loss_pred(forecasters_pred, y(t), forecasters_pred, tau(p), gradient);
-
-        // Get loss gradients
-        if (loss_array.size() == 0)
+        for (unsigned int k = 0; k < K; k++)
         {
-          lexp = loss_pred(experts_vec, y(t), forecasters_pred, tau(p), gradient);
+          past_performance(t, p, x) = loss(y(t),
+                                           y_tilde,
+                                           9999,   // where to evaluate gradient
+                                           "ql",   // method
+                                           tau(p), // tau
+                                           2,      // alpha
+                                           false);
+          lexp(k) = loss(y(t),
+                         experts_vec(k),
+                         forecasters_pred(0), // where to evaluate gradient
+                         "ql",                // method
+                         tau(p),              // tau
+                         2,                   // alpha
+                         gradient);
         }
-        else
+
+        lpred = loss(y(t),
+                     forecasters_pred(0),
+                     forecasters_pred(0), // where to evaluate gradient
+                     "ql",                // method
+                     tau(p),              // tau
+                     2,                   // alpha
+                     gradient);
+
+        if (loss_array.size() != 0)
         {
           lexp = loss_cube(span(t), span(p), span::all);
         }
@@ -392,7 +386,6 @@ Rcpp::List profoc(
 
         if (method == "ewa")
         {
-
           // Update the cumulative regret used by eta
           R(span(p), span::all, span(x)) = vectorise(R(span(p), span::all, span(x))) * (1 - param_grid(x, 1)) + r;
           w(span(p), span::all, span(x)) = exp(param_grid(x, 3) * vectorise(R(span(p), span::all, span(x))));
@@ -400,7 +393,6 @@ Rcpp::List profoc(
         }
         else if (method == "ml_poly")
         {
-
           // Update the cumulative regret used by ML_Poly
           R(span(p), span::all, span(x)) = vectorise(R(span(p), span::all, span(x))) * (1 - param_grid(x, 1)) + r;
 
@@ -508,7 +500,8 @@ Rcpp::List profoc(
       R_CheckUserInterrupt();
     }
 
-    // Average the pinall loss over time
+    // Sum past_performance in each slice
+    crps_approx = sum(sum(past_performance, 0), 1);
     opt_index = crps_approx.index_min();
     opt_index_(t) = opt_index + 1;
     chosen_params.row(t) = param_grid.row(opt_index);
@@ -518,12 +511,32 @@ Rcpp::List profoc(
   weights.row(T) = w_temp.slice(opt_index);
 
   // Save losses suffered by forecaster and experts
-  mat loss_for = pinball_loss(y, predictions, tau);
+  mat loss_for(T, P, fill::zeros);
   cube loss_exp(T, P, K, fill::zeros);
 
-  for (unsigned int k = 0; k < K; k++)
+  for (unsigned int t = 0; t < T; t++)
   {
-    loss_exp(span::all, span::all, span(k)) = pinball_loss(y, experts(span::all, span::all, span(k)), tau);
+    for (unsigned int p = 0; p < P; p++)
+    {
+      for (unsigned int k = 0; k < K; k++)
+      {
+        loss_exp(t, p, k) =
+            loss(y(t),
+                 experts(t, p, k),
+                 9999,   // where to evaluate the gradient
+                 "ql",   // method
+                 tau(p), // tau
+                 2,      // alpha
+                 false); // gradient
+      }
+      loss_for(t, p) = loss(y(t),
+                            predictions(t, p),
+                            9999,   // where to evaluate the gradient
+                            "ql",   // method
+                            tau(p), // tau
+                            2,      // alpha
+                            false); // gradient;
+    }
   }
 
   Rcpp::DataFrame opt_params_df = Rcpp::DataFrame::create(
