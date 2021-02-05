@@ -145,7 +145,7 @@ mat get_combinations(const mat &x, const vec &y)
 Rcpp::List profoc(
     mat &y,
     const cube &experts,
-    const vec &tau,
+    Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
     const bool &ex_post_smooth = false,
     const bool &ex_post_fs = false,
     Rcpp::NumericVector lambda = Rcpp::NumericVector::create(),
@@ -171,6 +171,19 @@ Rcpp::List profoc(
   if (y.n_cols == 1)
   {
     y = repmat(y, 1, P);
+  }
+
+  // Set default value to tau and / or expand if necessary
+  vec tau_vec(tau);
+  if (tau_vec.size() == 0)
+  {
+    tau_vec.resize(P);
+    tau_vec = regspace(1, P) / (P + 1);
+  }
+  else if (tau_vec.size() == 1)
+  {
+    tau_vec.resize(P);
+    tau_vec.fill(tau_vec(0));
   }
 
   // Convert to arma::vec
@@ -291,7 +304,7 @@ Rcpp::List profoc(
   field<mat> hat_mats(param_grid.n_rows);
   vec spline_basis_x = regspace(1, P) / (P + 1);
 
-  // Only if smoothing is possible (tau.size > 1)
+  // Only if smoothing is possible (tau_vec.size > 1)
 
   if (P > 1)
   {
@@ -313,7 +326,7 @@ Rcpp::List profoc(
         // Number of segments
         int nseg = std::min(std::max(double(1), ceil(P * param_grid(x, 4))), double(P));
 
-        // Create bspline basis mat B = bbase(tau, nseg, deg);
+        // Create bspline basis
         mat B = bbase(spline_basis_x, nseg, param_grid(x, 5));
 
         // Create roughness measure
@@ -355,16 +368,16 @@ Rcpp::List profoc(
         {
           past_performance(t, p, x) = loss(y(t, p),
                                            y_tilde,
-                                           9999,   // where to evaluate gradient
-                                           "ql",   // method
-                                           tau(p), // tau
-                                           2,      // alpha
+                                           9999,       // where to evaluate gradient
+                                           "ql",       // method
+                                           tau_vec(p), // tau_vec
+                                           2,          // alpha
                                            false);
           lexp(k) = loss(y(t, p),
                          experts_vec(k),
                          forecasters_pred(0), // where to evaluate gradient
                          "ql",                // method
-                         tau(p),              // tau
+                         tau_vec(p),          // tau_vec
                          2,                   // alpha
                          gradient);
         }
@@ -373,7 +386,7 @@ Rcpp::List profoc(
                      forecasters_pred(0),
                      forecasters_pred(0), // where to evaluate gradient
                      "ql",                // method
-                     tau(p),              // tau
+                     tau_vec(p),          // tau_vec
                      2,                   // alpha
                      gradient);
 
@@ -530,19 +543,19 @@ Rcpp::List profoc(
         loss_exp(t, p, k) =
             loss(y(t, p),
                  experts(t, p, k),
-                 9999,   // where to evaluate the gradient
-                 "ql",   // method
-                 tau(p), // tau
-                 2,      // alpha
-                 false); // gradient
+                 9999,       // where to evaluate the gradient
+                 "ql",       // method
+                 tau_vec(p), // tau_vec
+                 2,          // alpha
+                 false);     // gradient
       }
       loss_for(t, p) = loss(y(t, p),
                             predictions(t, p),
-                            9999,   // where to evaluate the gradient
-                            "ql",   // method
-                            tau(p), // tau
-                            2,      // alpha
-                            false); // gradient;
+                            9999,       // where to evaluate the gradient
+                            "ql",       // method
+                            tau_vec(p), // tau_vec
+                            2,          // alpha
+                            false);     // gradient;
     }
   }
 

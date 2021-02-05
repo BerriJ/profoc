@@ -8,14 +8,14 @@
 using namespace Rcpp;
 
 // profoc
-Rcpp::List profoc(mat& y, const cube& experts, const vec& tau, const bool& ex_post_smooth, const bool& ex_post_fs, Rcpp::NumericVector lambda, const std::string method, const std::string method_var, Rcpp::NumericVector forget, Rcpp::NumericVector fixed_share, Rcpp::NumericVector gamma, Rcpp::NumericVector ndiff, Rcpp::NumericVector deg, Rcpp::NumericVector rel_nseg, const bool& gradient, Rcpp::NumericVector loss_array, Rcpp::NumericVector regret_array);
+Rcpp::List profoc(mat& y, const cube& experts, Rcpp::NumericVector tau, const bool& ex_post_smooth, const bool& ex_post_fs, Rcpp::NumericVector lambda, const std::string method, const std::string method_var, Rcpp::NumericVector forget, Rcpp::NumericVector fixed_share, Rcpp::NumericVector gamma, Rcpp::NumericVector ndiff, Rcpp::NumericVector deg, Rcpp::NumericVector rel_nseg, const bool& gradient, Rcpp::NumericVector loss_array, Rcpp::NumericVector regret_array);
 RcppExport SEXP _profoc_profoc(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP ex_post_smoothSEXP, SEXP ex_post_fsSEXP, SEXP lambdaSEXP, SEXP methodSEXP, SEXP method_varSEXP, SEXP forgetSEXP, SEXP fixed_shareSEXP, SEXP gammaSEXP, SEXP ndiffSEXP, SEXP degSEXP, SEXP rel_nsegSEXP, SEXP gradientSEXP, SEXP loss_arraySEXP, SEXP regret_arraySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< mat& >::type y(ySEXP);
     Rcpp::traits::input_parameter< const cube& >::type experts(expertsSEXP);
-    Rcpp::traits::input_parameter< const vec& >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type tau(tauSEXP);
     Rcpp::traits::input_parameter< const bool& >::type ex_post_smooth(ex_post_smoothSEXP);
     Rcpp::traits::input_parameter< const bool& >::type ex_post_fs(ex_post_fsSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type lambda(lambdaSEXP);

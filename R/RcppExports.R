@@ -44,7 +44,7 @@
 #' parameters to consider. Profoc will automatically try all possible
 #' combinations of values provide.
 #' @export
-profoc <- function(y, experts, tau, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), method = "boa", method_var = "A", forget = as.numeric( c()), fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), rel_nseg = as.numeric( c()), gradient = TRUE, loss_array = as.numeric( c()), regret_array = as.numeric( c())) {
+profoc <- function(y, experts, tau = as.numeric( c()), ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), method = "boa", method_var = "A", forget = as.numeric( c()), fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), rel_nseg = as.numeric( c()), gradient = TRUE, loss_array = as.numeric( c()), regret_array = as.numeric( c())) {
     .Call(`_profoc_profoc`, y, experts, tau, ex_post_smooth, ex_post_fs, lambda, method, method_var, forget, fixed_share, gamma, ndiff, deg, rel_nseg, gradient, loss_array, regret_array)
 }
 
