@@ -145,10 +145,12 @@ vec set_default(const vec &input,
 //' @param loss_array User specified loss array. If specified, the loss will not be calculated by profoc.
 //' @param regret_array User specified regret array. If specifiec, the regret will not be calculated by profoc.
 //' @param trace If a progessbar shall be printed. Defaults to TRUE.
+//' @param init_weights Matrix of dimension Kx1 or KxP used as starting weights. Kx1 represents the constant solution with equal weights over all P whereas specifiying a KxP matrix allows different starting weights for each P.
 //' @usage profoc(y, experts, tau, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 //' lambda = -Inf, method = "boa", method_var = "A", forget = 0,
 //' fixed_share = 0, gamma = 1, ndiff = 1, deg = 3, rel_nseg = 0.5,
-//' gradient = TRUE, loss_array = NULL, regret_array = NULL, trace = TRUE)
+//' gradient = TRUE, loss_array = NULL, regret_array = NULL, trace = TRUE,
+//' init_weights = NULL)
 //' @return Profoc can tune various parameters automatically based on
 //' the past loss. For this, lambda, forget, fixed_share, gamma, ndiff,
 //' deg and rel_nseg can be specified as numeric vectors containing
@@ -168,7 +170,8 @@ Rcpp::List profoc(
     Rcpp::NumericVector forget = Rcpp::NumericVector::create(), Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(), Rcpp::NumericVector gamma = Rcpp::NumericVector::create(), Rcpp::NumericVector ndiff = Rcpp::NumericVector::create(), Rcpp::NumericVector deg = Rcpp::NumericVector::create(), Rcpp::NumericVector rel_nseg = Rcpp::NumericVector::create(),
     const bool &gradient = true,
     Rcpp::NumericVector loss_array = Rcpp::NumericVector::create(), Rcpp::NumericVector regret_array = Rcpp::NumericVector::create(),
-    const bool trace = true)
+    const bool trace = true,
+    Rcpp::Nullable<Rcpp::NumericMatrix> init_weights = R_NilValue)
 {
 
   // Indexing Convention -> (T, P, K, X)
@@ -226,13 +229,37 @@ Rcpp::List profoc(
 
   Progress prog(T * X + X, trace);
 
-  cube weights(T + 1, P, K, fill::zeros);
+  // Init weight objects
+
+  mat w0;
+  // Populate uniform weights if w0 was not specified
+  if (init_weights.isNotNull())
+  {
+    w0 = Rcpp::as<arma::mat>(init_weights);
+  }
+  else
+  {
+    w0.resize(K);
+    w0.fill(1 / double(K));
+  }
+
+  // Expand w0 if necessary
+  if (w0.n_cols == 1)
+  {
+    w0 = repmat(w0, 1, P);
+  }
+
+  // Normalize weights
+  w0 = w0.each_row() / sum(w0);
+
+  // Init objects holding weights temporarily
   cube w(P, K, X);
-  w = w.fill(1 / double(K));
-  cube w_temp(P, K, X, fill::ones);
-  w_temp = w_temp.fill(1 / double(K));
-  vec w0(K);
-  w0 = w0.fill(1 / double(K));
+  w.each_slice() = w0.t();
+  cube w_temp(w);
+
+  // Weights output
+  cube weights(T + 1, P, K, fill::zeros);
+
   cube R(P, K, X, fill::zeros);
   cube R_reg(R);
   cube eta(P, K, X, fill::zeros);
@@ -430,7 +457,7 @@ Rcpp::List profoc(
           if (method_var.find('C') != std::string::npos)
           {
             // Wintenberger
-            w(span(p), span::all, span(x)) = param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % exp(-param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x)))) % w0;
+            w(span(p), span::all, span(x)) = param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % exp(-param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x)))) % w0.col(p);
             w(span(p), span::all, span(x)) = w(span(p), span::all, span(x)) / mean(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % exp(-param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x)))));
           }
           else
