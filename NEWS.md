@@ -3,6 +3,7 @@ profoc v0.5.X (Release date: 2021-XX-XX)
 
 Changes:
 
+* The `init_weights` parameter has to be either a Kx1 or Kx99 matrix specifying the experts' starting weights.
 * A new `trace` parameter lets you decide whether a progress bar is printed.
 * `tau` is now optional. It defaults to 1:P/(P+1). A scalar given to tau will be repeated P times. The latter is useful in multivariate settings.
 * `y` must now be a matrix of either $\text{T} \times 1$ or $\text{T} \times \text{P}$. 
