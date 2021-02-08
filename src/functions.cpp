@@ -98,6 +98,19 @@ mat get_combinations(const mat &x, const vec &y)
   return (grid);
 }
 
+vec set_default(const vec &input,
+                const double &value)
+{
+  vec output = input;
+  if (output.size() == 0)
+  {
+    output.set_size(1);
+    output(0) = value;
+  }
+
+  return output;
+}
+
 //' Probabilistic Forecast Combination - ProFoC
 //'
 //' Returns predictions and weights calculated by online-learning algorithms
@@ -186,58 +199,16 @@ Rcpp::List profoc(
     tau_vec.fill(tau_vec(0));
   }
 
-  // Convert to arma::vec
-  vec lambda_vec(lambda);
-  vec forget_vec(forget);
-  vec fixed_share_vec(fixed_share);
-  vec gamma_vec(gamma);
-  vec rel_nseg_vec(rel_nseg);
-  vec deg_vec(deg);
-  vec diff_vec(ndiff);
+  // Set default values
+  vec lambda_vec = set_default(lambda, -datum::inf);
+  vec forget_vec = set_default(forget, 0);
+  vec fixed_share_vec = set_default(fixed_share, 0);
+  vec gamma_vec = set_default(gamma, 1);
+  vec rel_nseg_vec = set_default(rel_nseg, 0.5);
+  vec deg_vec = set_default(deg, 3);
+  vec diff_vec = set_default(ndiff, 1);
 
-  // Apply default values if necessary
-  if (lambda_vec.size() == 0)
-  {
-    lambda_vec.set_size(1);
-    lambda_vec(0) = -datum::inf;
-  }
-
-  if (forget_vec.size() == 0)
-  {
-    forget_vec.set_size(1);
-    forget_vec(0) = 0;
-  }
-
-  if (fixed_share_vec.size() == 0)
-  {
-    fixed_share_vec.set_size(1);
-    fixed_share_vec(0) = 0;
-  }
-
-  if (gamma_vec.size() == 0)
-  {
-    gamma_vec.set_size(1);
-    gamma_vec(0) = 1;
-  }
-
-  if (rel_nseg_vec.size() == 0)
-  {
-    rel_nseg_vec.set_size(1);
-    rel_nseg_vec(0) = 0.5;
-  }
-
-  if (deg_vec.size() == 0)
-  {
-    deg_vec.set_size(1);
-    deg_vec(0) = 3;
-  }
-
-  if (diff_vec.size() == 0)
-  {
-    diff_vec.set_size(1);
-    diff_vec(0) = 1;
-  }
-
+  // Init parametergrid
   mat param_grid = get_combinations(lambda_vec, forget_vec);
   param_grid = get_combinations(param_grid, fixed_share_vec);
   param_grid = get_combinations(param_grid, gamma_vec);
