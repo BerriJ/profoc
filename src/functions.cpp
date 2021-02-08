@@ -144,10 +144,11 @@ vec set_default(const vec &input,
 //' @param gradient Determines if a linearized version of the loss is used.
 //' @param loss_array User specified loss array. If specified, the loss will not be calculated by profoc.
 //' @param regret_array User specified regret array. If specifiec, the regret will not be calculated by profoc.
+//' @param trace If a progessbar shall be printed. Defaults to TRUE.
 //' @usage profoc(y, experts, tau, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 //' lambda = -Inf, method = "boa", method_var = "A", forget = 0,
 //' fixed_share = 0, gamma = 1, ndiff = 1, deg = 3, rel_nseg = 0.5,
-//' gradient = TRUE, loss_array = NULL, regret_array = NULL)
+//' gradient = TRUE, loss_array = NULL, regret_array = NULL, trace = TRUE)
 //' @return Profoc can tune various parameters automatically based on
 //' the past loss. For this, lambda, forget, fixed_share, gamma, ndiff,
 //' deg and rel_nseg can be specified as numeric vectors containing
@@ -166,7 +167,8 @@ Rcpp::List profoc(
     const std::string method_var = "A",
     Rcpp::NumericVector forget = Rcpp::NumericVector::create(), Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(), Rcpp::NumericVector gamma = Rcpp::NumericVector::create(), Rcpp::NumericVector ndiff = Rcpp::NumericVector::create(), Rcpp::NumericVector deg = Rcpp::NumericVector::create(), Rcpp::NumericVector rel_nseg = Rcpp::NumericVector::create(),
     const bool &gradient = true,
-    Rcpp::NumericVector loss_array = Rcpp::NumericVector::create(), Rcpp::NumericVector regret_array = Rcpp::NumericVector::create())
+    Rcpp::NumericVector loss_array = Rcpp::NumericVector::create(), Rcpp::NumericVector regret_array = Rcpp::NumericVector::create(),
+    const bool trace = true)
 {
 
   // Indexing Convention -> (T, P, K, X)
@@ -222,7 +224,7 @@ Rcpp::List profoc(
   vec opt_index_(T);
   cube past_performance(T, P, X, fill::zeros);
 
-  Progress prog(T * X + X, true);
+  Progress prog(T * X + X, trace);
 
   cube weights(T + 1, P, K, fill::zeros);
   cube w(P, K, X);

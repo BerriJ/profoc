@@ -3,6 +3,7 @@ profoc v0.5.X (Release date: 2021-XX-XX)
 
 Changes:
 
+* A new `trace` parameter lets you decide whether a progress bar is printed.
 * `tau` is now optional. It defaults to 1:P/(P+1). A scalar given to tau will be repeated P times. The latter is useful in multivariate settings.
 * `y` must now be a matrix of either $\text{T} \times 1$ or $\text{T} \times \text{P}$. 
 * The pinball_loss and loss_pred functions were replaced by a more flexible function called `loss`.

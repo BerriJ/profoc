@@ -7,7 +7,7 @@
 profoc(y, experts, tau, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 lambda = -Inf, method = "boa", method_var = "A", forget = 0,
 fixed_share = 0, gamma = 1, ndiff = 1, deg = 3, rel_nseg = 0.5,
-gradient = TRUE, loss_array = NULL, regret_array = NULL)
+gradient = TRUE, loss_array = NULL, regret_array = NULL, trace = TRUE)
 }
 \arguments{
 \item{y}{A numeric vector of realizations.}
@@ -53,6 +53,8 @@ Defaults to 0. 1 leads to uniform weights.}
 \item{loss_array}{User specified loss array. If specified, the loss will not be calculated by profoc.}
 
 \item{regret_array}{User specified regret array. If specifiec, the regret will not be calculated by profoc.}
+
+\item{trace}{If a progessbar shall be printed. Defaults to TRUE.}
 }
 \value{
 Profoc can tune various parameters automatically based on
