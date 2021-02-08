@@ -249,6 +249,10 @@ Rcpp::List profoc(
     w0 = repmat(w0, 1, P);
   }
 
+  // Truncate from below
+  for (unsigned int p = 0; p < P; p++)
+    w0.col(p) = pmax_arma(w0.col(p), exp(-350));
+
   // Normalize weights
   w0 = w0.each_row() / sum(w0);
 
