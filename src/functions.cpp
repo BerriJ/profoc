@@ -32,28 +32,30 @@ mat bbase(const vec &x, const int &nseg, const int &deg)
   return B;
 }
 
-vec pmax_arma(const vec &x,
-              const double &bound)
+mat pmax_arma(const mat &x, const double &bound)
 {
-  size_t n = x.n_elem;
-  vec out = x;
-  for (size_t i = 0; i < n; i++)
+  mat out(x);
+  for (size_t r = 0; r < x.n_rows; r++)
   {
-    if (out(i) < bound)
-      out(i) = bound;
+    for (size_t c = 0; c < x.n_cols; c++)
+    {
+      if (out(r, c) < bound)
+        out(r, c) = bound;
+    }
   }
   return out;
 }
 
-vec pmin_arma(const vec &x,
-              const double &bound)
+mat pmin_arma(const mat &x, const double &bound)
 {
-  size_t n = x.n_elem;
-  vec out = x;
-  for (size_t i = 0; i < n; i++)
+  mat out(x);
+  for (size_t r = 0; r < x.n_rows; r++)
   {
-    if (out(i) > bound)
-      out(i) = bound;
+    for (size_t c = 0; c < x.n_cols; c++)
+    {
+      if (out(r, c) > bound)
+        out(r, c) = bound;
+    }
   }
   return out;
 }
@@ -250,8 +252,7 @@ Rcpp::List profoc(
   }
 
   // Truncate from below
-  for (unsigned int p = 0; p < P; p++)
-    w0.col(p) = pmax_arma(w0.col(p), exp(-350));
+  w0 = pmax_arma(w0, exp(-350));
 
   // Normalize weights
   w0 = w0.each_row() / sum(w0);
@@ -424,7 +425,7 @@ Rcpp::List profoc(
           eta(span(p), span::all, span(x)) = 1 / (1 / vectorise(eta(span(p), span::all, span(x))) + square(r));
 
           // param_grid(x, 3) = gamma
-          w(span(p), span::all, span(x)) = param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % pmax_arma(vectorise(R(span(p), span::all, span(x))), exp(-700));
+          w(span(p), span::all, span(x)) = param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % pmax_arma(R(span(p), span::all, span(x)), exp(-700));
           w(span(p), span::all, span(x)) = w(span(p), span::all, span(x)) / accu(w(span(p), span::all, span(x)));
         }
         else if (method == "boa")
@@ -466,7 +467,7 @@ Rcpp::List profoc(
           {
             // Gaillard
             w(span(p), span::all, span(x)) = exp(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x))));
-            w(span(p), span::all, span(x)) = pmin_arma(pmax_arma(vectorise(w(span(p), span::all, span(x))), exp(-700)), exp(700));
+            w(span(p), span::all, span(x)) = pmin_arma(pmax_arma(w(span(p), span::all, span(x)), exp(-700)), exp(700));
             w(span(p), span::all, span(x)) = w(span(p), span::all, span(x)) / accu(w(span(p), span::all, span(x)));
           }
         }
