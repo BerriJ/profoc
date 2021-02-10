@@ -24,11 +24,18 @@ Installation
 
 ### Install from Github
 
-You can install the latest development version from github with
+You can install the latest stable version from github with
 
 ``` r
 # install.packages("remotes")
 remotes::install_github("BerriJ/profoc")
+```
+
+You can install the latest development version from github with
+
+``` r
+# install.packages("remotes")
+remotes::install_github("BerriJ/profoc@develop")
 ```
 
 ### Install from CRAN
