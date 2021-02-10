@@ -429,8 +429,6 @@ Rcpp::List profoc(
         }
         else if (method == "boa")
         {
-          // Opposite of instantaneous regret
-          r = -r;
 
           V(span(p), span::all, span(x)) = vectorise(V(span(p), span::all, span(x))) * (1 - param_grid(x, 1)) + square(r);
 
@@ -444,7 +442,7 @@ Rcpp::List profoc(
                   exp(350));
 
           // Instantaneous regularized regret
-          r_reg = r + vectorise(eta(span(p), span::all, span(x))) % square(r);
+          r_reg = r - vectorise(eta(span(p), span::all, span(x))) % square(r);
 
           // Update cumulative regularized regret
           if (method_var.find('A') != std::string::npos)
@@ -461,13 +459,13 @@ Rcpp::List profoc(
           if (method_var.find('C') != std::string::npos)
           {
             // Wintenberger
-            w(span(p), span::all, span(x)) = param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % exp(-param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x)))) % w0.col(p);
-            w(span(p), span::all, span(x)) = w(span(p), span::all, span(x)) / mean(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % exp(-param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x)))));
+            w(span(p), span::all, span(x)) = param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % exp(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x)))) % w0.col(p);
+            w(span(p), span::all, span(x)) = w(span(p), span::all, span(x)) / mean(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % exp(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x)))));
           }
           else
           {
             // Gaillard
-            w(span(p), span::all, span(x)) = exp(-param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x))));
+            w(span(p), span::all, span(x)) = exp(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x))));
             w(span(p), span::all, span(x)) = pmin_arma(pmax_arma(vectorise(w(span(p), span::all, span(x))), exp(-700)), exp(700));
             w(span(p), span::all, span(x)) = w(span(p), span::all, span(x)) / accu(w(span(p), span::all, span(x)));
           }
