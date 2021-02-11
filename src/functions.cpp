@@ -264,9 +264,9 @@ Rcpp::List profoc(
   w0 = w0.each_row() / sum(w0);
 
   // Init objects holding weights temporarily
-  cube w(P, K, X);
-  w.each_slice() = w0.t();
-  cube w_temp(w);
+  cube w_temp(P, K, X);
+  w_temp.each_slice() = w0.t();
+  cube w_post(w_temp);
 
   // Weights output
   cube weights(T + 1, P, K, fill::zeros);
@@ -355,10 +355,10 @@ Rcpp::List profoc(
   {
 
     // Save Weights and Prediction
-    // Note that w_temp != w in ex post setting and w_temp = w otherwise
+    // Note that w_post != w_temp in ex post setting and w_post = w_temp otherwise
     experts_mat = experts.row(t);
-    weights.row(t) = w_temp.slice(opt_index);
-    predictions.row(t) = sum(w_temp.slice(opt_index) % experts_mat, 1).t();
+    weights.row(t) = w_post.slice(opt_index);
+    predictions.row(t) = sum(w_post.slice(opt_index) % experts_mat, 1).t();
 
     for (unsigned int x = 0; x < X; x++)
     {
@@ -366,14 +366,14 @@ Rcpp::List profoc(
       for (unsigned int p = 0; p < P; p++)
       {
 
-        // Forecasters prediction w.r.t. specific parameters (ex-post)
+        // Forecasters prediction w_temp.r.t. specific parameters (ex-post)
         y_tilde = sum(
-            vectorise(w_temp(span(p), span::all, span(x))) %
+            vectorise(w_post(span(p), span::all, span(x))) %
             vectorise(experts(span(t), span(p), span::all)));
         experts_vec = experts(span(t), span(p), span::all);
-        // Forecasters prediction w.r.t. specific parameters (ex-ante)
+        // Forecasters prediction w_temp.r.t. specific parameters (ex-ante)
         forecasters_pred = experts_vec.t() *
-                           vectorise(w(span(p), span::all, span(x)));
+                           vectorise(w_temp(span(p), span::all, span(x)));
 
         for (unsigned int k = 0; k < K; k++)
         {
@@ -419,8 +419,8 @@ Rcpp::List profoc(
         {
           // Update the cumulative regret used by eta
           R(span(p), span::all, span(x)) = vectorise(R(span(p), span::all, span(x))) * (1 - param_grid(x, 1)) + r;
-          w(span(p), span::all, span(x)) = exp(param_grid(x, 3) * vectorise(R(span(p), span::all, span(x))));
-          w(span(p), span::all, span(x)) = w(span(p), span::all, span(x)) / accu(w(span(p), span::all, span(x)));
+          w_temp(span(p), span::all, span(x)) = exp(param_grid(x, 3) * vectorise(R(span(p), span::all, span(x))));
+          w_temp(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)));
         }
         else if (method == "ml_poly")
         {
@@ -431,8 +431,8 @@ Rcpp::List profoc(
           eta(span(p), span::all, span(x)) = 1 / (1 / vectorise(eta(span(p), span::all, span(x))) + square(r));
 
           // param_grid(x, 3) = gamma
-          w(span(p), span::all, span(x)) = param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % pmax_arma(R(span(p), span::all, span(x)), exp(-700));
-          w(span(p), span::all, span(x)) = w(span(p), span::all, span(x)) / accu(w(span(p), span::all, span(x)));
+          w_temp(span(p), span::all, span(x)) = param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % pmax_arma(R(span(p), span::all, span(x)), exp(-700));
+          w_temp(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)));
         }
         else if (method == "boa")
         {
@@ -466,15 +466,15 @@ Rcpp::List profoc(
           if (method_var.find('C') != std::string::npos)
           {
             // Wintenberger
-            w(span(p), span::all, span(x)) = param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % exp(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x)))) % w0.col(p);
-            w(span(p), span::all, span(x)) = w(span(p), span::all, span(x)) / mean(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % exp(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x)))));
+            w_temp(span(p), span::all, span(x)) = param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % exp(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x)))) % w0.col(p);
+            w_temp(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x)) / mean(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % exp(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x)))));
           }
           else
           {
             // Gaillard
-            w(span(p), span::all, span(x)) = exp(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x))));
-            w(span(p), span::all, span(x)) = pmin_arma(pmax_arma(w(span(p), span::all, span(x)), exp(-700)), exp(700));
-            w(span(p), span::all, span(x)) = w(span(p), span::all, span(x)) / accu(w(span(p), span::all, span(x)));
+            w_temp(span(p), span::all, span(x)) = exp(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x))));
+            w_temp(span(p), span::all, span(x)) = pmin_arma(pmax_arma(w_temp(span(p), span::all, span(x)), exp(-700)), exp(700));
+            w_temp(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)));
           }
         }
         else
@@ -483,7 +483,7 @@ Rcpp::List profoc(
         }
       }
 
-      w_temp.slice(x) = w.slice(x);
+      w_post.slice(x) = w_temp.slice(x);
 
       // Smoothing Step
       if (param_grid(x, 0) != -datum::inf)
@@ -492,15 +492,15 @@ Rcpp::List profoc(
         {
           if (!ex_post_smooth)
           {
-            w(span::all, span(k), span(x)) = hat_mats(x) * vectorise(w(span::all, span(k), span(x)));
+            w_temp(span::all, span(k), span(x)) = hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
             // Truncate to zero
-            w(span::all, span(k), span(x)) = pmax_arma(w(span::all, span(k), span(x)), exp(-700));
-            w_temp(span::all, span(k), span(x)) = w(span::all, span(k), span(x));
+            w_temp(span::all, span(k), span(x)) = pmax_arma(w_temp(span::all, span(k), span(x)), exp(-700));
+            w_post(span::all, span(k), span(x)) = w_temp(span::all, span(k), span(x));
           }
           else
           {
-            w_temp(span::all, span(k), span(x)) = hat_mats(x) * vectorise(w(span::all, span(k), span(x)));
-            w_temp(span::all, span(k), span(x)) = pmax_arma(w_temp(span::all, span(k), span(x)), exp(-700));
+            w_post(span::all, span(k), span(x)) = hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
+            w_post(span::all, span(k), span(x)) = pmax_arma(w_post(span::all, span(k), span(x)), exp(-700));
           }
         }
       }
@@ -508,21 +508,21 @@ Rcpp::List profoc(
       //Add fixed_share
       for (unsigned int p = 0; p < P; p++)
       {
-        if (ex_post_fs) // Fixed share only added to w_temp
+        if (ex_post_fs) // Fixed share only added to w_post
         {
-          w_temp(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
+          w_post(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w_post(span(p), span::all, span(x)) / accu(w_post(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
         }
         else if (ex_post_smooth && !ex_post_fs)
         {
           // Add fixed_share to wtemp
+          w_post(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w_post(span(p), span::all, span(x)) / accu(w_post(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
+          // Add fixed_share to w_temp
           w_temp(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
-          // Add fixed_share to w
-          w(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w(span(p), span::all, span(x)) / accu(w(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
         }
         else if (!ex_post_smooth && !ex_post_fs)
         {
-          w(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w(span(p), span::all, span(x)) / accu(w(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
-          w_temp(span(p), span::all, span(x)) = w(span(p), span::all, span(x));
+          w_temp(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
+          w_post(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x));
         }
       }
       prog.increment(); // Update progress
@@ -543,7 +543,7 @@ Rcpp::List profoc(
   }
 
   // Save Weights and Prediction
-  weights.row(T) = w_temp.slice(opt_index);
+  weights.row(T) = w_post.slice(opt_index);
 
   // Save losses suffered by forecaster and experts
   mat loss_for(T, P, fill::zeros);
