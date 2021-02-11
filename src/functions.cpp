@@ -135,8 +135,10 @@ vec set_default(const vec &input,
 //' @param method One of "boa", "ml_poly" or "ewa".
 //' @param method_var Allows to calculate slight variations of the BOA
 //' algorithm
-//' @param forget Share of past Regret not to be considered, resp. to be
+//' @param forget_regret Share of past regret not to be considered, resp. to be
 //' forgotten in every iteration of the algorithm. Defaults to 0.
+//' @param forget_performance Share of past performance not to be considered, resp. to be
+//' forgotten in every iteration of the algorithm when choosing the parameter combination. Defaults to 0.
 //' @param fixed_share Amount of fixed share to be added to the weights.
 //' Defaults to 0. 1 leads to uniform weights.
 //' @param gamma Scaling parameter for the learning rate.
@@ -149,9 +151,10 @@ vec set_default(const vec &input,
 //' @param trace If a progessbar shall be printed. Defaults to TRUE.
 //' @param init_weights Matrix of dimension Kx1 or KxP used as starting weights. Kx1 represents the constant solution with equal weights over all P whereas specifiying a KxP matrix allows different starting weights for each P.
 //' @usage profoc(y, experts, tau, ex_post_smooth = FALSE, ex_post_fs = FALSE,
-//' lambda = -Inf, method = "boa", method_var = "A", forget = 0,
-//' fixed_share = 0, gamma = 1, ndiff = 1, deg = 3, rel_nseg = 0.5,
-//' gradient = TRUE, loss_array = NULL, regret_array = NULL, trace = TRUE,
+//' lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
+//' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
+//'rel_nseg = 0.5, gradient = TRUE, loss_array = NULL, regret_array = NULL,
+//' trace = TRUE,
 //' init_weights = NULL)
 //' @return Profoc can tune various parameters automatically based on
 //' the past loss. For this, lambda, forget, fixed_share, gamma, ndiff,
@@ -169,7 +172,9 @@ Rcpp::List profoc(
     Rcpp::NumericVector lambda = Rcpp::NumericVector::create(),
     const std::string method = "boa",
     const std::string method_var = "A",
-    Rcpp::NumericVector forget = Rcpp::NumericVector::create(), Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(), Rcpp::NumericVector gamma = Rcpp::NumericVector::create(), Rcpp::NumericVector ndiff = Rcpp::NumericVector::create(), Rcpp::NumericVector deg = Rcpp::NumericVector::create(), Rcpp::NumericVector rel_nseg = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector forget_regret = Rcpp::NumericVector::create(),
+    const double &forget_performance = 0,
+    Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(), Rcpp::NumericVector gamma = Rcpp::NumericVector::create(), Rcpp::NumericVector ndiff = Rcpp::NumericVector::create(), Rcpp::NumericVector deg = Rcpp::NumericVector::create(), Rcpp::NumericVector rel_nseg = Rcpp::NumericVector::create(),
     const bool &gradient = true,
     Rcpp::NumericVector loss_array = Rcpp::NumericVector::create(), Rcpp::NumericVector regret_array = Rcpp::NumericVector::create(),
     const bool trace = true,
@@ -208,7 +213,7 @@ Rcpp::List profoc(
 
   // Set default values
   vec lambda_vec = set_default(lambda, -datum::inf);
-  vec forget_vec = set_default(forget, 0);
+  vec forget_vec = set_default(forget_regret, 0);
   vec fixed_share_vec = set_default(fixed_share, 0);
   vec gamma_vec = set_default(gamma, 1);
   vec rel_nseg_vec = set_default(rel_nseg, 0.5);
@@ -228,7 +233,8 @@ Rcpp::List profoc(
   int opt_index = 0;
   vec opt_index_(T);
   cube past_performance(T, P, X, fill::zeros);
-
+  mat tmp_performance(P, X, fill::zeros);
+  mat cum_performance(P, X, fill::zeros);
   Progress prog(T * X + X, trace);
 
   // Init weight objects
@@ -524,7 +530,13 @@ Rcpp::List profoc(
     }
 
     // Sum past_performance in each slice
-    crps_approx = sum(sum(past_performance, 0), 1);
+    tmp_performance = past_performance.row(t);
+    if (past_performance.n_slices == 1)
+    {
+      tmp_performance = tmp_performance.t();
+    }
+    cum_performance = (1 - forget_performance) * cum_performance + tmp_performance;
+    crps_approx = vectorise(sum(cum_performance, 0));
     opt_index = crps_approx.index_min();
     opt_index_(t) = opt_index + 1;
     chosen_params.row(t) = param_grid.row(opt_index);
@@ -564,7 +576,7 @@ Rcpp::List profoc(
 
   Rcpp::DataFrame opt_params_df = Rcpp::DataFrame::create(
       Rcpp::Named("lambda") = chosen_params.col(0),
-      Rcpp::Named("forget") = chosen_params.col(1),
+      Rcpp::Named("forget_regret") = chosen_params.col(1),
       Rcpp::Named("fixed_share") = chosen_params.col(2),
       Rcpp::Named("gamma") = chosen_params.col(3),
       Rcpp::Named("rel_nseg") = chosen_params.col(4),
@@ -574,7 +586,7 @@ Rcpp::List profoc(
 
   Rcpp::DataFrame parametergrid = Rcpp::DataFrame::create(
       Rcpp::Named("lambda") = param_grid.col(0),
-      Rcpp::Named("forget") = param_grid.col(1),
+      Rcpp::Named("forget_regret") = param_grid.col(1),
       Rcpp::Named("fixed_share") = param_grid.col(2),
       Rcpp::Named("gamma") = param_grid.col(3),
       Rcpp::Named("rel_nseg") = param_grid.col(4),

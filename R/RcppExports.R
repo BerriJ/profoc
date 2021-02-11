@@ -23,8 +23,10 @@
 #' @param method One of "boa", "ml_poly" or "ewa".
 #' @param method_var Allows to calculate slight variations of the BOA
 #' algorithm
-#' @param forget Share of past Regret not to be considered, resp. to be
+#' @param forget_regret Share of past regret not to be considered, resp. to be
 #' forgotten in every iteration of the algorithm. Defaults to 0.
+#' @param forget_performance Share of past performance not to be considered, resp. to be
+#' forgotten in every iteration of the algorithm when choosing the parameter combination. Defaults to 0.
 #' @param fixed_share Amount of fixed share to be added to the weights.
 #' Defaults to 0. 1 leads to uniform weights.
 #' @param gamma Scaling parameter for the learning rate.
@@ -37,9 +39,10 @@
 #' @param trace If a progessbar shall be printed. Defaults to TRUE.
 #' @param init_weights Matrix of dimension Kx1 or KxP used as starting weights. Kx1 represents the constant solution with equal weights over all P whereas specifiying a KxP matrix allows different starting weights for each P.
 #' @usage profoc(y, experts, tau, ex_post_smooth = FALSE, ex_post_fs = FALSE,
-#' lambda = -Inf, method = "boa", method_var = "A", forget = 0,
-#' fixed_share = 0, gamma = 1, ndiff = 1, deg = 3, rel_nseg = 0.5,
-#' gradient = TRUE, loss_array = NULL, regret_array = NULL, trace = TRUE,
+#' lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
+#' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
+#'rel_nseg = 0.5, gradient = TRUE, loss_array = NULL, regret_array = NULL,
+#' trace = TRUE,
 #' init_weights = NULL)
 #' @return Profoc can tune various parameters automatically based on
 #' the past loss. For this, lambda, forget, fixed_share, gamma, ndiff,
@@ -47,8 +50,8 @@
 #' parameters to consider. Profoc will automatically try all possible
 #' combinations of values provide.
 #' @export
-profoc <- function(y, experts, tau = as.numeric( c()), ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), method = "boa", method_var = "A", forget = as.numeric( c()), fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), rel_nseg = as.numeric( c()), gradient = TRUE, loss_array = as.numeric( c()), regret_array = as.numeric( c()), trace = TRUE, init_weights = NULL) {
-    .Call(`_profoc_profoc`, y, experts, tau, ex_post_smooth, ex_post_fs, lambda, method, method_var, forget, fixed_share, gamma, ndiff, deg, rel_nseg, gradient, loss_array, regret_array, trace, init_weights)
+profoc <- function(y, experts, tau = as.numeric( c()), ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), method = "boa", method_var = "A", forget_regret = as.numeric( c()), forget_performance = 0, fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), rel_nseg = as.numeric( c()), gradient = TRUE, loss_array = as.numeric( c()), regret_array = as.numeric( c()), trace = TRUE, init_weights = NULL) {
+    .Call(`_profoc_profoc`, y, experts, tau, ex_post_smooth, ex_post_fs, lambda, method, method_var, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, rel_nseg, gradient, loss_array, regret_array, trace, init_weights)
 }
 
 #' Spline Fit - Fit Penalized B-Splines

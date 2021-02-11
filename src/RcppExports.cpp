@@ -8,8 +8,8 @@
 using namespace Rcpp;
 
 // profoc
-Rcpp::List profoc(mat& y, const cube& experts, Rcpp::NumericVector tau, const bool& ex_post_smooth, const bool& ex_post_fs, Rcpp::NumericVector lambda, const std::string method, const std::string method_var, Rcpp::NumericVector forget, Rcpp::NumericVector fixed_share, Rcpp::NumericVector gamma, Rcpp::NumericVector ndiff, Rcpp::NumericVector deg, Rcpp::NumericVector rel_nseg, const bool& gradient, Rcpp::NumericVector loss_array, Rcpp::NumericVector regret_array, const bool trace, Rcpp::Nullable<Rcpp::NumericMatrix> init_weights);
-RcppExport SEXP _profoc_profoc(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP ex_post_smoothSEXP, SEXP ex_post_fsSEXP, SEXP lambdaSEXP, SEXP methodSEXP, SEXP method_varSEXP, SEXP forgetSEXP, SEXP fixed_shareSEXP, SEXP gammaSEXP, SEXP ndiffSEXP, SEXP degSEXP, SEXP rel_nsegSEXP, SEXP gradientSEXP, SEXP loss_arraySEXP, SEXP regret_arraySEXP, SEXP traceSEXP, SEXP init_weightsSEXP) {
+Rcpp::List profoc(mat& y, const cube& experts, Rcpp::NumericVector tau, const bool& ex_post_smooth, const bool& ex_post_fs, Rcpp::NumericVector lambda, const std::string method, const std::string method_var, Rcpp::NumericVector forget_regret, const double& forget_performance, Rcpp::NumericVector fixed_share, Rcpp::NumericVector gamma, Rcpp::NumericVector ndiff, Rcpp::NumericVector deg, Rcpp::NumericVector rel_nseg, const bool& gradient, Rcpp::NumericVector loss_array, Rcpp::NumericVector regret_array, const bool trace, Rcpp::Nullable<Rcpp::NumericMatrix> init_weights);
+RcppExport SEXP _profoc_profoc(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP ex_post_smoothSEXP, SEXP ex_post_fsSEXP, SEXP lambdaSEXP, SEXP methodSEXP, SEXP method_varSEXP, SEXP forget_regretSEXP, SEXP forget_performanceSEXP, SEXP fixed_shareSEXP, SEXP gammaSEXP, SEXP ndiffSEXP, SEXP degSEXP, SEXP rel_nsegSEXP, SEXP gradientSEXP, SEXP loss_arraySEXP, SEXP regret_arraySEXP, SEXP traceSEXP, SEXP init_weightsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -21,7 +21,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< const std::string >::type method(methodSEXP);
     Rcpp::traits::input_parameter< const std::string >::type method_var(method_varSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type forget(forgetSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type forget_regret(forget_regretSEXP);
+    Rcpp::traits::input_parameter< const double& >::type forget_performance(forget_performanceSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type fixed_share(fixed_shareSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type gamma(gammaSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type ndiff(ndiffSEXP);
@@ -32,7 +33,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type regret_array(regret_arraySEXP);
     Rcpp::traits::input_parameter< const bool >::type trace(traceSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericMatrix> >::type init_weights(init_weightsSEXP);
-    rcpp_result_gen = Rcpp::wrap(profoc(y, experts, tau, ex_post_smooth, ex_post_fs, lambda, method, method_var, forget, fixed_share, gamma, ndiff, deg, rel_nseg, gradient, loss_array, regret_array, trace, init_weights));
+    rcpp_result_gen = Rcpp::wrap(profoc(y, experts, tau, ex_post_smooth, ex_post_fs, lambda, method, method_var, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, rel_nseg, gradient, loss_array, regret_array, trace, init_weights));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -54,7 +55,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_profoc_profoc", (DL_FUNC) &_profoc_profoc, 19},
+    {"_profoc_profoc", (DL_FUNC) &_profoc_profoc, 20},
     {"_profoc_spline_fit", (DL_FUNC) &_profoc_spline_fit, 6},
     {NULL, NULL, 0}
 };

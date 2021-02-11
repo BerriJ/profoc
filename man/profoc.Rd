@@ -5,9 +5,10 @@
 \title{Probabilistic Forecast Combination - ProFoC}
 \usage{
 profoc(y, experts, tau, ex_post_smooth = FALSE, ex_post_fs = FALSE,
-lambda = -Inf, method = "boa", method_var = "A", forget = 0,
-fixed_share = 0, gamma = 1, ndiff = 1, deg = 3, rel_nseg = 0.5,
-gradient = TRUE, loss_array = NULL, regret_array = NULL, trace = TRUE,
+lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
+forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
+rel_nseg = 0.5, gradient = TRUE, loss_array = NULL, regret_array = NULL,
+trace = TRUE,
 init_weights = NULL)
 }
 \arguments{
@@ -35,8 +36,11 @@ be added during (FALSE) or after online-learning (TRUE).}
 \item{method_var}{Allows to calculate slight variations of the BOA
 algorithm}
 
-\item{forget}{Share of past Regret not to be considered, resp. to be
+\item{forget_regret}{Share of past regret not to be considered, resp. to be
 forgotten in every iteration of the algorithm. Defaults to 0.}
+
+\item{forget_performance}{Share of past performance not to be considered, resp. to be
+forgotten in every iteration of the algorithm when choosing the parameter combination. Defaults to 0.}
 
 \item{fixed_share}{Amount of fixed share to be added to the weights.
 Defaults to 0. 1 leads to uniform weights.}
