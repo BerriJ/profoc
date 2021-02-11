@@ -231,7 +231,7 @@ Rcpp::List profoc(
   const int X = param_grid.n_rows;
   mat chosen_params(T, param_grid.n_cols);
   int opt_index = 0;
-  vec opt_index_(T);
+  vec opt_index_(T + 1, fill::zeros);
   cube past_performance(T, P, X, fill::zeros);
   mat tmp_performance(P, X, fill::zeros);
   mat cum_performance(P, X, fill::zeros);
@@ -538,7 +538,7 @@ Rcpp::List profoc(
     cum_performance = (1 - forget_performance) * cum_performance + tmp_performance;
     crps_approx = vectorise(sum(cum_performance, 0));
     opt_index = crps_approx.index_min();
-    opt_index_(t) = opt_index + 1;
+    opt_index_(t + 1) = opt_index;
     chosen_params.row(t) = param_grid.row(opt_index);
   }
 
@@ -573,6 +573,9 @@ Rcpp::List profoc(
                             false);     // gradient;
     }
   }
+
+  // 1-Indexing for R-Output
+  opt_index_ = opt_index_ + 1;
 
   Rcpp::DataFrame opt_params_df = Rcpp::DataFrame::create(
       Rcpp::Named("lambda") = chosen_params.col(0),
