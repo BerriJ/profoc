@@ -263,9 +263,10 @@ Rcpp::List profoc(
   // Normalize weights
   w0 = w0.each_row() / sum(w0);
 
-  // Init objects holding weights temporarily
+  // Init object holding temp. weights, resp. ex-ante
   cube w_temp(P, K, X);
   w_temp.each_slice() = w0.t();
+  // Init object holding final weights, resp. ex-post
   cube w_post(w_temp);
 
   // Weights output
@@ -280,17 +281,19 @@ Rcpp::List profoc(
   cube E(P, K, X, fill::zeros);
   cube k(P, K, X, fill::zeros);
   k = k.fill(-699);
-  vec experts_vec(K);
   mat experts_mat(P, K);
-  vec forecasters_pred(1);
-  mat predictions(T, P);
+
+  cube predictions_post(T, P, X);
+  cube predictions_ante(T, P, X);
+  mat predictions_temp(P, K);
+  mat predictions_final(T, P);
+
   vec lpred(1);
   vec lexp(K);
   vec r(K);
   vec r_reg(K);
   mat mean_pb_loss(param_grid.n_rows, P);
   vec crps_approx(param_grid.n_rows);
-  double y_tilde;
   cube loss_cube(T, P, K, fill::zeros);
 
   // Init loss array (if existent)
@@ -311,12 +314,10 @@ Rcpp::List profoc(
   }
 
   // Smoothing Setup
-
   field<mat> hat_mats(param_grid.n_rows);
   vec spline_basis_x = regspace(1, P) / (P + 1);
 
   // Only if smoothing is possible (tau_vec.size > 1)
-
   if (P > 1)
   {
 
@@ -354,51 +355,56 @@ Rcpp::List profoc(
   for (unsigned int t = 0; t < T; t++)
   {
 
-    // Save Weights and Prediction
-    // Note that w_post != w_temp in ex post setting and w_post = w_temp otherwise
-    experts_mat = experts.row(t);
+    // Save contemporary weights w_temp and final weights w_post
     weights.row(t) = w_post.slice(opt_index);
-    predictions.row(t) = sum(w_post.slice(opt_index) % experts_mat, 1).t();
+
+    // Store expert predictions temporarily
+    experts_mat = experts.row(t);
+
+    // Forecasters prediction(ex-ante)
+    predictions_temp = sum(w_temp.each_slice() % experts_mat, 1);
+    predictions_ante.row(t) = predictions_temp;
+
+    // Forecasters prediction (ex-post)
+    // Note that w_post != w_temp in ex post setting and w_post = w_temp otherwise
+    predictions_temp = sum(w_post.each_slice() % experts_mat, 1);
+    predictions_post.row(t) = predictions_temp;
+
+    // Final prediction
+    predictions_final.row(t) =
+        vectorise(predictions_post(span(t), span::all, span(opt_index))).t();
 
     for (unsigned int x = 0; x < X; x++)
     {
-
       for (unsigned int p = 0; p < P; p++)
       {
 
-        // Forecasters prediction w_temp.r.t. specific parameters (ex-post)
-        y_tilde = sum(
-            vectorise(w_post(span(p), span::all, span(x))) %
-            vectorise(experts(span(t), span(p), span::all)));
-        experts_vec = experts(span(t), span(p), span::all);
-        // Forecasters prediction w_temp.r.t. specific parameters (ex-ante)
-        forecasters_pred = experts_vec.t() *
-                           vectorise(w_temp(span(p), span::all, span(x)));
+        // Evaluate the ex-post predictive performance
+        past_performance(t, p, x) = loss(y(t, p),
+                                         predictions_post(t, p, x),
+                                         9999,       // where evaluate gradient
+                                         "ql",       // method
+                                         tau_vec(p), // tau_vec
+                                         2,          // alpha
+                                         false);
 
         for (unsigned int k = 0; k < K; k++)
         {
-          past_performance(t, p, x) = loss(y(t, p),
-                                           y_tilde,
-                                           9999,       // where to evaluate gradient
-                                           "ql",       // method
-                                           tau_vec(p), // tau_vec
-                                           2,          // alpha
-                                           false);
           lexp(k) = loss(y(t, p),
-                         experts_vec(k),
-                         forecasters_pred(0), // where to evaluate gradient
-                         "ql",                // method
-                         tau_vec(p),          // tau_vec
-                         2,                   // alpha
+                         experts(t, p, k),
+                         predictions_ante(t, p, x), // where evaluate gradient
+                         "ql",                      // method
+                         tau_vec(p),                // tau_vec
+                         2,                         // alpha
                          gradient);
         }
 
         lpred = loss(y(t, p),
-                     forecasters_pred(0),
-                     forecasters_pred(0), // where to evaluate gradient
-                     "ql",                // method
-                     tau_vec(p),          // tau_vec
-                     2,                   // alpha
+                     predictions_ante(t, p, x),
+                     predictions_ante(t, p, x), // where to evaluate gradient
+                     "ql",                      // method
+                     tau_vec(p),                // tau_vec
+                     2,                         // alpha
                      gradient);
 
         if (loss_array.size() != 0)
@@ -565,7 +571,7 @@ Rcpp::List profoc(
                  false);     // gradient
       }
       loss_for(t, p) = loss(y(t, p),
-                            predictions(t, p),
+                            predictions_final(t, p),
                             9999,       // where to evaluate the gradient
                             "ql",       // method
                             tau_vec(p), // tau_vec
@@ -598,7 +604,7 @@ Rcpp::List profoc(
   ;
 
   return Rcpp::List::create(
-      Rcpp::Named("predictions") = predictions,
+      Rcpp::Named("predictions") = predictions_final,
       Rcpp::Named("weights") = weights,
       Rcpp::Named("pb_loss_forecaster") = loss_for,
       Rcpp::Named("pb_loss_experts") = loss_exp,
