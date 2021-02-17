@@ -150,12 +150,14 @@ vec set_default(const vec &input,
 //' @param regret_array User specified regret array. If specifiec, the regret will not be calculated by profoc.
 //' @param trace If a progessbar shall be printed. Defaults to TRUE.
 //' @param init_weights Matrix of dimension Kx1 or KxP used as starting weights. Kx1 represents the constant solution with equal weights over all P whereas specifiying a KxP matrix allows different starting weights for each P.
+//' @param lead_time offset for expert forecasts. Defaults to 0, which means that
+//' experts forecast t+1 at t. Setting this to h means experts predictions refer
+//' to t+1+h at time t. The weight updates delay accordingly.
 //' @usage profoc(y, experts, tau, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 //' lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
 //' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 //'rel_nseg = 0.5, gradient = TRUE, loss_array = NULL, regret_array = NULL,
-//' trace = TRUE,
-//' init_weights = NULL)
+//' trace = TRUE, init_weights = NULL, lead_time = 0)
 //' @return Profoc can tune various parameters automatically based on
 //' the past loss. For this, lambda, forget, fixed_share, gamma, ndiff,
 //' deg and rel_nseg can be specified as numeric vectors containing
@@ -178,9 +180,9 @@ Rcpp::List profoc(
     const bool &gradient = true,
     Rcpp::NumericVector loss_array = Rcpp::NumericVector::create(), Rcpp::NumericVector regret_array = Rcpp::NumericVector::create(),
     const bool trace = true,
-    Rcpp::Nullable<Rcpp::NumericMatrix> init_weights = R_NilValue)
+    Rcpp::Nullable<Rcpp::NumericMatrix> init_weights = R_NilValue,
+    const int &lead_time = 0)
 {
-
   // Indexing Convention -> (T, P, K, X)
   // T number of observations
   // P lengths of probability Grid
@@ -352,10 +354,35 @@ Rcpp::List profoc(
     }
   }
 
-  for (unsigned int t = 0; t < T; t++)
+  // Predictions at t < lead_time using initial weights
+  for (unsigned int t = 0; t < lead_time; t++)
+  {
+    // Save final weights w_post
+    weights.row(t) = w_post.slice(opt_index);
+
+    // Store expert predictions temporarily
+    experts_mat = experts.row(t);
+
+    // Forecasters prediction(ex-ante)
+    predictions_temp = sum(w_temp.each_slice() % experts_mat, 1);
+    predictions_ante.row(t) = predictions_temp;
+
+    // Forecasters prediction (ex-post)
+    // Note that w_post != w_temp in ex post setting and w_post = w_temp otherwise
+    predictions_temp = sum(w_post.each_slice() % experts_mat, 1);
+    predictions_post.row(t) = predictions_temp;
+
+    // Final prediction
+    predictions_final.row(t) =
+        vectorise(predictions_post(span(t), span::all, span(opt_index))).t();
+
+    past_performance.row(t).fill(datum::nan);
+  }
+
+  for (unsigned int t = (0 + lead_time); t < T; t++)
   {
 
-    // Save contemporary weights w_temp and final weights w_post
+    // Save final weights w_post
     weights.row(t) = w_post.slice(opt_index);
 
     // Store expert predictions temporarily
@@ -381,7 +408,7 @@ Rcpp::List profoc(
 
         // Evaluate the ex-post predictive performance
         past_performance(t, p, x) = loss(y(t, p),
-                                         predictions_post(t, p, x),
+                                         predictions_post(t - lead_time, p, x),
                                          9999,       // where evaluate gradient
                                          "ql",       // method
                                          tau_vec(p), // tau_vec
@@ -392,19 +419,19 @@ Rcpp::List profoc(
         {
           lexp(k) = loss(y(t, p),
                          experts(t, p, k),
-                         predictions_ante(t, p, x), // where evaluate gradient
-                         "ql",                      // method
-                         tau_vec(p),                // tau_vec
-                         2,                         // alpha
+                         predictions_ante(t - lead_time, p, x), // where evaluate gradient
+                         "ql",                                  // method
+                         tau_vec(p),                            // tau_vec
+                         2,                                     // alpha
                          gradient);
         }
 
         lpred = loss(y(t, p),
-                     predictions_ante(t, p, x),
-                     predictions_ante(t, p, x), // where to evaluate gradient
-                     "ql",                      // method
-                     tau_vec(p),                // tau_vec
-                     2,                         // alpha
+                     predictions_ante(t - lead_time, p, x),
+                     predictions_ante(t - lead_time, p, x), // where to evaluate gradient
+                     "ql",                                  // method
+                     tau_vec(p),                            // tau_vec
+                     2,                                     // alpha
                      gradient);
 
         if (loss_array.size() != 0)

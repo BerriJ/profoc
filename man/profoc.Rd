@@ -8,8 +8,7 @@ profoc(y, experts, tau, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
 forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 rel_nseg = 0.5, gradient = TRUE, loss_array = NULL, regret_array = NULL,
-trace = TRUE,
-init_weights = NULL)
+trace = TRUE, init_weights = NULL, lead_time = 0)
 }
 \arguments{
 \item{y}{A numeric vector of realizations.}
@@ -62,6 +61,10 @@ Defaults to 0. 1 leads to uniform weights.}
 \item{trace}{If a progessbar shall be printed. Defaults to TRUE.}
 
 \item{init_weights}{Matrix of dimension Kx1 or KxP used as starting weights. Kx1 represents the constant solution with equal weights over all P whereas specifiying a KxP matrix allows different starting weights for each P.}
+
+\item{lead_time}{offset for expert forecasts. Defaults to 0, which means that
+experts forecast t+1 at t. Setting this to h means experts predictions refer
+to t+1+h at time t. The weight updates delay accordingly.}
 }
 \value{
 Profoc can tune various parameters automatically based on
