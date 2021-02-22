@@ -232,11 +232,10 @@ Rcpp::List profoc(
 
   const int X = param_grid.n_rows;
   mat chosen_params(T, param_grid.n_cols);
-  int opt_index = 0;
-  vec opt_index_(T + 1, fill::zeros);
+  vec opt_index(T + 1, fill::zeros);
   cube past_performance(T, P, X, fill::zeros);
-  mat tmp_performance(P, X, fill::zeros);
-  mat cum_performance(P, X, fill::zeros);
+  vec tmp_performance(X, fill::zeros);
+  vec cum_performance(X, fill::zeros);
   Progress prog(T * X + X, trace);
 
   // Init weight objects
@@ -294,8 +293,6 @@ Rcpp::List profoc(
   vec lexp(K);
   vec r(K);
   vec r_reg(K);
-  mat mean_pb_loss(param_grid.n_rows, P);
-  vec crps_approx(param_grid.n_rows);
   cube loss_cube(T, P, K, fill::zeros);
 
   // Init loss array (if existent)
@@ -358,7 +355,7 @@ Rcpp::List profoc(
   for (unsigned int t = 0; t < lead_time; t++)
   {
     // Save final weights w_post
-    weights.row(t) = w_post.slice(opt_index);
+    weights.row(t) = w_post.slice(opt_index(t));
 
     // Store expert predictions temporarily
     experts_mat = experts.row(t);
@@ -374,7 +371,7 @@ Rcpp::List profoc(
 
     // Final prediction
     predictions_final.row(t) =
-        vectorise(predictions_post(span(t), span::all, span(opt_index))).t();
+        vectorise(predictions_post(span(t), span::all, span(opt_index(t)))).t();
 
     past_performance.row(t).fill(datum::nan);
   }
@@ -383,7 +380,7 @@ Rcpp::List profoc(
   {
 
     // Save final weights w_post
-    weights.row(t) = w_post.slice(opt_index);
+    weights.row(t) = w_post.slice(opt_index(t));
 
     // Store expert predictions temporarily
     experts_mat = experts.row(t);
@@ -399,7 +396,7 @@ Rcpp::List profoc(
 
     // Final prediction
     predictions_final.row(t) =
-        vectorise(predictions_post(span(t), span::all, span(opt_index))).t();
+        vectorise(predictions_post(span(t), span::all, span(opt_index(t)))).t();
 
     for (unsigned int x = 0; x < X; x++)
     {
@@ -558,25 +555,19 @@ Rcpp::List profoc(
           w_post(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x));
         }
       }
+      tmp_performance(x) = accu(past_performance(span(t), span::all, span(x)));
       prog.increment(); // Update progress
       R_CheckUserInterrupt();
     }
 
     // Sum past_performance in each slice
-    tmp_performance = past_performance.row(t);
-    if (past_performance.n_slices == 1)
-    {
-      tmp_performance = tmp_performance.t();
-    }
     cum_performance = (1 - forget_performance) * cum_performance + tmp_performance;
-    crps_approx = vectorise(sum(cum_performance, 0));
-    opt_index = crps_approx.index_min();
-    opt_index_(t + 1) = opt_index;
-    chosen_params.row(t) = param_grid.row(opt_index);
+    opt_index(t + 1) = cum_performance.index_min();
+    chosen_params.row(t) = param_grid.row(opt_index(t + 1));
   }
 
   // Save Weights and Prediction
-  weights.row(T) = w_post.slice(opt_index);
+  weights.row(T) = w_post.slice(opt_index(T));
 
   // Save losses suffered by forecaster and experts
   mat loss_for(T, P, fill::zeros);
@@ -608,7 +599,7 @@ Rcpp::List profoc(
   }
 
   // 1-Indexing for R-Output
-  opt_index_ = opt_index_ + 1;
+  opt_index = opt_index + 1;
 
   Rcpp::DataFrame opt_params_df = Rcpp::DataFrame::create(
       Rcpp::Named("lambda") = chosen_params.col(0),
@@ -633,12 +624,12 @@ Rcpp::List profoc(
   return Rcpp::List::create(
       Rcpp::Named("predictions") = predictions_final,
       Rcpp::Named("weights") = weights,
-      Rcpp::Named("pb_loss_forecaster") = loss_for,
-      Rcpp::Named("pb_loss_experts") = loss_exp,
+      Rcpp::Named("forecaster_loss") = loss_for,
+      Rcpp::Named("experts_loss") = loss_exp,
       Rcpp::Named("past_perf_wrt_params") = past_performance,
       Rcpp::Named("chosen_parameters") = opt_params_df,
       Rcpp::Named("parametergrid") = parametergrid,
-      Rcpp::Named("opt_index") = opt_index_);
+      Rcpp::Named("opt_index") = opt_index);
 }
 
 //' Spline Fit - Fit Penalized B-Splines
