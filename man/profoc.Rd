@@ -4,7 +4,8 @@
 \alias{profoc}
 \title{Probabilistic Forecast Combination - ProFoC}
 \usage{
-profoc(y, experts, tau, ex_post_smooth = FALSE, ex_post_fs = FALSE,
+profoc(y, experts, tau, loss_function = "quantile",
+loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
 forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 rel_nseg = 0.5, gradient = TRUE, loss_array = NULL, regret_array = NULL,
@@ -18,6 +19,10 @@ trace = TRUE, init_weights = NULL, lead_time = 0)
 
 \item{tau}{A numeric vector of probabilities.
 corresponding to the columns of experts.}
+
+\item{loss_function}{Either "quantile", "expectile" or "percentage".}
+
+\item{loss_parameter}{Optional parameter scaling the power of the loss function.}
 
 \item{ex_post_smooth}{Determines if smoothing is during or after
 online-learning. If true, contemporary weights are not affected

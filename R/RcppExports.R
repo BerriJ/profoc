@@ -12,6 +12,8 @@
 #' (Observations, Quantiles, Experts).
 #' @param tau A numeric vector of probabilities.
 #' corresponding to the columns of experts.
+#' @param loss_function Either "quantile", "expectile" or "percentage".
+#' @param loss_parameter Optional parameter scaling the power of the loss function.
 #' @param ex_post_smooth Determines if smoothing is during or after
 #' online-learning. If true, contemporary weights are not affected
 #' but output weights are. If false (default) smoothed weights are
@@ -41,7 +43,8 @@
 #' @param lead_time offset for expert forecasts. Defaults to 0, which means that
 #' experts forecast t+1 at t. Setting this to h means experts predictions refer
 #' to t+1+h at time t. The weight updates delay accordingly.
-#' @usage profoc(y, experts, tau, ex_post_smooth = FALSE, ex_post_fs = FALSE,
+#' @usage profoc(y, experts, tau, loss_function = "quantile",
+#' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 #' lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
 #' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 #'rel_nseg = 0.5, gradient = TRUE, loss_array = NULL, regret_array = NULL,
@@ -52,8 +55,8 @@
 #' parameters to consider. Profoc will automatically try all possible
 #' combinations of values provide.
 #' @export
-profoc <- function(y, experts, tau = as.numeric( c()), ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), method = "boa", method_var = "A", forget_regret = as.numeric( c()), forget_performance = 0, fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), rel_nseg = as.numeric( c()), gradient = TRUE, loss_array = as.numeric( c()), regret_array = as.numeric( c()), trace = TRUE, init_weights = NULL, lead_time = 0L) {
-    .Call(`_profoc_profoc`, y, experts, tau, ex_post_smooth, ex_post_fs, lambda, method, method_var, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, rel_nseg, gradient, loss_array, regret_array, trace, init_weights, lead_time)
+profoc <- function(y, experts, tau = as.numeric( c()), loss_function = "quantile", loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), method = "boa", method_var = "A", forget_regret = as.numeric( c()), forget_performance = 0, fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), rel_nseg = as.numeric( c()), gradient = TRUE, loss_array = as.numeric( c()), regret_array = as.numeric( c()), trace = TRUE, init_weights = NULL, lead_time = 0L) {
+    .Call(`_profoc_profoc`, y, experts, tau, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, method, method_var, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, rel_nseg, gradient, loss_array, regret_array, trace, init_weights, lead_time)
 }
 
 #' Spline Fit - Fit Penalized B-Splines

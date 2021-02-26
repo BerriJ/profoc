@@ -63,20 +63,54 @@ mat pmin_arma(const mat &x, const double &bound)
 double loss(const double &y,
             const double &x,
             const double &pred = 0,
-            const std::string method = "ql",
+            const std::string method = "quantile",
             const double &tau = 0.5,
-            const double &alpha = 2,
+            const double &a = 1,
             const bool &gradient = true)
 {
   double loss;
 
-  if (gradient)
+  if (method == "quantile")
   {
-    loss = ((y < pred) - tau) * x;
+    if (!gradient)
+    {
+      loss = ((y < x) - tau) * (sign(x) * std::pow(std::abs(x), a) - sign(y) * std::pow(std::abs(y), a));
+    }
+    else
+    {
+      loss = ((pred >= y) - tau) * (a * std::pow(std::abs(pred), (a - 1)));
+      loss = loss * x;
+    }
+  }
+  else if (method == "expectile")
+  {
+    if (!gradient)
+    {
+
+      loss = 2 * std::abs((x >= y) - tau) * (std::pow(std::abs(y), (a + 1)) - std::pow(std::abs(x), (a + 1)) - (a + 1) * sign(x) * std::pow(std::abs(x), a) * (y - x));
+    }
+    else
+    {
+
+      loss = 2 * ((pred >= y) - tau) * (-a * (a + 1) * (y - pred) * std::pow(std::abs(pred), (a - 1)));
+      loss = loss * x;
+    }
+  }
+  else if (method == "percentage")
+  {
+    if (!gradient)
+    {
+      loss = std::abs(1 - std::pow(x / y, a));
+    }
+    else
+    {
+      loss = a * (std::pow(pred / y, a) - 1) * std::pow(pred / y, a) / (pred * std::abs(1 - std::pow(pred / y, a)));
+      loss = loss * x;
+    }
   }
   else
   {
-    loss = ((y < x) - tau) * (x - y);
+    Rcpp::stop("Choose quantile loss 'quantile' expectiles 'expectile' or as 'percentage' loss.");
   }
   return loss;
 }
@@ -124,6 +158,8 @@ vec set_default(const vec &input,
 //' (Observations, Quantiles, Experts).
 //' @param tau A numeric vector of probabilities.
 //' corresponding to the columns of experts.
+//' @param loss_function Either "quantile", "expectile" or "percentage".
+//' @param loss_parameter Optional parameter scaling the power of the loss function.
 //' @param ex_post_smooth Determines if smoothing is during or after
 //' online-learning. If true, contemporary weights are not affected
 //' but output weights are. If false (default) smoothed weights are
@@ -153,7 +189,8 @@ vec set_default(const vec &input,
 //' @param lead_time offset for expert forecasts. Defaults to 0, which means that
 //' experts forecast t+1 at t. Setting this to h means experts predictions refer
 //' to t+1+h at time t. The weight updates delay accordingly.
-//' @usage profoc(y, experts, tau, ex_post_smooth = FALSE, ex_post_fs = FALSE,
+//' @usage profoc(y, experts, tau, loss_function = "quantile",
+//' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 //' lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
 //' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 //'rel_nseg = 0.5, gradient = TRUE, loss_array = NULL, regret_array = NULL,
@@ -169,6 +206,8 @@ Rcpp::List profoc(
     mat &y,
     const cube &experts,
     Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
+    const std::string loss_function = "quantile",
+    const double &loss_parameter = 1,
     const bool &ex_post_smooth = false,
     const bool &ex_post_fs = false,
     Rcpp::NumericVector lambda = Rcpp::NumericVector::create(),
@@ -176,9 +215,14 @@ Rcpp::List profoc(
     const std::string method_var = "A",
     Rcpp::NumericVector forget_regret = Rcpp::NumericVector::create(),
     const double &forget_performance = 0,
-    Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(), Rcpp::NumericVector gamma = Rcpp::NumericVector::create(), Rcpp::NumericVector ndiff = Rcpp::NumericVector::create(), Rcpp::NumericVector deg = Rcpp::NumericVector::create(), Rcpp::NumericVector rel_nseg = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector gamma = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector ndiff = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector deg = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector rel_nseg = Rcpp::NumericVector::create(),
     const bool &gradient = true,
-    Rcpp::NumericVector loss_array = Rcpp::NumericVector::create(), Rcpp::NumericVector regret_array = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector loss_array = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector regret_array = Rcpp::NumericVector::create(),
     const bool trace = true,
     Rcpp::Nullable<Rcpp::NumericMatrix> init_weights = R_NilValue,
     const int &lead_time = 0)
@@ -406,10 +450,10 @@ Rcpp::List profoc(
         // Evaluate the ex-post predictive performance
         past_performance(t, p, x) = loss(y(t, p),
                                          predictions_post(t - lead_time, p, x),
-                                         9999,       // where evaluate gradient
-                                         "ql",       // method
-                                         tau_vec(p), // tau_vec
-                                         2,          // alpha
+                                         9999,           // where evaluate gradient
+                                         loss_function,  // method
+                                         tau_vec(p),     // tau_vec
+                                         loss_parameter, // alpha
                                          false);
 
         for (unsigned int k = 0; k < K; k++)
@@ -417,18 +461,18 @@ Rcpp::List profoc(
           lexp(k) = loss(y(t, p),
                          experts(t, p, k),
                          predictions_ante(t - lead_time, p, x), // where evaluate gradient
-                         "ql",                                  // method
+                         loss_function,                         // method
                          tau_vec(p),                            // tau_vec
-                         2,                                     // alpha
+                         loss_parameter,                        // alpha
                          gradient);
         }
 
         lpred = loss(y(t, p),
                      predictions_ante(t - lead_time, p, x),
                      predictions_ante(t - lead_time, p, x), // where to evaluate gradient
-                     "ql",                                  // method
+                     loss_function,                         // method
                      tau_vec(p),                            // tau_vec
-                     2,                                     // alpha
+                     loss_parameter,                        // alpha
                      gradient);
 
         if (loss_array.size() != 0)
@@ -582,19 +626,19 @@ Rcpp::List profoc(
         loss_exp(t, p, k) =
             loss(y(t, p),
                  experts(t, p, k),
-                 9999,       // where to evaluate the gradient
-                 "ql",       // method
-                 tau_vec(p), // tau_vec
-                 2,          // alpha
-                 false);     // gradient
+                 9999,           // where to evaluate the gradient
+                 loss_function,  // method
+                 tau_vec(p),     // tau_vec
+                 loss_parameter, // alpha
+                 false);         // gradient
       }
       loss_for(t, p) = loss(y(t, p),
                             predictions_final(t, p),
-                            9999,       // where to evaluate the gradient
-                            "ql",       // method
-                            tau_vec(p), // tau_vec
-                            2,          // alpha
-                            false);     // gradient;
+                            9999,           // where to evaluate the gradient
+                            loss_function,  // method
+                            tau_vec(p),     // tau_vec
+                            loss_parameter, // alpha
+                            false);         // gradient;
     }
   }
 
