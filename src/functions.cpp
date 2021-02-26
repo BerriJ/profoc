@@ -234,9 +234,10 @@ Rcpp::List profoc(
   // X number of parameter combinations to consider
 
   // Object Dimensions
-  const int T = experts.n_rows;
+  const int T = y.n_rows;
   const int P = experts.n_cols;
   const int K = experts.n_slices;
+  const int T_E_Y = experts.n_rows - y.n_rows;
 
   // Expand y matrix if necessary
   if (y.n_cols == 1)
@@ -331,7 +332,7 @@ Rcpp::List profoc(
   cube predictions_post(T, P, X);
   cube predictions_ante(T, P, X);
   mat predictions_temp(P, K);
-  mat predictions_final(T, P);
+  mat predictions_final(T + T_E_Y, P);
 
   vec lpred(1);
   vec lexp(K);
@@ -612,6 +613,16 @@ Rcpp::List profoc(
 
   // Save Weights and Prediction
   weights.row(T) = w_post.slice(opt_index(T));
+
+  Rcpp::Rcout << "T + T_E_Y" << T + T_E_Y << std::endl;
+
+  // Predict residual expert forecasts if any are available
+  for (unsigned int t = T; t < T + T_E_Y; t++)
+  {
+    experts_mat = experts.row(t);
+    predictions_temp = sum(w_post.slice(opt_index(T)) % experts_mat, 1);
+    predictions_final.row(t) = vectorise(predictions_temp).t();
+  }
 
   // Save losses suffered by forecaster and experts
   mat loss_for(T, P, fill::zeros);
