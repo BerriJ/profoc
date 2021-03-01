@@ -614,8 +614,6 @@ Rcpp::List profoc(
   // Save Weights and Prediction
   weights.row(T) = w_post.slice(opt_index(T));
 
-  Rcpp::Rcout << "T + T_E_Y" << T + T_E_Y << std::endl;
-
   // Predict residual expert forecasts if any are available
   for (unsigned int t = T; t < T + T_E_Y; t++)
   {
