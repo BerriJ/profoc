@@ -13,3 +13,6 @@ LinkingTo: Rcpp, RcppArmadillo, RcppProgress
 URL: https://github.com/BerriJ/profoc
 BugReports: https://github.com/BerriJ/profoc/issues
 RoxygenNote: 7.1.1
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
