@@ -92,7 +92,7 @@ double loss(const double &y,
     else
     {
 
-      loss = 2 * ((pred >= y) - tau) * (-a * (a + 1) * (y - pred) * std::pow(std::abs(pred), (a - 1)));
+      loss = 2 * std::abs((pred >= y) - tau) * (-a * (a + 1) * (y - pred) * std::pow(std::abs(pred), (a - 1)));
       loss = loss * x;
     }
   }
