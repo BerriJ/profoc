@@ -1,7 +1,7 @@
 on:
   push:
     branches:
-      - create_package_website
+      - main
 
 name: pkgdown
 
