@@ -2,6 +2,10 @@
 The profoc Package
 ======================
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/BerriJ/profoc/workflows/R-CMD-check/badge.svg)](https://github.com/BerriJ/profoc/actions)
+<!-- badges: end -->
+
 The main function `profoc` can be used to combine probabilistic forecasts as described in Berrisch, Ziel: "CRPS Learning", 2021.
 
 Usage

@@ -2,3 +2,4 @@
 .devcontainer
 .package_dev
 .test
+^\.github$
