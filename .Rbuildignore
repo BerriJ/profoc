@@ -3,3 +3,6 @@
 .package_dev
 .test
 ^\.github$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
