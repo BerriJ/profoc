@@ -1,3 +1,20 @@
+profoc 0.7.0 (Release date: 2021-05-XX)
+==============
+
+## Changes:
+
+The spline functions where rewritten to add the ability of using a non-equidistant know sequence and a penalty term defined on the sobolev space. This change induces breaking changes to small parts of the API.
+
+### Interface:
+
+* `rel_nseg` is replaced by `knot_distance` ( distance between knots). Defaults to 0.025, which corresponds to the grid steps when knot_distance_power = 1 (the default).
+* A new parameter `knot_distance_power` defines if knots are uniformly distributed. Defaults to 1 which corresponds to the equidistant case. Values less than 1 create more knots in the center while values above 1 concentrate more knots in the tails.
+* A new parameter `use_sobolev_space` defines if the penalty term should be defined in the Sobolev-space. Defaults to `FALSE`
+
+### Internal changes:
+
+* Functions for calculating the b-spline basis are now exported to R as internal functions of the package. They can be accessed using the `package:::function` notation.
+
 profoc 0.6.0 (Release date: 2021-03-04)
 ==============
 
