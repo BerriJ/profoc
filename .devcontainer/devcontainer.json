@@ -1,0 +1,72 @@
+{
+    "name": "Profoc",
+    "image": "ghcr.io/berrij/devenv:dev",
+    // Grant xhost access to root user in order to start x11 devices (r plots)
+    "initializeCommand": "docker pull ghcr.io/berrij/devenv:dev",
+    // "containerUser": "vscode",
+    // Arguments to docker run so container can use local x11
+    "runArgs": [
+        "--rm",
+        "--net",
+        "host",
+        "-e",
+        "DISPLAY=${env:DISPLAY}"
+    ],
+    // The first line mounts $HOME/USER/git into /workspaces together with the
+    // current workspace. Uncomment or edit as you like.
+    "mounts": [
+        // Mount git folder into /workspaces - vscode will also mount the current workspace there
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/git,target=/workspaces,type=bind,consistency=cached",
+        // Mount x11 into container -> to display R/Python graphics devices locally
+        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
+    ],
+    // Extensions will get installed automatically
+    "extensions": [
+        // C++
+        "ms-vscode.cpptools",
+        "austin.code-gnu-global",
+        "ms-vscode.cmake-tools",
+        // Python
+        "ms-python.vscode-pylance",
+        "ms-python.python",
+        "visualstudioexptteam.vscodeintellicode",
+        // R
+        "ikuyadeu.r",
+        "reditorsupport.r-lsp",
+        // Latex
+        "james-yu.latex-workshop",
+        "znck.grammarly",
+        // Hide .gitignored files from folder tree
+        "npxms.hide-gitignored",
+        // Markdown
+        "yzhang.markdown-all-in-one",
+        // Make fancy screenshots
+        "adpyke.codesnap",
+    ],
+    // Set *default* container specific settings
+    // Important for radian and latex
+    "settings": {
+        // Python
+        // "python.dataScience.notebookFileRoot": "${workspaceFolder}/code",
+        "python.dataScience.interactiveWindowMode": "perFile",
+        "python.dataScience.sendSelectionToInteractiveWindow": true,
+        // R
+        "r.rterm.linux": "/usr/local/bin/radian",
+        "r.bracketedPaste": true,
+        "r.sessionWatcher": true,
+        // Latex
+        // "latex-workshop.latex.recipe.default": "latexmk (lualatex)",
+        "latex-workshop.view.pdf.viewer": "tab",
+        "latex-workshop.chktex.enabled": true,
+        "latex-workshop.chktex.run": "onType",
+        "latex-workshop.synctex.afterBuild.enabled": true,
+        "latex-workshop.view.pdf.internal.synctex.keybinding": "double-click",
+        "latex-workshop.intellisense.unimathsymbols.enabled": true,
+        // Format code as you type
+        "editor.formatOnPaste": true,
+        "editor.formatOnType": true,
+        "editor.formatOnSave": true,
+        // Use zsh
+        "terminal.integrated.shell.linux": "/bin/zsh"
+    }
+}

@@ -1,5 +1,2 @@
-.devcontainer/*
-.vscode/*
-.package_dev/*
 .test/*
 docs

@@ -1,0 +1,33 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug RCPP",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "/usr/lib/R/bin/exec/R",
+      "args": [
+        "--vanilla",
+        "-e",
+        "devtools::test()"
+      ],
+      "stopAtEntry": false,
+      "envFile": "${workspaceFolder}/.vscode/.env",
+      "cwd": "${workspaceFolder}",
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "debug",
+      "osx": {
+        "program": "/Library/Frameworks/R.framework/Resources/bin/exec/R",
+        "MIMode": "lldb"
+      }
+    }
+  ]
+}
