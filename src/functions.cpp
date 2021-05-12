@@ -67,13 +67,13 @@ arma::vec diff_cpp(arma::vec x, unsigned int lag, unsigned int differences)
   return x;
 }
 
-mat make_penatly_matrix(const vec &knots, const int &bdiff, const int deg)
+mat make_difference_matrix(const vec &knots, const int &bdiff, const int deg)
 {
   int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
   const vec diag_vals = 1 / diff_cpp(knots, deg, 1);
   mat D = diff(diagmat(diag_vals), bdiff) / (m + 1) * deg;
   D = 0.5 * D.submat(1, 1, D.n_rows - 1, D.n_cols - 1) + 0.5 * D.submat(0, 0, D.n_rows - 2, D.n_cols - 2);
-  return D.t() * D;
+  return D;
 }
 
 mat make_sobolev_penatly(const vec &knots, const int &bdiff, const int deg)
@@ -82,7 +82,8 @@ mat make_sobolev_penatly(const vec &knots, const int &bdiff, const int deg)
   cube pentalty_matrices(m + deg + 1, m + deg + 1, bdiff, fill::zeros);
   for (unsigned int i = 0; i < bdiff; i++)
   {
-    pentalty_matrices.slice(i) = make_penatly_matrix(knots, i + 1, deg);
+    mat D = make_difference_matrix(knots, i + 1, deg);
+    pentalty_matrices.slice(i) = D.t() * D;
   }
   return sum(pentalty_matrices, 2);
 }
@@ -92,17 +93,18 @@ mat make_hat_matrix(const vec &x, const double &kstep, double &lambda, const int
   vec knots = make_knots(kstep, a, deg);
   int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
   mat B = splineDesign_rcpp(x, knots, deg);
-  mat PP(m + deg + 1, m + deg + 1);
+  mat P(m + deg + 1, m + deg + 1);
   if (!use_sobolev_spaces && bdiff > 1)
   {
-    PP = make_penatly_matrix(knots, bdiff, deg); // This is already P'*P
+    mat D = make_difference_matrix(knots, bdiff, deg);
+    P = D.t() * D;
   }
   else
   {
-    PP = make_sobolev_penatly(knots, bdiff, deg); // This is already P'*P
+    P = make_sobolev_penatly(knots, bdiff, deg); // This is already D'D
   }
   // Return hat matrix
-  return B * arma::inv(B.t() * B + lambda * PP) * B.t();
+  return B * arma::inv(B.t() * B + lambda * P) * B.t();
 }
 
 double loss(const double &y,
