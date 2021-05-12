@@ -1,5 +1,3 @@
-library(gamlss.dist)
-
 # Experts
 N <- 2
 # Observations
@@ -14,7 +12,7 @@ tau_y <- 6
 nu_y <- 2
 
 # Realized observations
-y <- rSST(n = T, mu = mean_y, tau = tau_y, sigma = sd_y, nu = nu_y)
+y <- gamlss.dist::rSST(n = T, mu = mean_y, tau = tau_y, sigma = sd_y, nu = nu_y)
 
 # Expert predictions
 experts <- array(dim = c(T, P, N))
@@ -23,36 +21,28 @@ for (t in 1:T) {
     experts[t, , 2] <- qnorm(prob_grid, mean = 5, sd = 2)
 }
 
-print("Checking return type")
-
-# Return Type
-expect_type(profoc(
-    y = matrix(y),
-    experts = experts
-), "list")
-
-print("Checking mean estimate")
-
 # Mean
 boa_mean <- profoc(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
     loss_function = "expectile",
-    gradient = TRUE
+    gradient = TRUE,
+    trace = FALSE
 )
 
 expect_equal(round(mean(boa_mean$predictions), 1), mean_y)
-
-print("Checking median estimate")
 
 # Median
 boa_median <- profoc(
     y = matrix(y),
     tau = prob_grid,
-    experts = experts
+    experts = experts,
+    trace = FALSE
 )
 
-median_y <- round(qSST(0.5, mu = mean_y, tau = tau_y, sigma = sd_y, nu = nu_y), 1)
+median_y <- round(
+    gamlss.dist::qSST(0.5, mu = mean_y, tau = tau_y, sigma = sd_y, nu = nu_y), 1
+)
 
 expect_equal(round(mean(boa_median$predictions), 1), median_y)
