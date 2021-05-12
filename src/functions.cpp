@@ -5,33 +5,6 @@
 #include <progress.hpp>
 using namespace arma;
 
-mat bbase(const vec &x, const int &nseg, const int &deg)
-{
-
-  double xl = min(x);
-  double xr = max(x);
-
-  double dx = (xr - xl) / nseg;
-  int K = round(((xr + deg * dx) - (xl - deg * dx)) / dx + 1);
-  vec knots = linspace(xl - deg * dx, xr + deg * dx, K);
-  mat P(x.n_rows, knots.n_rows);
-
-  for (unsigned int row_ = 0; row_ < P.n_rows; row_++)
-  {
-    for (unsigned int col_ = 0; col_ < P.n_cols; col_++)
-    {
-      P(row_, col_) = pow((x(row_) - knots(col_)), deg) * (x(row_) > knots(col_));
-    }
-  }
-
-  mat D(knots.n_rows, knots.n_rows, fill::eye);
-  D = diff(D, deg + 1);
-  D = D / (exp(lgamma(deg + 1)) * pow(dx, deg));
-  mat B = pow(-1, deg + 1) * P * D.t();
-
-  return B;
-}
-
 mat pmax_arma(const mat &x, const double &bound)
 {
   mat out(x);
@@ -60,6 +33,78 @@ mat pmin_arma(const mat &x, const double &bound)
   return out;
 }
 
+vec make_knots(const double &kstep, const double &a = 1, const int deg = 3)
+{
+  vec x = arma::linspace(0 - deg * 2 * kstep, 1, 1 / (2 * kstep) + deg + 1);
+  vec xa = sign(x) % pow(arma::abs(x), a) / 2;
+  vec xb = 1 - reverse(xa.subvec(0, xa.n_elem - 2));
+  return join_cols(xa, xb);
+}
+
+// Expose splines::splineDesign to Rcpp
+mat splineDesign_rcpp(const vec &x, const vec &knots, const int &deg)
+{
+  // TODO: Translate this function into C++ to get rid of the call to R
+  Rcpp::Environment pkg = Rcpp::Environment::namespace_env("splines");
+  Rcpp::Function f = pkg["splineDesign"];
+  mat y = Rcpp::as<arma::mat>(f(knots, x, deg + 1, 0, true));
+  return y;
+}
+
+arma::vec diff_cpp(arma::vec x, unsigned int lag, unsigned int differences)
+{
+
+  // Difference the series i times
+  for (unsigned int i = 0; i < differences; i++)
+  {
+    // Each difference will shorten series length
+    unsigned int n = x.n_elem;
+    // Take the difference based on number of lags
+    x = (x.rows(lag, n - 1) - x.rows(0, n - lag - 1));
+  }
+
+  // Return differenced series:
+  return x;
+}
+
+mat make_penatly_matrix(const vec &knots, const int &bdiff, const int deg)
+{
+  int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
+  const vec diag_vals = 1 / diff_cpp(knots, deg, 1);
+  mat D = diff(diagmat(diag_vals), bdiff) / (m + 1) * deg;
+  D = 0.5 * D.submat(1, 1, D.n_rows - 1, D.n_cols - 1) + 0.5 * D.submat(0, 0, D.n_rows - 2, D.n_cols - 2);
+  return D.t() * D;
+}
+
+mat make_sobolev_penatly(const vec &knots, const int &bdiff, const int deg)
+{
+  int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
+  cube pentalty_matrices(m + deg + 1, m + deg + 1, bdiff, fill::zeros);
+  for (unsigned int i = 0; i < bdiff; i++)
+  {
+    pentalty_matrices.slice(i) = make_penatly_matrix(knots, i + 1, deg);
+  }
+  return sum(pentalty_matrices, 2);
+}
+
+mat make_hat_matrix(const vec &x, const double &kstep, double &lambda, const int &bdiff, const int deg, const double &a, const bool &use_sobolev_spaces = false)
+{
+  vec knots = make_knots(kstep, a, deg);
+  int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
+  mat B = splineDesign_rcpp(x, knots, deg);
+  mat PP(m + deg + 1, m + deg + 1);
+  if (!use_sobolev_spaces && bdiff > 1)
+  {
+    PP = make_penatly_matrix(knots, bdiff, deg); // This is already P'*P
+  }
+  else
+  {
+    PP = make_sobolev_penatly(knots, bdiff, deg); // This is already P'*P
+  }
+  // Return hat matrix
+  return B * arma::inv(B.t() * B + lambda * PP) * B.t();
+}
+
 double loss(const double &y,
             const double &x,
             const double &pred = 0,
@@ -86,12 +131,10 @@ double loss(const double &y,
   {
     if (!gradient)
     {
-
       loss = 2 * std::abs((x >= y) - tau) * (std::pow(std::abs(y), (a + 1)) - std::pow(std::abs(x), (a + 1)) - (a + 1) * sign(x) * std::pow(std::abs(x), a) * (y - x));
     }
     else
     {
-
       loss = 2 * std::abs((pred >= y) - tau) * (-a * (a + 1) * (y - pred) * std::pow(std::abs(pred), (a - 1)));
       loss = loss * x;
     }
@@ -117,9 +160,7 @@ double loss(const double &y,
 
 mat get_combinations(const mat &x, const vec &y)
 {
-
   int i = 0;
-
   mat grid(x.n_rows * y.size(), x.n_cols + 1);
 
   for (unsigned int y_ = 0; y_ < y.size(); y_++)
@@ -143,7 +184,6 @@ vec set_default(const vec &input,
     output.set_size(1);
     output(0) = value;
   }
-
   return output;
 }
 
@@ -180,7 +220,9 @@ vec set_default(const vec &input,
 //' @param gamma Scaling parameter for the learning rate.
 //' @param ndiff Degree of the differencing operator in the smoothing equation. 1 (default) leads to shrikage towards a constant.
 //' @param deg Degree of the B-Spine basis functions.
-//' @param rel_nseg determines how many basis functions are created in the smoothing step. This parameter defaults to 0.5 leading to 0.5*length(tau) to be used as number of knots. 1 Leads to as many knots as tau is long. 0 leads to one single knot.
+//' @param knot_distance determines the distance of the knots. Defaults to 0.025 which corrsponds to the grid steps when knot_distance_power = 1 (the default).
+//' @param knot_distance_power Parameter which defining the symetrie of the b-spline basis. Defaults to 1 which corresponds to the equidistant case. Values less than 1 create more knots in the center while values above 1 concentrate more knots in the tails.
+//' @param use_sobolev_space Determines if the difference matrix is created in the sobolev space. This sums the difference matriced up to ndiff, instead of using only the n'th differnenciation matrix. Defaults to FALSE, is ignored for ndiff = 1.
 //' @param gradient Determines if a linearized version of the loss is used.
 //' @param loss_array User specified loss array. If specified, the loss will not be calculated by profoc.
 //' @param regret_array User specified regret array. If specifiec, the regret will not be calculated by profoc.
@@ -193,11 +235,12 @@ vec set_default(const vec &input,
 //' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 //' lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
 //' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
-//'rel_nseg = 0.5, gradient = TRUE, loss_array = NULL, regret_array = NULL,
+//' knot_distance = 0.025, knot_distance_power = 1, use_sobolev_space = FALSE,
+//' gradient = TRUE, loss_array = NULL, regret_array = NULL,
 //' trace = TRUE, init_weights = NULL, lead_time = 0)
 //' @return Profoc can tune various parameters automatically based on
 //' the past loss. For this, lambda, forget, fixed_share, gamma, ndiff,
-//' deg and rel_nseg can be specified as numeric vectors containing
+//' deg and knot_distance can be specified as numeric vectors containing
 //' parameters to consider. Profoc will automatically try all possible
 //' combinations of values provide.
 //' @export
@@ -219,7 +262,9 @@ Rcpp::List profoc(
     Rcpp::NumericVector gamma = Rcpp::NumericVector::create(),
     Rcpp::NumericVector ndiff = Rcpp::NumericVector::create(),
     Rcpp::NumericVector deg = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector rel_nseg = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector knot_distance = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector knot_distance_power = Rcpp::NumericVector::create(),
+    const bool &use_sobolev_space = false,
     const bool &gradient = true,
     Rcpp::NumericVector loss_array = Rcpp::NumericVector::create(),
     Rcpp::NumericVector regret_array = Rcpp::NumericVector::create(),
@@ -263,17 +308,19 @@ Rcpp::List profoc(
   vec forget_vec = set_default(forget_regret, 0);
   vec fixed_share_vec = set_default(fixed_share, 0);
   vec gamma_vec = set_default(gamma, 1);
-  vec rel_nseg_vec = set_default(rel_nseg, 0.5);
+  vec knot_distance_vec = set_default(knot_distance, 0.025);
   vec deg_vec = set_default(deg, 3);
   vec diff_vec = set_default(ndiff, 1);
+  vec knots_asym_vec = set_default(knot_distance_power, 1);
 
   // Init parametergrid
   mat param_grid = get_combinations(lambda_vec, forget_vec);
   param_grid = get_combinations(param_grid, fixed_share_vec);
   param_grid = get_combinations(param_grid, gamma_vec);
-  param_grid = get_combinations(param_grid, rel_nseg_vec);
+  param_grid = get_combinations(param_grid, knot_distance_vec);
   param_grid = get_combinations(param_grid, deg_vec);
   param_grid = get_combinations(param_grid, diff_vec);
+  param_grid = get_combinations(param_grid, knots_asym_vec);
 
   const int X = param_grid.n_rows;
   mat chosen_params(T, param_grid.n_cols);
@@ -364,7 +411,6 @@ Rcpp::List profoc(
   // Only if smoothing is possible (tau_vec.size > 1)
   if (P > 1)
   {
-
     // Init hat matrix field
     for (unsigned int x = 0; x < X; x++)
     {
@@ -373,23 +419,21 @@ Rcpp::List profoc(
           param_grid(x, 0) == param_grid(x - 1, 0) &&
           param_grid(x, 4) == param_grid(x - 1, 4) &&
           param_grid(x, 5) == param_grid(x - 1, 5) &&
-          param_grid(x, 6) == param_grid(x - 1, 6))
+          param_grid(x, 6) == param_grid(x - 1, 6) &&
+          param_grid(x, 7) == param_grid(x - 1, 7))
       {
         hat_mats(x) = hat_mats(x - 1);
       }
       else
       {
-        // Number of segments
-        int nseg = std::min(std::max(double(1), ceil(P * param_grid(x, 4))), double(P));
 
-        // Create bspline basis
-        mat B = bbase(spline_basis_x, nseg, param_grid(x, 5));
-
-        // Create roughness measure
-        mat D(B.n_cols, B.n_cols, fill::eye);
-        D = diff(D, param_grid(x, 6));
-
-        hat_mats(x) = B * inv(B.t() * B + param_grid(x, 0) * D.t() * D) * B.t();
+        hat_mats(x) = make_hat_matrix(spline_basis_x,
+                                      param_grid(x, 4), // kstep
+                                      param_grid(x, 0), // lambda
+                                      param_grid(x, 6), // differences
+                                      param_grid(x, 5), // degree
+                                      param_grid(x, 7), // uneven grid
+                                      use_sobolev_space);
       }
       R_CheckUserInterrupt();
       prog.increment(); // Update progress
@@ -659,20 +703,20 @@ Rcpp::List profoc(
       Rcpp::Named("forget_regret") = chosen_params.col(1),
       Rcpp::Named("fixed_share") = chosen_params.col(2),
       Rcpp::Named("gamma") = chosen_params.col(3),
-      Rcpp::Named("rel_nseg") = chosen_params.col(4),
+      Rcpp::Named("knot_distance") = chosen_params.col(4),
       Rcpp::Named("deg") = chosen_params.col(5),
-      Rcpp::Named("diff") = chosen_params.col(6));
-  ;
+      Rcpp::Named("diff") = chosen_params.col(6),
+      Rcpp::Named("knot_distance_power") = chosen_params.col(7));
 
   Rcpp::DataFrame parametergrid = Rcpp::DataFrame::create(
       Rcpp::Named("lambda") = param_grid.col(0),
       Rcpp::Named("forget_regret") = param_grid.col(1),
       Rcpp::Named("fixed_share") = param_grid.col(2),
       Rcpp::Named("gamma") = param_grid.col(3),
-      Rcpp::Named("rel_nseg") = param_grid.col(4),
+      Rcpp::Named("knot_distance") = param_grid.col(4),
       Rcpp::Named("deg") = param_grid.col(5),
-      Rcpp::Named("diff") = param_grid.col(6));
-  ;
+      Rcpp::Named("diff") = param_grid.col(6),
+      Rcpp::Named("knot_distance_power") = param_grid.col(7));
 
   return Rcpp::List::create(
       Rcpp::Named("predictions") = predictions_final,
@@ -683,40 +727,4 @@ Rcpp::List profoc(
       Rcpp::Named("chosen_parameters") = opt_params_df,
       Rcpp::Named("parametergrid") = parametergrid,
       Rcpp::Named("opt_index") = opt_index);
-}
-
-//' Spline Fit - Fit Penalized B-Splines
-//'
-//' Returns fitted values.
-//'
-//' @param y The respones variable. Must be a numeric vector.
-//' @param x Explanatory variable. Must be a numeric vector.
-//' @param lambda The penalization parameter.
-//' @param ndiff Degree of the difference operator to use when calculating
-//' the B-Spline basis. A value of 1 corresponds to shrinkage towards
-//' a constant, 2 corresponds to shrinkage towards a linear relationship
-//' between x and y.
-//' @param deg the degree of the basis functions.
-//' @param rel_nseg The number of basis functions are calculated relative to the
-//' length of y. A value of 0 corresponds to only 1 knot. A value of 1
-//' corresponds to length(y) knots.
-//' @export
-// [[Rcpp::export]]
-vec spline_fit(const vec &y, const vec &x, const double &lambda = 1, const int &ndiff = 1, const int &deg = 3, const double &rel_nseg = 0.1)
-{
-
-  // Number of segments
-  int nseg = std::max(double(1), ceil(y.n_rows * rel_nseg));
-
-  // Create bspline basis
-  mat B = bbase(x, nseg, deg);
-
-  // Create roughness measure
-  mat D(B.n_cols, B.n_cols, fill::eye);
-  D = diff(D, ndiff);
-
-  // Calculate fitted values
-  vec y_hat = B * inv(B.t() * B + lambda * D.t() * D) * B.t() * y;
-
-  return y_hat;
 }

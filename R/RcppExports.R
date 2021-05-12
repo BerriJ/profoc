@@ -34,7 +34,9 @@
 #' @param gamma Scaling parameter for the learning rate.
 #' @param ndiff Degree of the differencing operator in the smoothing equation. 1 (default) leads to shrikage towards a constant.
 #' @param deg Degree of the B-Spine basis functions.
-#' @param rel_nseg determines how many basis functions are created in the smoothing step. This parameter defaults to 0.5 leading to 0.5*length(tau) to be used as number of knots. 1 Leads to as many knots as tau is long. 0 leads to one single knot.
+#' @param knot_distance determines the distance of the knots. Defaults to 0.025 which corrsponds to the grid steps when knot_distance_power = 1 (the default).
+#' @param knot_distance_power Parameter which defining the symetrie of the b-spline basis. Defaults to 1 which corresponds to the equidistant case. Values less than 1 create more knots in the center while values above 1 concentrate more knots in the tails.
+#' @param use_sobolev_space Determines if the difference matrix is created in the sobolev space. This sums the difference matriced up to ndiff, instead of using only the n'th differnenciation matrix. Defaults to FALSE, is ignored for ndiff = 1.
 #' @param gradient Determines if a linearized version of the loss is used.
 #' @param loss_array User specified loss array. If specified, the loss will not be calculated by profoc.
 #' @param regret_array User specified regret array. If specifiec, the regret will not be calculated by profoc.
@@ -47,35 +49,16 @@
 #' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 #' lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
 #' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
-#'rel_nseg = 0.5, gradient = TRUE, loss_array = NULL, regret_array = NULL,
+#' knot_distance = 0.025, knot_distance_power = 1, use_sobolev_space = FALSE,
+#' gradient = TRUE, loss_array = NULL, regret_array = NULL,
 #' trace = TRUE, init_weights = NULL, lead_time = 0)
 #' @return Profoc can tune various parameters automatically based on
 #' the past loss. For this, lambda, forget, fixed_share, gamma, ndiff,
-#' deg and rel_nseg can be specified as numeric vectors containing
+#' deg and knot_distance can be specified as numeric vectors containing
 #' parameters to consider. Profoc will automatically try all possible
 #' combinations of values provide.
 #' @export
-profoc <- function(y, experts, tau = as.numeric( c()), loss_function = "quantile", loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), method = "boa", method_var = "A", forget_regret = as.numeric( c()), forget_performance = 0, fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), rel_nseg = as.numeric( c()), gradient = TRUE, loss_array = as.numeric( c()), regret_array = as.numeric( c()), trace = TRUE, init_weights = NULL, lead_time = 0L) {
-    .Call(`_profoc_profoc`, y, experts, tau, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, method, method_var, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, rel_nseg, gradient, loss_array, regret_array, trace, init_weights, lead_time)
-}
-
-#' Spline Fit - Fit Penalized B-Splines
-#'
-#' Returns fitted values.
-#'
-#' @param y The respones variable. Must be a numeric vector.
-#' @param x Explanatory variable. Must be a numeric vector.
-#' @param lambda The penalization parameter.
-#' @param ndiff Degree of the difference operator to use when calculating
-#' the B-Spline basis. A value of 1 corresponds to shrinkage towards
-#' a constant, 2 corresponds to shrinkage towards a linear relationship
-#' between x and y.
-#' @param deg the degree of the basis functions.
-#' @param rel_nseg The number of basis functions are calculated relative to the
-#' length of y. A value of 0 corresponds to only 1 knot. A value of 1
-#' corresponds to length(y) knots.
-#' @export
-spline_fit <- function(y, x, lambda = 1, ndiff = 1L, deg = 3L, rel_nseg = 0.1) {
-    .Call(`_profoc_spline_fit`, y, x, lambda, ndiff, deg, rel_nseg)
+profoc <- function(y, experts, tau = as.numeric( c()), loss_function = "quantile", loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), method = "boa", method_var = "A", forget_regret = as.numeric( c()), forget_performance = 0, fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), knot_distance = as.numeric( c()), knot_distance_power = as.numeric( c()), use_sobolev_space = FALSE, gradient = TRUE, loss_array = as.numeric( c()), regret_array = as.numeric( c()), trace = TRUE, init_weights = NULL, lead_time = 0L) {
+    .Call(`_profoc_profoc`, y, experts, tau, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, method, method_var, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, knot_distance, knot_distance_power, use_sobolev_space, gradient, loss_array, regret_array, trace, init_weights, lead_time)
 }
 
