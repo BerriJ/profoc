@@ -5,6 +5,7 @@
 #include <progress.hpp>
 using namespace arma;
 
+// [[Rcpp::export]]
 mat pmax_arma(const mat &x, const double &bound)
 {
   mat out(x);
@@ -19,6 +20,7 @@ mat pmax_arma(const mat &x, const double &bound)
   return out;
 }
 
+// [[Rcpp::export]]
 mat pmin_arma(const mat &x, const double &bound)
 {
   mat out(x);
@@ -33,6 +35,7 @@ mat pmin_arma(const mat &x, const double &bound)
   return out;
 }
 
+// [[Rcpp::export]]
 vec make_knots(const double &kstep, const double &a = 1, const int deg = 3)
 {
   vec x = arma::linspace(0 - deg * 2 * kstep, 1, 1 / (2 * kstep) + deg + 1);
@@ -51,6 +54,7 @@ mat splineDesign_rcpp(const vec &x, const vec &knots, const int &deg)
   return y;
 }
 
+// [[Rcpp::export]]
 arma::vec diff_cpp(arma::vec x, unsigned int lag, unsigned int differences)
 {
 
@@ -67,6 +71,7 @@ arma::vec diff_cpp(arma::vec x, unsigned int lag, unsigned int differences)
   return x;
 }
 
+// [[Rcpp::export]]
 mat make_difference_matrix(const vec &knots, const int &bdiff, const int deg)
 {
   int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
@@ -76,6 +81,7 @@ mat make_difference_matrix(const vec &knots, const int &bdiff, const int deg)
   return D;
 }
 
+// [[Rcpp::export]]
 mat make_sobolev_penatly(const vec &knots, const int &bdiff, const int deg)
 {
   int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
@@ -88,6 +94,7 @@ mat make_sobolev_penatly(const vec &knots, const int &bdiff, const int deg)
   return sum(pentalty_matrices, 2);
 }
 
+// [[Rcpp::export]]
 mat make_hat_matrix(const vec &x, const double &kstep, double &lambda, const int &bdiff, const int deg, const double &a, const bool &use_sobolev_spaces = false)
 {
   vec knots = make_knots(kstep, a, deg);
@@ -107,6 +114,7 @@ mat make_hat_matrix(const vec &x, const double &kstep, double &lambda, const int
   return B * arma::inv(B.t() * B + lambda * P) * B.t();
 }
 
+// [[Rcpp::export]]
 double loss(const double &y,
             const double &x,
             const double &pred = 0,
@@ -160,6 +168,7 @@ double loss(const double &y,
   return loss;
 }
 
+// [[Rcpp::export]]
 mat get_combinations(const mat &x, const vec &y)
 {
   int i = 0;
@@ -177,6 +186,7 @@ mat get_combinations(const mat &x, const vec &y)
   return (grid);
 }
 
+// [[Rcpp::export]]
 vec set_default(const vec &input,
                 const double &value)
 {
