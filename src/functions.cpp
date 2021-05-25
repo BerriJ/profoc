@@ -82,34 +82,23 @@ mat make_difference_matrix(const vec &knots, const int &bdiff, const int deg)
 }
 
 // [[Rcpp::export]]
-mat make_sobolev_penatly(const vec &knots, const int &bdiff, const int deg)
-{
-  int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
-  cube pentalty_matrices(m + deg + 1, m + deg + 1, bdiff, fill::zeros);
-  for (unsigned int i = 0; i < bdiff; i++)
-  {
-    mat D = make_difference_matrix(knots, i + 1, deg);
-    pentalty_matrices.slice(i) = D.t() * D;
-  }
-  return sum(pentalty_matrices, 2);
-}
-
-// [[Rcpp::export]]
-mat make_hat_matrix(const vec &x, const double &kstep, double &lambda, const int &bdiff, const int deg, const double &a, const bool &use_sobolev_spaces = false)
+mat make_hat_matrix(const vec &x, const double &kstep, double &lambda, const double &bdiff, const int deg, const double &a)
 {
   vec knots = make_knots(kstep, a, deg);
   int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
   mat B = splineDesign_rcpp(x, knots, deg);
+  mat P1(m + deg + 1, m + deg + 1);
+  mat P2(m + deg + 1, m + deg + 1);
   mat P(m + deg + 1, m + deg + 1);
-  if (!use_sobolev_spaces && bdiff > 1)
-  {
-    mat D = make_difference_matrix(knots, bdiff, deg);
-    P = D.t() * D;
-  }
-  else
-  {
-    P = make_sobolev_penatly(knots, bdiff, deg); // This is already D'D
-  }
+
+  mat D1 = make_difference_matrix(knots, 1, deg);
+  P1 = D1.t() * D1;
+
+  mat D2 = make_difference_matrix(knots, 2, deg);
+  P2 = D2.t() * D2;
+
+  P = pow(2 - bdiff, 2) * P1 + pow(bdiff - 1, 2) * P2;
+
   // Return hat matrix
   return B * arma::inv(B.t() * B + lambda * P) * B.t();
 }
@@ -230,11 +219,10 @@ vec set_default(const vec &input,
 //' @param fixed_share Amount of fixed share to be added to the weights.
 //' Defaults to 0. 1 leads to uniform weights.
 //' @param gamma Scaling parameter for the learning rate.
-//' @param ndiff Degree of the differencing operator in the smoothing equation. 1 (default) leads to shrikage towards a constant.
+//' @param ndiff Degree of the differencing operator in the smoothing equation. 1 (default) leads to shrikage towards a constant. Can also be 2 or any value in between. If a value in between is used, a weighted sum of the first and second differentiation matrix is calculated.
 //' @param deg Degree of the B-Spine basis functions.
 //' @param knot_distance determines the distance of the knots. Defaults to 0.025 which corrsponds to the grid steps when knot_distance_power = 1 (the default).
 //' @param knot_distance_power Parameter which defining the symetrie of the b-spline basis. Defaults to 1 which corresponds to the equidistant case. Values less than 1 create more knots in the center while values above 1 concentrate more knots in the tails.
-//' @param use_sobolev_space Determines if the difference matrix is created in the sobolev space. This sums the difference matriced up to ndiff, instead of using only the n'th differnenciation matrix. Defaults to FALSE, is ignored for ndiff = 1.
 //' @param gradient Determines if a linearized version of the loss is used.
 //' @param loss_array User specified loss array. If specified, the loss will not be calculated by profoc.
 //' @param regret_array User specified regret array. If specifiec, the regret will not be calculated by profoc.
@@ -247,7 +235,7 @@ vec set_default(const vec &input,
 //' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 //' lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
 //' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
-//' knot_distance = 0.025, knot_distance_power = 1, use_sobolev_space = FALSE,
+//' knot_distance = 0.025, knot_distance_power = 1,
 //' gradient = TRUE, loss_array = NULL, regret_array = NULL,
 //' trace = TRUE, init_weights = NULL, lead_time = 0)
 //' @return Profoc can tune various parameters automatically based on
@@ -276,7 +264,6 @@ Rcpp::List profoc(
     Rcpp::NumericVector deg = Rcpp::NumericVector::create(),
     Rcpp::NumericVector knot_distance = Rcpp::NumericVector::create(),
     Rcpp::NumericVector knot_distance_power = Rcpp::NumericVector::create(),
-    const bool &use_sobolev_space = false,
     const bool &gradient = true,
     Rcpp::NumericVector loss_array = Rcpp::NumericVector::create(),
     Rcpp::NumericVector regret_array = Rcpp::NumericVector::create(),
@@ -444,8 +431,8 @@ Rcpp::List profoc(
                                       param_grid(x, 0), // lambda
                                       param_grid(x, 6), // differences
                                       param_grid(x, 5), // degree
-                                      param_grid(x, 7), // uneven grid
-                                      use_sobolev_space);
+                                      param_grid(x, 7)  // uneven grid
+        );
       }
       R_CheckUserInterrupt();
       prog.increment(); // Update progress

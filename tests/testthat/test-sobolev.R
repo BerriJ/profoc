@@ -23,7 +23,6 @@ boa_smooth <- profoc(
     experts = experts,
     lambda = 50,
     ndiff = 2,
-    use_sobolev_space = FALSE,
     trace = FALSE
 )
 
@@ -32,8 +31,7 @@ boa_smooth_sobol <- profoc(
     tau = prob_grid,
     experts = experts,
     lambda = 50,
-    ndiff = 2,
-    use_sobolev_space = TRUE,
+    ndiff = 1.5,
     trace = FALSE
 )
 

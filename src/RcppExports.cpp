@@ -70,33 +70,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// make_sobolev_penatly
-mat make_sobolev_penatly(const vec& knots, const int& bdiff, const int deg);
-RcppExport SEXP _profoc_make_sobolev_penatly(SEXP knotsSEXP, SEXP bdiffSEXP, SEXP degSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const vec& >::type knots(knotsSEXP);
-    Rcpp::traits::input_parameter< const int& >::type bdiff(bdiffSEXP);
-    Rcpp::traits::input_parameter< const int >::type deg(degSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_sobolev_penatly(knots, bdiff, deg));
-    return rcpp_result_gen;
-END_RCPP
-}
 // make_hat_matrix
-mat make_hat_matrix(const vec& x, const double& kstep, double& lambda, const int& bdiff, const int deg, const double& a, const bool& use_sobolev_spaces);
-RcppExport SEXP _profoc_make_hat_matrix(SEXP xSEXP, SEXP kstepSEXP, SEXP lambdaSEXP, SEXP bdiffSEXP, SEXP degSEXP, SEXP aSEXP, SEXP use_sobolev_spacesSEXP) {
+mat make_hat_matrix(const vec& x, const double& kstep, double& lambda, const double& bdiff, const int deg, const double& a);
+RcppExport SEXP _profoc_make_hat_matrix(SEXP xSEXP, SEXP kstepSEXP, SEXP lambdaSEXP, SEXP bdiffSEXP, SEXP degSEXP, SEXP aSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const vec& >::type x(xSEXP);
     Rcpp::traits::input_parameter< const double& >::type kstep(kstepSEXP);
     Rcpp::traits::input_parameter< double& >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< const int& >::type bdiff(bdiffSEXP);
+    Rcpp::traits::input_parameter< const double& >::type bdiff(bdiffSEXP);
     Rcpp::traits::input_parameter< const int >::type deg(degSEXP);
     Rcpp::traits::input_parameter< const double& >::type a(aSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type use_sobolev_spaces(use_sobolev_spacesSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_hat_matrix(x, kstep, lambda, bdiff, deg, a, use_sobolev_spaces));
+    rcpp_result_gen = Rcpp::wrap(make_hat_matrix(x, kstep, lambda, bdiff, deg, a));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -142,8 +128,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // profoc
-Rcpp::List profoc(mat& y, const cube& experts, Rcpp::NumericVector tau, const std::string loss_function, const double& loss_parameter, const bool& ex_post_smooth, const bool& ex_post_fs, Rcpp::NumericVector lambda, const std::string method, const std::string method_var, Rcpp::NumericVector forget_regret, const double& forget_performance, Rcpp::NumericVector fixed_share, Rcpp::NumericVector gamma, Rcpp::NumericVector ndiff, Rcpp::NumericVector deg, Rcpp::NumericVector knot_distance, Rcpp::NumericVector knot_distance_power, const bool& use_sobolev_space, const bool& gradient, Rcpp::NumericVector loss_array, Rcpp::NumericVector regret_array, const bool trace, Rcpp::Nullable<Rcpp::NumericMatrix> init_weights, const int& lead_time);
-RcppExport SEXP _profoc_profoc(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP ex_post_smoothSEXP, SEXP ex_post_fsSEXP, SEXP lambdaSEXP, SEXP methodSEXP, SEXP method_varSEXP, SEXP forget_regretSEXP, SEXP forget_performanceSEXP, SEXP fixed_shareSEXP, SEXP gammaSEXP, SEXP ndiffSEXP, SEXP degSEXP, SEXP knot_distanceSEXP, SEXP knot_distance_powerSEXP, SEXP use_sobolev_spaceSEXP, SEXP gradientSEXP, SEXP loss_arraySEXP, SEXP regret_arraySEXP, SEXP traceSEXP, SEXP init_weightsSEXP, SEXP lead_timeSEXP) {
+Rcpp::List profoc(mat& y, const cube& experts, Rcpp::NumericVector tau, const std::string loss_function, const double& loss_parameter, const bool& ex_post_smooth, const bool& ex_post_fs, Rcpp::NumericVector lambda, const std::string method, const std::string method_var, Rcpp::NumericVector forget_regret, const double& forget_performance, Rcpp::NumericVector fixed_share, Rcpp::NumericVector gamma, Rcpp::NumericVector ndiff, Rcpp::NumericVector deg, Rcpp::NumericVector knot_distance, Rcpp::NumericVector knot_distance_power, const bool& gradient, Rcpp::NumericVector loss_array, Rcpp::NumericVector regret_array, const bool trace, Rcpp::Nullable<Rcpp::NumericMatrix> init_weights, const int& lead_time);
+RcppExport SEXP _profoc_profoc(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP ex_post_smoothSEXP, SEXP ex_post_fsSEXP, SEXP lambdaSEXP, SEXP methodSEXP, SEXP method_varSEXP, SEXP forget_regretSEXP, SEXP forget_performanceSEXP, SEXP fixed_shareSEXP, SEXP gammaSEXP, SEXP ndiffSEXP, SEXP degSEXP, SEXP knot_distanceSEXP, SEXP knot_distance_powerSEXP, SEXP gradientSEXP, SEXP loss_arraySEXP, SEXP regret_arraySEXP, SEXP traceSEXP, SEXP init_weightsSEXP, SEXP lead_timeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -165,14 +151,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type deg(degSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type knot_distance(knot_distanceSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type knot_distance_power(knot_distance_powerSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type use_sobolev_space(use_sobolev_spaceSEXP);
     Rcpp::traits::input_parameter< const bool& >::type gradient(gradientSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type loss_array(loss_arraySEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type regret_array(regret_arraySEXP);
     Rcpp::traits::input_parameter< const bool >::type trace(traceSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericMatrix> >::type init_weights(init_weightsSEXP);
     Rcpp::traits::input_parameter< const int& >::type lead_time(lead_timeSEXP);
-    rcpp_result_gen = Rcpp::wrap(profoc(y, experts, tau, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, method, method_var, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, knot_distance, knot_distance_power, use_sobolev_space, gradient, loss_array, regret_array, trace, init_weights, lead_time));
+    rcpp_result_gen = Rcpp::wrap(profoc(y, experts, tau, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, method, method_var, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, knot_distance, knot_distance_power, gradient, loss_array, regret_array, trace, init_weights, lead_time));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -183,12 +168,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_make_knots", (DL_FUNC) &_profoc_make_knots, 3},
     {"_profoc_diff_cpp", (DL_FUNC) &_profoc_diff_cpp, 3},
     {"_profoc_make_difference_matrix", (DL_FUNC) &_profoc_make_difference_matrix, 3},
-    {"_profoc_make_sobolev_penatly", (DL_FUNC) &_profoc_make_sobolev_penatly, 3},
-    {"_profoc_make_hat_matrix", (DL_FUNC) &_profoc_make_hat_matrix, 7},
+    {"_profoc_make_hat_matrix", (DL_FUNC) &_profoc_make_hat_matrix, 6},
     {"_profoc_loss", (DL_FUNC) &_profoc_loss, 7},
     {"_profoc_get_combinations", (DL_FUNC) &_profoc_get_combinations, 2},
     {"_profoc_set_default", (DL_FUNC) &_profoc_set_default, 2},
-    {"_profoc_profoc", (DL_FUNC) &_profoc_profoc, 25},
+    {"_profoc_profoc", (DL_FUNC) &_profoc_profoc, 24},
     {NULL, NULL, 0}
 };
 
