@@ -10,7 +10,7 @@ License: GPL-3
 Encoding: UTF-8
 Imports: Rcpp (>= 1.0.5), RcppArmadillo
 LinkingTo: Rcpp, RcppArmadillo, RcppProgress
-URL: https://github.com/BerriJ/profoc
+URL: https://profoc.berrisch.biz/, https://github.com/BerriJ/profoc
 BugReports: https://github.com/BerriJ/profoc/issues
 RoxygenNote: 7.1.1
 Suggests: 
