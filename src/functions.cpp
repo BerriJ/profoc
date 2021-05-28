@@ -231,13 +231,14 @@ vec set_default(const vec &input,
 //' @param lead_time offset for expert forecasts. Defaults to 0, which means that
 //' experts forecast t+1 at t. Setting this to h means experts predictions refer
 //' to t+1+h at time t. The weight updates delay accordingly.
+//' @param allow_quantile_crossing Shall quantile crossing be allowed? Defaults to false which means that predictions are sorted in ascending order.
 //' @usage profoc(y, experts, tau, loss_function = "quantile",
 //' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 //' lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
 //' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 //' knot_distance = 0.025, knot_distance_power = 1,
 //' gradient = TRUE, loss_array = NULL, regret_array = NULL,
-//' trace = TRUE, init_weights = NULL, lead_time = 0)
+//' trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE)
 //' @return Profoc can tune various parameters automatically based on
 //' the past loss. For this, lambda, forget, fixed_share, gamma, ndiff,
 //' deg and knot_distance can be specified as numeric vectors containing
@@ -269,7 +270,8 @@ Rcpp::List profoc(
     Rcpp::NumericVector regret_array = Rcpp::NumericVector::create(),
     const bool trace = true,
     Rcpp::Nullable<Rcpp::NumericMatrix> init_weights = R_NilValue,
-    const int &lead_time = 0)
+    const int &lead_time = 0,
+    const bool &allow_quantile_crossing = false)
 {
   // Indexing Convention -> (T, P, K, X)
   // T number of observations
@@ -378,7 +380,7 @@ Rcpp::List profoc(
   cube predictions_post(T, P, X);
   cube predictions_ante(T, P, X);
   mat predictions_temp(P, K);
-  mat predictions_final(T + T_E_Y, P);
+  mat predictions_final(T + T_E_Y, P, fill::zeros);
 
   vec lpred(1);
   vec lexp(K);
@@ -461,6 +463,11 @@ Rcpp::List profoc(
     predictions_final.row(t) =
         vectorise(predictions_post(span(t), span::all, span(opt_index(t)))).t();
 
+    if (!allow_quantile_crossing)
+    {
+      predictions_final.row(t) = sort(predictions_final.row(t));
+    }
+
     past_performance.row(t).fill(datum::nan);
   }
 
@@ -485,6 +492,11 @@ Rcpp::List profoc(
     // Final prediction
     predictions_final.row(t) =
         vectorise(predictions_post(span(t), span::all, span(opt_index(t)))).t();
+
+    if (!allow_quantile_crossing)
+    {
+      predictions_final.row(t) = sort(predictions_final.row(t));
+    }
 
     for (unsigned int x = 0; x < X; x++)
     {
@@ -663,6 +675,10 @@ Rcpp::List profoc(
     experts_mat = experts.row(t);
     predictions_temp = sum(w_post.slice(opt_index(T)) % experts_mat, 1);
     predictions_final.row(t) = vectorise(predictions_temp).t();
+    if (!allow_quantile_crossing)
+    {
+      predictions_final.row(t) = sort(predictions_final.row(t));
+    }
   }
 
   // Save losses suffered by forecaster and experts

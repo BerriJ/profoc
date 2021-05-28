@@ -10,7 +10,7 @@ lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
 forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 knot_distance = 0.025, knot_distance_power = 1,
 gradient = TRUE, loss_array = NULL, regret_array = NULL,
-trace = TRUE, init_weights = NULL, lead_time = 0)
+trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE)
 }
 \arguments{
 \item{y}{A numeric vector of realizations.}
@@ -73,6 +73,8 @@ Defaults to 0. 1 leads to uniform weights.}
 \item{lead_time}{offset for expert forecasts. Defaults to 0, which means that
 experts forecast t+1 at t. Setting this to h means experts predictions refer
 to t+1+h at time t. The weight updates delay accordingly.}
+
+\item{allow_quantile_crossing}{Shall quantile crossing be allowed? Defaults to false which means that predictions are sorted in ascending order.}
 }
 \value{
 Profoc can tune various parameters automatically based on

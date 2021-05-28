@@ -10,6 +10,7 @@ The spline functions where rewritten to add the ability of using a non-equidista
 * `ndiff` defines the degree of differencing for creating the penalty term. For values between 1 and 2 a weighted sum of the difference penalization matrices is used.
 * `rel_nseg` is replaced by `knot_distance` ( distance between knots). Defaults to 0.025, which corresponds to the grid steps when knot_distance_power = 1 (the default).
 * A new parameter `knot_distance_power` defines if knots are uniformly distributed. Defaults to 1 which corresponds to the equidistant case. Values less than 1 create more knots in the center while values above 1 concentrate more knots in the tails.
+* A new parameter `allow_quantile_crossing` defines if quantile crossing is allowed. Defaults to false, which means that predictions will be sorted.
 
 ### Internal changes:
 
