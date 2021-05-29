@@ -463,11 +463,6 @@ Rcpp::List profoc(
     predictions_final.row(t) =
         vectorise(predictions_post(span(t), span::all, span(opt_index(t)))).t();
 
-    if (!allow_quantile_crossing)
-    {
-      predictions_final.row(t) = sort(predictions_final.row(t));
-    }
-
     past_performance.row(t).fill(datum::nan);
   }
 
@@ -492,11 +487,6 @@ Rcpp::List profoc(
     // Final prediction
     predictions_final.row(t) =
         vectorise(predictions_post(span(t), span::all, span(opt_index(t)))).t();
-
-    if (!allow_quantile_crossing)
-    {
-      predictions_final.row(t) = sort(predictions_final.row(t));
-    }
 
     for (unsigned int x = 0; x < X; x++)
     {
@@ -675,10 +665,12 @@ Rcpp::List profoc(
     experts_mat = experts.row(t);
     predictions_temp = sum(w_post.slice(opt_index(T)) % experts_mat, 1);
     predictions_final.row(t) = vectorise(predictions_temp).t();
-    if (!allow_quantile_crossing)
-    {
-      predictions_final.row(t) = sort(predictions_final.row(t));
-    }
+  }
+
+  // Sort predictions if quantile_crossing is prohibited
+  if (!allow_quantile_crossing)
+  {
+    predictions_final = arma::sort(predictions_final, "ascend", 1);
   }
 
   // Save losses suffered by forecaster and experts
