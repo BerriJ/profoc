@@ -1,3 +1,5 @@
+suppressPackageStartupMessages(library(gamlss.dist))
+
 # Experts
 N <- 2
 # Observations
@@ -12,7 +14,7 @@ tau_y <- 6
 nu_y <- 2
 
 # Realized observations
-y <- gamlss.dist::rSST(n = T, mu = mean_y, tau = tau_y, sigma = sd_y, nu = nu_y)
+y <- rSST(n = T, mu = mean_y, tau = tau_y, sigma = sd_y, nu = nu_y)
 
 # Expert predictions
 experts <- array(dim = c(T, P, N))
@@ -42,7 +44,7 @@ boa_median <- profoc(
 )
 
 median_y <- round(
-    gamlss.dist::qSST(0.5, mu = mean_y, tau = tau_y, sigma = sd_y, nu = nu_y), 1
+    qSST(0.5, mu = mean_y, tau = tau_y, sigma = sd_y, nu = nu_y), 1
 )
 
 expect_equal(round(mean(boa_median$predictions), 1), median_y)

@@ -26,7 +26,7 @@ boa_smooth <- profoc(
     deg = c(2, 3),
     knot_distance = c(0.001, 0.01, 0.1),
     knot_distance_power = c(0.5, 1, 2),
-    trace = TRUE
+    trace = FALSE
 )
 
 boa_smooth <- profoc(
