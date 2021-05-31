@@ -271,7 +271,7 @@ Rcpp::List profoc(
     const bool trace = true,
     Rcpp::Nullable<Rcpp::NumericMatrix> init_weights = R_NilValue,
     const int &lead_time = 0,
-    const bool &allow_quantile_crossing = false)
+    bool allow_quantile_crossing = false)
 {
   // Indexing Convention -> (T, P, K, X)
   // T number of observations
@@ -284,6 +284,12 @@ Rcpp::List profoc(
   const int P = experts.n_cols;
   const int K = experts.n_slices;
   const int T_E_Y = experts.n_rows - y.n_rows;
+
+  if (y.n_cols > 1 && !allow_quantile_crossing)
+  {
+    Rcpp::warning("Warning: allow_quantile_crossing set to true since multivariate prediction target was provided.");
+    allow_quantile_crossing = true;
+  }
 
   // Expand y matrix if necessary
   if (y.n_cols == 1)
