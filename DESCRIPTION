@@ -14,5 +14,8 @@ URL: https://profoc.berrisch.biz/, https://github.com/BerriJ/profoc
 BugReports: https://github.com/BerriJ/profoc/issues
 RoxygenNote: 7.1.1
 Suggests: 
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    gamlss.dist
 Config/testthat/edition: 3
+Config/testthat/parallel: true
+

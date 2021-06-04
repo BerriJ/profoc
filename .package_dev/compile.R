@@ -2,7 +2,7 @@ Rcpp::compileAttributes()
 devtools::build()
 roxygen2::roxygenize(roclets = "rd")
 devtools::check(env_vars = c("NOT_CRAN" = "false"))
-devtools::test()
+devtools::check()
 
 # Release TODO:
 
