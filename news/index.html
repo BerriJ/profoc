@@ -71,7 +71,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">profoc</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.6.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.7.0</span>
       </span>
     </div>
 
@@ -114,15 +114,43 @@
       <small>Source: <a href='https://github.com/BerriJ/profoc/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
-    <div id="profoc-060-release-date-2021-03-04" class="section level1">
-<h1 class="page-header" data-toc-text="0.6.0">
-<a href="#profoc-060-release-date-2021-03-04" class="anchor"></a>profoc 0.6.0 (Release date: 2021-03-04)</h1>
+    <div id="profoc-070-release-date-2021-06-04" class="section level1">
+<h1 class="page-header" data-toc-text="0.7.0">
+<a href="#profoc-070-release-date-2021-06-04" class="anchor"></a>profoc 0.7.0 (Release date: 2021-06-04)</h1>
 <div id="changes" class="section level2">
 <h2 class="hasAnchor">
 <a href="#changes" class="anchor"></a>Changes:</h2>
+<p>The spline functions where rewritten to add the ability of using a non-equidistant knot sequence and a penalty term defined on the sobolev space. This change induces breaking changes to small parts of the API.</p>
 <div id="interface" class="section level3">
 <h3 class="hasAnchor">
 <a href="#interface" class="anchor"></a>Interface:</h3>
+<ul>
+<li>
+<code>ndiff</code> defines the degree of differencing for creating the penalty term. For values between 1 and 2 a weighted sum of the difference penalization matrices is used.</li>
+<li>
+<code>rel_nseg</code> is replaced by <code>knot_distance</code> ( distance between knots). Defaults to 0.025, which corresponds to the grid steps when knot_distance_power = 1 (the default).</li>
+<li>A new parameter <code>knot_distance_power</code> defines if knots are uniformly distributed. Defaults to 1 which corresponds to the equidistant case. Values less than 1 create more knots in the center while values above 1 concentrate more knots in the tails.</li>
+<li>A new parameter <code>allow_quantile_crossing</code> defines if quantile crossing is allowed. Defaults to false, which means that predictions will be sorted.</li>
+</ul>
+</div>
+<div id="internal-changes" class="section level3">
+<h3 class="hasAnchor">
+<a href="#internal-changes" class="anchor"></a>Internal changes:</h3>
+<ul>
+<li>Functions for calculating the b-spline basis are now exported to R as internal functions of the package. They can be accessed using the <code>package:::function</code> notation.</li>
+</ul>
+</div>
+</div>
+</div>
+    <div id="profoc-060-release-date-2021-03-04" class="section level1">
+<h1 class="page-header" data-toc-text="0.6.0">
+<a href="#profoc-060-release-date-2021-03-04" class="anchor"></a>profoc 0.6.0 (Release date: 2021-03-04)</h1>
+<div id="changes-1" class="section level2">
+<h2 class="hasAnchor">
+<a href="#changes-1" class="anchor"></a>Changes:</h2>
+<div id="interface-1" class="section level3">
+<h3 class="hasAnchor">
+<a href="#interface-1" class="anchor"></a>Interface:</h3>
 <ul>
 <li>
 <code>y</code> must now be a matrix of either <span class="math inline">T × 1</span> or <span class="math inline">T × P</span>.</li>
@@ -139,9 +167,9 @@
 <li>Add <code>lead_time</code> parameter. offset for expert forecasts. Defaults to 0 which means that experts predict t+1 at t. Setting this to h means experts predictions refer to t+1+h at time t. The weight updates delay accordingly.</li>
 </ul>
 </div>
-<div id="internal-changes" class="section level3">
+<div id="internal-changes-1" class="section level3">
 <h3 class="hasAnchor">
-<a href="#internal-changes" class="anchor"></a>Internal changes:</h3>
+<a href="#internal-changes-1" class="anchor"></a>Internal changes:</h3>
 <ul>
 <li>If more expert forecasts than observations are provided, the excessive expert forecasts are used for prediction using the most recent weights.</li>
 <li>
@@ -157,9 +185,9 @@
     <div id="profoc-052-release-date-2021-01-29" class="section level1">
 <h1 class="page-header" data-toc-text="0.5.2">
 <a href="#profoc-052-release-date-2021-01-29" class="anchor"></a>profoc 0.5.2 (Release date: 2021-01-29)</h1>
-<div id="changes-1" class="section level2">
+<div id="changes-2" class="section level2">
 <h2 class="hasAnchor">
-<a href="#changes-1" class="anchor"></a>Changes:</h2>
+<a href="#changes-2" class="anchor"></a>Changes:</h2>
 <ul>
 <li>Initial release on GitHub</li>
 </ul>

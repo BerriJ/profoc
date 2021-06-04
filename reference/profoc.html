@@ -74,7 +74,7 @@ gradient based bernstein online aggregation (BOAG)." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">profoc</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.6.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.7.0</span>
       </span>
     </div>
 
@@ -128,8 +128,9 @@ gradient based bernstein online aggregation (BOAG).</p>
 loss_parameter <span class='op'>=</span> <span class='fl'>1</span>, ex_post_smooth <span class='op'>=</span> <span class='cn'>FALSE</span>, ex_post_fs <span class='op'>=</span> <span class='cn'>FALSE</span>,
 lambda <span class='op'>=</span> <span class='op'>-</span><span class='cn'>Inf</span>, method <span class='op'>=</span> <span class='st'>"boa"</span>, method_var <span class='op'>=</span> <span class='st'>"A"</span>, forget_regret <span class='op'>=</span> <span class='fl'>0</span>,
 forget_performance <span class='op'>=</span> <span class='fl'>0</span>, fixed_share <span class='op'>=</span> <span class='fl'>0</span>, gamma <span class='op'>=</span> <span class='fl'>1</span>, ndiff <span class='op'>=</span> <span class='fl'>1</span>, deg <span class='op'>=</span> <span class='fl'>3</span>,
-rel_nseg <span class='op'>=</span> <span class='fl'>0.5</span>, gradient <span class='op'>=</span> <span class='cn'>TRUE</span>, loss_array <span class='op'>=</span> <span class='cn'>NULL</span>, regret_array <span class='op'>=</span> <span class='cn'>NULL</span>,
-trace <span class='op'>=</span> <span class='cn'>TRUE</span>, init_weights <span class='op'>=</span> <span class='cn'>NULL</span>, lead_time <span class='op'>=</span> <span class='fl'>0</span><span class='op'>)</span></pre>
+knot_distance <span class='op'>=</span> <span class='fl'>0.025</span>, knot_distance_power <span class='op'>=</span> <span class='fl'>1</span>,
+gradient <span class='op'>=</span> <span class='cn'>TRUE</span>, loss_array <span class='op'>=</span> <span class='cn'>NULL</span>, regret_array <span class='op'>=</span> <span class='cn'>NULL</span>,
+trace <span class='op'>=</span> <span class='cn'>TRUE</span>, init_weights <span class='op'>=</span> <span class='cn'>NULL</span>, lead_time <span class='op'>=</span> <span class='fl'>0</span>, allow_quantile_crossing <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -203,15 +204,19 @@ Defaults to 0. 1 leads to uniform weights.</p></td>
     </tr>
     <tr>
       <th>ndiff</th>
-      <td><p>Degree of the differencing operator in the smoothing equation. 1 (default) leads to shrikage towards a constant.</p></td>
+      <td><p>Degree of the differencing operator in the smoothing equation. 1 (default) leads to shrikage towards a constant. Can also be 2 or any value in between. If a value in between is used, a weighted sum of the first and second differentiation matrix is calculated.</p></td>
     </tr>
     <tr>
       <th>deg</th>
       <td><p>Degree of the B-Spine basis functions.</p></td>
     </tr>
     <tr>
-      <th>rel_nseg</th>
-      <td><p>determines how many basis functions are created in the smoothing step. This parameter defaults to 0.5 leading to 0.5*length(tau) to be used as number of knots. 1 Leads to as many knots as tau is long. 0 leads to one single knot.</p></td>
+      <th>knot_distance</th>
+      <td><p>determines the distance of the knots. Defaults to 0.025 which corrsponds to the grid steps when knot_distance_power = 1 (the default).</p></td>
+    </tr>
+    <tr>
+      <th>knot_distance_power</th>
+      <td><p>Parameter which defining the symetrie of the b-spline basis. Defaults to 1 which corresponds to the equidistant case. Values less than 1 create more knots in the center while values above 1 concentrate more knots in the tails.</p></td>
     </tr>
     <tr>
       <th>gradient</th>
@@ -239,13 +244,17 @@ Defaults to 0. 1 leads to uniform weights.</p></td>
 experts forecast t+1 at t. Setting this to h means experts predictions refer
 to t+1+h at time t. The weight updates delay accordingly.</p></td>
     </tr>
+    <tr>
+      <th>allow_quantile_crossing</th>
+      <td><p>Shall quantile crossing be allowed? Defaults to false which means that predictions are sorted in ascending order.</p></td>
+    </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>Profoc can tune various parameters automatically based on
 the past loss. For this, lambda, forget, fixed_share, gamma, ndiff,
-deg and rel_nseg can be specified as numeric vectors containing
+deg and knot_distance can be specified as numeric vectors containing
 parameters to consider. Profoc will automatically try all possible
 combinations of values provide.</p>
 
