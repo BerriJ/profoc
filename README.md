@@ -3,7 +3,8 @@ The profoc Package
 ======================
 
 <!-- badges: start -->
-[![R-CMD-check](https://img.shields.io/github/workflow/status/berrij/profoc/R-CMD-check?style=for-the-badge)
+[![R-CMD-check](https://img.shields.io/github/workflow/status/berrij/profoc/R-CMD-check?style=for-the-badge)](https://github.com/BerriJ/profoc/actions/workflows/R-CMD-check.yaml)
+[![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/berrij/profoc/pkgdown/main?label=Documentation&style=for-the-badge)](https://profoc.berrisch.biz/)
 [![Lifecycle: experimental](https://img.shields.io/badge/Lifecycle-experimental-orange?style=for-the-badge)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
