@@ -2,6 +2,7 @@
 .devcontainer
 .package_dev
 .test
+tests
 ^\.github$
 ^_pkgdown\.yml$
 ^docs$
