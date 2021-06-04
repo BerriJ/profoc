@@ -11,4 +11,6 @@ vec diff_cpp(vec x, unsigned int lag, unsigned int differences);
 
 mat get_combinations(const mat &x, const vec &y);
 
+vec set_default(const vec &input, const double &value);
+
 #endif

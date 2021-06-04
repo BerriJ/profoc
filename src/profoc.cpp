@@ -4,19 +4,6 @@
 #include <splines.h>
 #include <loss.h>
 
-// [[Rcpp::export]]
-vec set_default(const vec &input,
-                const double &value)
-{
-  vec output = input;
-  if (output.size() == 0)
-  {
-    output.set_size(1);
-    output(0) = value;
-  }
-  return output;
-}
-
 //' Probabilistic Forecast Combination - ProFoC
 //'
 //' Returns predictions and weights calculated by online-learning algorithms

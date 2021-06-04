@@ -65,3 +65,16 @@ mat get_combinations(const mat &x, const vec &y)
     }
     return (grid);
 }
+
+// [[Rcpp::export]]
+vec set_default(const vec &input,
+                const double &value)
+{
+    vec output = input;
+    if (output.size() == 0)
+    {
+        output.set_size(1);
+        output(0) = value;
+    }
+    return output;
+}
