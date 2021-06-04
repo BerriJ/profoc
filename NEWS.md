@@ -1,4 +1,4 @@
-profoc 0.7.0 (Release date: 2021-05-XX)
+profoc 0.7.0 (Release date: 2021-06-04)
 ==============
 
 ## Changes:
