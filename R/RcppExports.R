@@ -102,3 +102,7 @@ spline_fit <- function(y, x, lambda = 1, ndiff = 1L, deg = 3L, knot_distance = 0
     .Call(`_profoc_spline_fit`, y, x, lambda, ndiff, deg, knot_distance, knot_distance_power)
 }
 
+splines2_basis <- function(x, knots, deg, boundary_knots) {
+    .Call(`_profoc_splines2_basis`, x, knots, deg, boundary_knots)
+}
+

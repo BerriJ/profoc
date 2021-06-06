@@ -4,7 +4,6 @@ devtools::document()
 devtools::check()
 devtools::test()
 
-
 # Release TODO:
 
 # Bump Version Number in Description

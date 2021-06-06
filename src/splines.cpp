@@ -3,6 +3,7 @@
 
 #include <misc.h>
 #include <splines.h>
+#include <splines2.h>
 
 using namespace arma;
 
@@ -40,7 +41,11 @@ mat make_hat_matrix(const vec &x, const double &kstep, const double &lambda, con
 {
     vec knots = make_knots(kstep, a, deg);
     int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
-    mat B = splineDesign_rcpp(x, knots, deg);
+
+    vec boundary_knots({arma::min(knots), arma::max(knots)});
+
+    mat B = splines2_basis(x, knots, deg, boundary_knots);
+
     mat P1(m + deg + 1, m + deg + 1);
     mat P2(m + deg + 1, m + deg + 1);
     mat P(m + deg + 1, m + deg + 1);
