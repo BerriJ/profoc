@@ -1,16 +1,16 @@
-#ifndef pmax_arma_h
-#define pmax_arma_h
+#ifndef misc_h
+#define misc_h
 
-#include <common_header.h>
+#include <RcppArmadillo.h>
 
-mat pmax_arma(const mat &x, const double &bound);
+arma::mat pmax_arma(const arma::mat &x, const double &bound);
 
-mat pmin_arma(const mat &x, const double &bound);
+arma::mat pmin_arma(const arma::mat &x, const double &bound);
 
-vec diff_cpp(vec x, unsigned int lag, unsigned int differences);
+arma::vec diff_cpp(arma::vec x, unsigned int lag, unsigned int differences);
 
-mat get_combinations(const mat &x, const vec &y);
+arma::mat get_combinations(const arma::mat &x, const arma::vec &y);
 
-vec set_default(const vec &input, const double &value);
+arma::vec set_default(const arma::vec &input, const double &value);
 
 #endif

@@ -1,5 +1,10 @@
-#include <common_header.h>
+// [[Rcpp::depends(RcppArmadillo)]]
+#include <RcppArmadillo.h>
+
 #include <misc.h>
+#include <splines.h>
+
+using namespace arma;
 
 // [[Rcpp::export]]
 vec make_knots(const double &kstep, const double &a = 1, const int deg = 3)

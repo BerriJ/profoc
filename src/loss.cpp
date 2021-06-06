@@ -1,4 +1,11 @@
-#include <common_header.h>
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::depends(RcppProgress)]]
+#include <RcppArmadillo.h>
+#include <string>
+#include <progress.hpp>
+#include <loss.h>
+
+using namespace arma;
 
 // [[Rcpp::export]]
 double loss(const double &y,

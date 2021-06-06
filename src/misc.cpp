@@ -1,4 +1,6 @@
-#include <common_header.h>
+#include <RcppArmadillo.h>
+#include <misc.h>
+using namespace arma;
 
 // [[Rcpp::export]]
 mat pmin_arma(const mat &x, const double &bound)

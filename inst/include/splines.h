@@ -1,27 +1,27 @@
 #ifndef splines_h
 #define splines_h
 
-#include <common_header.h>
+#include <RcppArmadillo.h>
 
-vec make_knots(const double &kstep, const double &a = 1, const int deg = 3);
+arma::vec make_knots(const double &kstep, const double &a, const int deg);
 
-mat splineDesign_rcpp(const vec &x, const vec &knots, const int &deg);
+arma::mat splineDesign_rcpp(const arma::vec &x, const arma::vec &knots, const int &deg);
 
-mat make_difference_matrix(const vec &knots, const int &bdiff, const int deg);
+arma::mat make_difference_matrix(const arma::vec &knots, const int &bdiff, const int deg);
 
-mat make_hat_matrix(const vec &x,
-                    const double &kstep,
-                    const double &lambda,
-                    const double &bdiff,
-                    const int deg,
-                    const double &a);
+arma::mat make_hat_matrix(const arma::vec &x,
+                          const double &kstep,
+                          const double &lambda,
+                          const double &bdiff,
+                          const int deg,
+                          const double &a);
 
-vec spline_fit(const vec &y,
-               const vec &x,
-               const double &lambda = 1,
-               const int &ndiff = 1,
-               const int &deg = 3,
-               const double &knot_distance = 0.1,
-               const double &knot_distance_power = 1);
+arma::vec spline_fit(const arma::vec &y,
+                     const arma::vec &x,
+                     const double &lambda,
+                     const int &ndiff,
+                     const int &deg,
+                     const double &knot_distance,
+                     const double &knot_distance_power);
 
 #endif

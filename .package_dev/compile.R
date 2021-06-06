@@ -2,6 +2,7 @@ Rcpp::compileAttributes()
 devtools::build()
 devtools::document()
 devtools::check()
+devtools::test()
 
 
 # Release TODO:

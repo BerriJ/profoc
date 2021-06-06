@@ -1,8 +1,14 @@
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::depends(RcppProgress)]]
+#include <RcppArmadillo.h>
+#include <progress.hpp>
 
-#include <common_header.h>
+#include <loss.h>
 #include <misc.h>
 #include <splines.h>
-#include <loss.h>
+#include <profoc.h>
+
+using namespace arma;
 
 //' Probabilistic Forecast Combination - ProFoC
 //'
