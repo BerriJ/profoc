@@ -25,6 +25,14 @@ set_default <- function(input, value) {
     .Call(`_profoc_set_default`, input, value)
 }
 
+optimize_weights <- function(initvals, truth, experts, convex_constraint = FALSE, loss_function = "quantile", tau = 0.5, loss_scaling = 1) {
+    .Call(`_profoc_optimize_weights`, initvals, truth, experts, convex_constraint, loss_function, tau, loss_scaling)
+}
+
+oracle <- function(y, experts, tau = as.numeric( c()), loss_function = "quantile", loss_parameter = 1, convex_constraint = FALSE, init_weights = NULL) {
+    .Call(`_profoc_oracle`, y, experts, tau, loss_function, loss_parameter, convex_constraint, init_weights)
+}
+
 #' Probabilistic Forecast Combination - ProFoC
 #'
 #' Returns predictions and weights calculated by online-learning algorithms
