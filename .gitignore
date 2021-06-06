@@ -1,2 +1,5 @@
 .package_dev_private/*
 docs
+src/*.o
+src/*.so
+src/*.dll
