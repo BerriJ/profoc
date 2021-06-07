@@ -103,8 +103,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // oracle
-Rcpp::List oracle(mat& y, const cube& experts, Rcpp::NumericVector tau, const std::string loss_function, const double& loss_parameter, const bool& convex_constraint, Rcpp::Nullable<Rcpp::NumericMatrix> init_weights);
-RcppExport SEXP _profoc_oracle(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP convex_constraintSEXP, SEXP init_weightsSEXP) {
+Rcpp::List oracle(mat& y, const cube& experts, Rcpp::NumericVector tau, const std::string loss_function, const double& loss_parameter, const bool& convex_constraint);
+RcppExport SEXP _profoc_oracle(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP convex_constraintSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -114,8 +114,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::string >::type loss_function(loss_functionSEXP);
     Rcpp::traits::input_parameter< const double& >::type loss_parameter(loss_parameterSEXP);
     Rcpp::traits::input_parameter< const bool& >::type convex_constraint(convex_constraintSEXP);
-    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericMatrix> >::type init_weights(init_weightsSEXP);
-    rcpp_result_gen = Rcpp::wrap(oracle(y, experts, tau, loss_function, loss_parameter, convex_constraint, init_weights));
+    rcpp_result_gen = Rcpp::wrap(oracle(y, experts, tau, loss_function, loss_parameter, convex_constraint));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -236,7 +235,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_get_combinations", (DL_FUNC) &_profoc_get_combinations, 2},
     {"_profoc_set_default", (DL_FUNC) &_profoc_set_default, 2},
     {"_profoc_optimize_weights", (DL_FUNC) &_profoc_optimize_weights, 7},
-    {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 7},
+    {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 6},
     {"_profoc_profoc", (DL_FUNC) &_profoc_profoc, 25},
     {"_profoc_make_knots", (DL_FUNC) &_profoc_make_knots, 3},
     {"_profoc_make_difference_matrix", (DL_FUNC) &_profoc_make_difference_matrix, 3},

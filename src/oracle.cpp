@@ -53,7 +53,7 @@ double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
 
     if (grad_out)
     {
-        for (unsigned int k = 0; k < K; k++)
+        for (int k = 0; k < K; k++)
         {
             (*grad_out)(k) = mean(experts.col(k) % ((pred >= truth) - tau));
         }
@@ -127,14 +127,6 @@ vec optimize_weights(vec initvals,
         constr_rhs(1) = -1.0;
         opt_constr_data.constr_rhs = std::move(constr_rhs);
 
-        //settings.vals_bound = true;
-        //settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
-        //settings.lower_bounds.fill(0);
-        //settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
-        //settings.upper_bounds.fill(1);
-        //settings.sumt_settings.par_eta = 10;
-        //settings.rel_sol_change_tol = 1E-03;
-
         success = optim::sumt(initvals, objective, &opt_obj_data, constraint_function, &opt_constr_data, settings);
     }
     else
@@ -148,8 +140,6 @@ vec optimize_weights(vec initvals,
         Rcpp::warning("Warning: Convergence was not succesfull.");
     }
 
-    double objective_val = objective(initvals, nullptr, &opt_obj_data);
-
     return initvals;
 }
 
@@ -159,8 +149,7 @@ Rcpp::List oracle(mat &y,
                   Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
                   const std::string loss_function = "quantile",
                   const double &loss_parameter = 1,
-                  const bool &convex_constraint = false,
-                  Rcpp::Nullable<Rcpp::NumericMatrix> init_weights = R_NilValue)
+                  const bool &convex_constraint = false)
 {
     // Object Dimensions
     const int T = y.n_rows;
@@ -185,24 +174,9 @@ Rcpp::List oracle(mat &y,
         tau_vec.fill(tau_vec(0));
     }
 
-    // Populate uniform weights if w0 was not specified
-    mat w0;
-    // Populate uniform weights if w0 was not specified
-    if (init_weights.isNotNull())
-    {
-        w0 = Rcpp::as<arma::mat>(init_weights);
-    }
-    else
-    {
-        w0.resize(K);
-        w0.fill(1 / double(K));
-    }
-
-    // Expand w0 if necessary
-    if (w0.n_cols == 1)
-    {
-        w0 = arma::repmat(w0, 1, P);
-    }
+    // Iinit weights
+    vec init_weights(K, fill::ones);
+    init_weights /= accu(init_weights);
 
     // Matrix to store oracle weights
     mat weights(P, K);
@@ -210,9 +184,10 @@ Rcpp::List oracle(mat &y,
 
     mat predictions(T, P);
 
-    for (unsigned int p = 0; p < P; p++)
+    for (int p = 0; p < P; p++)
     {
-        weights.row(p) = optimize_weights(w0.col(p),
+
+        weights.row(p) = optimize_weights(init_weights,
                                           y.col(p),
                                           experts.col(p),
                                           convex_constraint,
@@ -220,6 +195,10 @@ Rcpp::List oracle(mat &y,
                                           tau_vec(p),
                                           loss_parameter)
                              .t();
+
+        if (convex_constraint)
+            init_weights = weights.row(p).t();
+
         mat exp_tmp = experts.col(p);
         predictions.col(p) = exp_tmp * weights.row(p).t();
         oracles_loss(p) = obj_val;
@@ -227,11 +206,11 @@ Rcpp::List oracle(mat &y,
 
     cube loss_exp(T, P, K, fill::zeros);
 
-    for (unsigned int t = 0; t < T; t++)
+    for (int t = 0; t < T; t++)
     {
-        for (unsigned int p = 0; p < P; p++)
+        for (int p = 0; p < P; p++)
         {
-            for (unsigned int k = 0; k < K; k++)
+            for (int k = 0; k < K; k++)
             {
                 loss_exp(t, p, k) =
                     loss(y(t, p),

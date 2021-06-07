@@ -29,8 +29,8 @@ optimize_weights <- function(initvals, truth, experts, convex_constraint = FALSE
     .Call(`_profoc_optimize_weights`, initvals, truth, experts, convex_constraint, loss_function, tau, loss_scaling)
 }
 
-oracle <- function(y, experts, tau = as.numeric( c()), loss_function = "quantile", loss_parameter = 1, convex_constraint = FALSE, init_weights = NULL) {
-    .Call(`_profoc_oracle`, y, experts, tau, loss_function, loss_parameter, convex_constraint, init_weights)
+oracle <- function(y, experts, tau = as.numeric( c()), loss_function = "quantile", loss_parameter = 1, convex_constraint = FALSE) {
+    .Call(`_profoc_oracle`, y, experts, tau, loss_function, loss_parameter, convex_constraint)
 }
 
 #' Probabilistic Forecast Combination - ProFoC
