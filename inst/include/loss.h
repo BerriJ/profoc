@@ -16,6 +16,7 @@ double loss_grad_wrt_w(const arma::vec &expert,
                        const arma::vec &truth,
                        const double &tau,
                        const std::string &loss_function,
-                       const double &loss_scaling);
+                       const double &loss_scaling,
+                       const double &w);
 
 #endif

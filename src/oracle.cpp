@@ -60,7 +60,8 @@ double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
                                              truth,
                                              tau,
                                              loss_function,
-                                             loss_scaling);
+                                             loss_scaling,
+                                             vals_inp(k));
         }
     }
 
