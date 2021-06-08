@@ -55,7 +55,12 @@ double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
     {
         for (int k = 0; k < K; k++)
         {
-            (*grad_out)(k) = mean(experts.col(k) % ((pred >= truth) - tau));
+            (*grad_out)(k) = loss_grad_wrt_w(experts.col(k),
+                                             pred,
+                                             truth,
+                                             tau,
+                                             loss_function,
+                                             loss_scaling);
         }
     }
 

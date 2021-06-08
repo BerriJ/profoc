@@ -60,3 +60,20 @@ double loss(const double &y,
     }
     return loss;
 }
+
+// Loss gradient w.r.t. weights
+double loss_grad_wrt_w(const vec &expert,
+                       const vec &pred,
+                       const vec &truth,
+                       const double &tau,
+                       const std::string &loss_function,
+                       const double &loss_scaling)
+{
+    double loss_grad_wrt_w;
+
+    if (loss_function == "quantile")
+    {
+        loss_grad_wrt_w = mean(expert % ((pred >= truth) - tau));
+    }
+    return loss_grad_wrt_w;
+}
