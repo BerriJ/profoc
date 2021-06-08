@@ -74,18 +74,19 @@ double loss_grad_wrt_w(const vec &expert,
 
     if (loss_function == "quantile")
     {
-        loss_grad_wrt_w = mean(expert % ((pred >= truth) - tau));
+        // TODO For discrete data the equal case...
+        loss_grad_wrt_w = sum(expert % ((pred >= truth) - tau));
     }
     else if (loss_function == "expectile")
     {
-        loss_grad_wrt_w = mean(expert % (pred - truth) % (-2 * tau + 2 * (pred >= truth)));
+        loss_grad_wrt_w = sum(expert % (pred - truth) % (-2 * tau + 2 * (pred >= truth)));
     }
     else if (loss_function == "percentage")
     {
         vec nom = a * w * pow(pred / truth, a - 1) % (1 - pow(pred / truth, a));
         vec denom = truth % abs(1 - pow(pred / truth, a));
 
-        loss_grad_wrt_w = mean(-nom / denom);
+        loss_grad_wrt_w = sum(-nom / denom);
     }
     else
     {

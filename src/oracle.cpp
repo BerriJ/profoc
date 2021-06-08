@@ -49,7 +49,7 @@ double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
                            false);
     }
 
-    obj_val = mean(loss_vec);
+    obj_val = sum(loss_vec);
 
     if (grad_out)
     {
