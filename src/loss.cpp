@@ -86,12 +86,13 @@ double loss_grad_wrt_w(const double &expert,
     }
     else if (loss_function == "expectile")
     {
-        loss_grad = sgn(pred - truth) * expert * (pred - truth) * (-2 * tau + 2 * (pred >= truth));
+        loss_grad = 2 * fabs((pred >= truth) - tau) * (-a * (a + 1) * expert * (truth - pred) * pow(fabs(pred), a - 1) + (a + 1) * expert * pow(fabs(pred), a) - (a + 1) * expert * pow(fabs(pred), a));
+        //loss_grad = sgn(pred - truth) * expert * (pred - truth) * (-2 * tau + 2 * (pred >= truth));
     }
     else if (loss_function == "percentage")
     {
         double nom = a * w * pow(pred / truth, a - 1) * (1 - pow(pred / truth, a));
-        double denom = truth * abs(1 - pow(pred / truth, a));
+        double denom = truth * fabs(1 - pow(pred / truth, a));
 
         loss_grad = -nom / denom;
     }
