@@ -11,12 +11,12 @@ double loss(const double &y,
             const double &a,
             const bool &gradient);
 
-double loss_grad_wrt_w(const arma::vec &expert,
-                       const arma::vec &pred,
-                       const arma::vec &truth,
+double loss_grad_wrt_w(const double &expert,
+                       const double &pred,
+                       const double &truth,
                        const double &tau,
                        const std::string &loss_function,
-                       const double &loss_scaling,
+                       const double &a,
                        const double &w);
 
 #endif

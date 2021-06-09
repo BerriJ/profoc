@@ -5,6 +5,10 @@ loss <- function(y, x, pred = 0, method = "quantile", tau = 0.5, a = 1, gradient
     .Call(`_profoc_loss`, y, x, pred, method, tau, a, gradient)
 }
 
+loss_grad_wrt_w <- function(expert, pred, truth, tau, loss_function, a, w) {
+    .Call(`_profoc_loss_grad_wrt_w`, expert, pred, truth, tau, loss_function, a, w)
+}
+
 pmin_arma <- function(x, bound) {
     .Call(`_profoc_pmin_arma`, x, bound)
 }

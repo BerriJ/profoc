@@ -51,17 +51,24 @@ double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
 
     obj_val = sum(loss_vec);
 
+    vec loss_grad(experts.n_rows);
+
     if (grad_out)
     {
         for (int k = 0; k < K; k++)
         {
-            (*grad_out)(k) = loss_grad_wrt_w(experts.col(k),
-                                             pred,
-                                             truth,
-                                             tau,
-                                             loss_function,
-                                             loss_scaling,
-                                             vals_inp(k));
+            for (unsigned int i = 0; i < experts.n_rows; i++)
+            {
+                loss_grad(i) = loss_grad_wrt_w(experts(i, k),
+                                               pred(i),
+                                               truth(i),
+                                               tau,
+                                               loss_function,
+                                               loss_scaling,
+                                               vals_inp(k));
+            }
+
+            (*grad_out)(k) = sum(loss_grad);
         }
     }
 

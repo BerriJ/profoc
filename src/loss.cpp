@@ -62,36 +62,38 @@ double loss(const double &y,
 }
 
 // Loss gradient w.r.t. weights
-double loss_grad_wrt_w(const vec &expert,
-                       const vec &pred,
-                       const vec &truth,
+// [[Rcpp::export]]
+double loss_grad_wrt_w(const double &expert,
+                       const double &pred,
+                       const double &truth,
                        const double &tau,
                        const std::string &loss_function,
                        const double &a,
                        const double &w)
 {
-    double loss_grad_wrt_w;
+
+    double loss_grad;
 
     if (loss_function == "quantile")
     {
-        // TODO For discrete data the equal case...
-        loss_grad_wrt_w = sum(expert % ((pred >= truth) - tau));
+
+        loss_grad = expert * ((pred >= truth) - tau);
     }
     else if (loss_function == "expectile")
     {
-        loss_grad_wrt_w = sum(expert % (pred - truth) % (-2 * tau + 2 * (pred >= truth)));
+        loss_grad = sum(expert * (pred - truth) * (-2 * tau + 2 * (pred >= truth)));
     }
     else if (loss_function == "percentage")
     {
-        vec nom = a * w * pow(pred / truth, a - 1) % (1 - pow(pred / truth, a));
-        vec denom = truth % abs(1 - pow(pred / truth, a));
+        double nom = a * w * pow(pred / truth, a - 1) * (1 - pow(pred / truth, a));
+        double denom = truth * abs(1 - pow(pred / truth, a));
 
-        loss_grad_wrt_w = sum(-nom / denom);
+        loss_grad = -nom / denom;
     }
     else
     {
         Rcpp::stop("Choose quantile loss 'quantile' expectiles 'expectile' or as 'percentage' loss.");
     }
 
-    return loss_grad_wrt_w;
+    return loss_grad;
 }

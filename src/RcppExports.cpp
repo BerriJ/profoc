@@ -24,6 +24,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// loss_grad_wrt_w
+double loss_grad_wrt_w(const double& expert, const double& pred, const double& truth, const double& tau, const std::string& loss_function, const double& a, const double& w);
+RcppExport SEXP _profoc_loss_grad_wrt_w(SEXP expertSEXP, SEXP predSEXP, SEXP truthSEXP, SEXP tauSEXP, SEXP loss_functionSEXP, SEXP aSEXP, SEXP wSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const double& >::type expert(expertSEXP);
+    Rcpp::traits::input_parameter< const double& >::type pred(predSEXP);
+    Rcpp::traits::input_parameter< const double& >::type truth(truthSEXP);
+    Rcpp::traits::input_parameter< const double& >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type loss_function(loss_functionSEXP);
+    Rcpp::traits::input_parameter< const double& >::type a(aSEXP);
+    Rcpp::traits::input_parameter< const double& >::type w(wSEXP);
+    rcpp_result_gen = Rcpp::wrap(loss_grad_wrt_w(expert, pred, truth, tau, loss_function, a, w));
+    return rcpp_result_gen;
+END_RCPP
+}
 // pmin_arma
 mat pmin_arma(const mat& x, const double& bound);
 RcppExport SEXP _profoc_pmin_arma(SEXP xSEXP, SEXP boundSEXP) {
@@ -229,6 +246,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_profoc_loss", (DL_FUNC) &_profoc_loss, 7},
+    {"_profoc_loss_grad_wrt_w", (DL_FUNC) &_profoc_loss_grad_wrt_w, 7},
     {"_profoc_pmin_arma", (DL_FUNC) &_profoc_pmin_arma, 2},
     {"_profoc_pmax_arma", (DL_FUNC) &_profoc_pmax_arma, 2},
     {"_profoc_diff_cpp", (DL_FUNC) &_profoc_diff_cpp, 3},
