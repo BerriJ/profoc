@@ -1,9 +1,11 @@
 suppressPackageStartupMessages(library(gamlss.dist))
 
+set.seed(1)
+
 # Experts
 N <- 2
 # Observations
-T <- 10000
+T <- 1000
 # Size of probability grid
 P <- 1
 prob_grid <- 1:P / (P + 1)
@@ -18,10 +20,10 @@ y <- rSST(n = T, mu = mean_y, tau = tau_y, sigma = sd_y, nu = nu_y)
 
 # Expert predictions
 experts <- array(dim = c(T, P, N))
-for (t in 1:T) {
-    experts[t, , 1] <- qnorm(prob_grid, mean = -5, sd = 2)
-    experts[t, , 2] <- qnorm(prob_grid, mean = 5, sd = 2)
-}
+
+experts[, , 1] <- 5
+experts[, , 2] <- -5
+
 
 # Mean linear
 o_weights_linear <- oracle(
@@ -32,7 +34,7 @@ o_weights_linear <- oracle(
     convex_constraint = FALSE
 )
 
-expect_equal(mean(o_weights_linear$predictions), mean_y, tolerance = 0.1)
+expect_equal(mean(o_weights_linear$predictions), mean_y, tolerance = 0.2)
 
 # Mean Convex
 convex <- oracle(
@@ -43,7 +45,7 @@ convex <- oracle(
     convex_constraint = TRUE
 )
 
-expect_equal(mean(convex$predictions), mean_y, tolerance = 0.1)
+expect_equal(mean(convex$predictions), mean_y, tolerance = 0.2)
 
 # Median - linear
 o_weights_linear <- oracle(
@@ -56,7 +58,7 @@ o_weights_linear <- oracle(
 
 median_y <- qSST(0.5, mu = mean_y, tau = tau_y, sigma = sd_y, nu = nu_y)
 
-expect_equal(mean(o_weights_linear$predictions), median_y, tolerance = 0.1)
+expect_equal(mean(o_weights_linear$predictions), median_y, tolerance = 0.2)
 
 # Median - convex
 o_weights_convex <- oracle(
@@ -67,4 +69,4 @@ o_weights_convex <- oracle(
     convex_constraint = TRUE
 )
 
-expect_equal(mean(o_weights_convex$predictions), median_y, tolerance = 0.1)
+expect_equal(mean(o_weights_convex$predictions), median_y, tolerance = 0.2)
