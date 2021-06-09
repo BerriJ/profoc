@@ -214,7 +214,7 @@ Rcpp::List oracle(mat &y,
 
         mat exp_tmp = experts.col(p);
         predictions.col(p) = exp_tmp * weights.row(p).t();
-        oracles_loss(p) = obj_val;
+        oracles_loss(p) = obj_val / experts.n_rows;
     }
 
     cube loss_exp(T, P, K, fill::zeros);
