@@ -1,8 +1,6 @@
 #ifndef loss_h
 #define loss_h
 
-#include <RcppArmadillo.h>
-
 double loss(const double &y,
             const double &x,
             const double &pred,

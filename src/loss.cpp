@@ -1,11 +1,5 @@
-// [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::depends(RcppProgress)]]
-#include <RcppArmadillo.h>
-#include <string>
-#include <progress.hpp>
+#include <misc.h>
 #include <loss.h>
-
-using namespace arma;
 
 // [[Rcpp::export]]
 double loss(const double &y,
@@ -22,7 +16,7 @@ double loss(const double &y,
     {
         if (!gradient)
         {
-            loss = ((y < x) - tau) * (sign(x) * std::pow(std::abs(x), a) - sign(y) * std::pow(std::abs(y), a));
+            loss = ((y < x) - tau) * (sgn(x) * std::pow(std::abs(x), a) - sgn(y) * std::pow(std::abs(y), a));
         }
         else
         {
@@ -34,7 +28,7 @@ double loss(const double &y,
     {
         if (!gradient)
         {
-            loss = 2 * std::abs((x >= y) - tau) * (std::pow(std::abs(y), (a + 1)) - std::pow(std::abs(x), (a + 1)) - (a + 1) * sign(x) * std::pow(std::abs(x), a) * (y - x));
+            loss = 2 * std::abs((x >= y) - tau) * (std::pow(std::abs(y), (a + 1)) - std::pow(std::abs(x), (a + 1)) - (a + 1) * sgn(x) * std::pow(std::abs(x), a) * (y - x));
         }
         else
         {
@@ -61,12 +55,6 @@ double loss(const double &y,
     return loss;
 }
 
-template <typename T>
-int sgn(T val)
-{
-    return (T(0) < val) - (val < T(0));
-}
-
 // Loss gradient w.r.t. weights
 // [[Rcpp::export]]
 double loss_grad_wrt_w(const double &expert,
@@ -82,17 +70,17 @@ double loss_grad_wrt_w(const double &expert,
 
     if (loss_function == "quantile")
     {
-        loss_grad = a * expert * pow(fabs(pred), a - 1) * ((pred >= truth) - tau);
+        loss_grad = a * expert * std::pow(fabs(pred), a - 1) * ((pred >= truth) - tau);
     }
     else if (loss_function == "expectile")
     {
-        loss_grad = 2 * fabs((pred >= truth) - tau) * (-a * (a + 1) * expert * (truth - pred) * pow(fabs(pred), a - 1) + (a + 1) * expert * pow(fabs(pred), a) - (a + 1) * expert * pow(fabs(pred), a));
+        loss_grad = 2 * fabs((pred >= truth) - tau) * (-a * (a + 1) * expert * (truth - pred) * std::pow(fabs(pred), a - 1) + (a + 1) * expert * std::pow(fabs(pred), a) - (a + 1) * expert * std::pow(fabs(pred), a));
         //loss_grad = sgn(pred - truth) * expert * (pred - truth) * (-2 * tau + 2 * (pred >= truth));
     }
     else if (loss_function == "percentage")
     {
-        double nom = a * w * pow(pred / truth, a - 1) * (1 - pow(pred / truth, a));
-        double denom = truth * fabs(1 - pow(pred / truth, a));
+        double nom = a * w * std::pow(pred / truth, a - 1) * (1 - std::pow(pred / truth, a));
+        double denom = truth * std::abs(1 - std::pow(pred / truth, a));
 
         loss_grad = -nom / denom;
     }

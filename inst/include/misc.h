@@ -13,4 +13,10 @@ arma::mat get_combinations(const arma::mat &x, const arma::vec &y);
 
 arma::vec set_default(const arma::vec &input, const double &value);
 
+template <typename T>
+int sgn(T val)
+{
+    return (T(0) <= val) - (val < T(0));
+}
+
 #endif
