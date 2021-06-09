@@ -61,6 +61,12 @@ double loss(const double &y,
     return loss;
 }
 
+template <typename T>
+int sgn(T val)
+{
+    return (T(0) < val) - (val < T(0));
+}
+
 // Loss gradient w.r.t. weights
 // [[Rcpp::export]]
 double loss_grad_wrt_w(const double &expert,
@@ -81,7 +87,7 @@ double loss_grad_wrt_w(const double &expert,
     }
     else if (loss_function == "expectile")
     {
-        loss_grad = sum(expert * (pred - truth) * (-2 * tau + 2 * (pred >= truth)));
+        loss_grad = sgn(pred - truth) * expert * (pred - truth) * (-2 * tau + 2 * (pred >= truth));
     }
     else if (loss_function == "percentage")
     {
