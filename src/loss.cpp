@@ -82,7 +82,8 @@ double loss_grad_wrt_w(const double &expert,
 
     if (loss_function == "quantile")
     {
-        loss_grad = a * expert * pred * sgn(pred) * pow(fabs(pred), a - 2) * ((pred >= truth) - tau);
+
+        loss_grad = expert * ((pred >= truth) - tau);
     }
     else if (loss_function == "expectile")
     {
