@@ -9,12 +9,13 @@ The profoc Package
 <!-- badges: end -->
 
 
-The main function `profoc` can be used to combine probabilistic forecasts as described in Berrisch, Ziel: "CRPS Learning", 2021.
+The main function `online` can be used to combine probabilistic forecasts as described in Berrisch, Ziel: "CRPS Learning", 2021.
+The function `batch` can be used in a similar way for batch optimization.
 
 Usage
 =====
 
-The function `profoc` has the following Arguments:
+The function `online` has the following Arguments:
 
 tbd.
 

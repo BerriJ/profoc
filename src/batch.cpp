@@ -7,11 +7,10 @@
 #include <misc.h>
 #include <splines.h>
 #include <oracle.h>
-#include <profoc.h>
 
 using namespace arma;
 
-//' Probabilistic Forecast Combination - ProFoC
+//' Probabilistic Forecast Combination - Batch
 //'
 //' Returns predictions and weights calculated by online-learning algorithms
 //' using CRPS Learning. By default, the weights are calculated by
@@ -62,10 +61,10 @@ using namespace arma;
 //' knot_distance = 0.025, knot_distance_power = 1,
 //' gradient = TRUE, loss_array = NULL, regret_array = NULL,
 //' trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE)
-//' @return Profoc can tune various parameters automatically based on
+//' @return Batch can tune various parameters automatically based on
 //' the past loss. For this, lambda, forget, fixed_share, gamma, ndiff,
 //' deg and knot_distance can be specified as numeric vectors containing
-//' parameters to consider. Profoc will automatically try all possible
+//' parameters to consider. Batch will automatically try all possible
 //' combinations of values provide.
 //' @export
 // [[Rcpp::export]]

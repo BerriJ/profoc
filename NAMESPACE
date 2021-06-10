@@ -1,6 +1,6 @@
 useDynLib(profoc, .registration=TRUE)
 importFrom(Rcpp, evalCpp)
-export(profoc)
+export(online)
 export(optimize_weights) # Remove export statement here
 export(oracle)
 export(batch)

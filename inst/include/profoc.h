@@ -1,10 +1,10 @@
-#ifndef profoc_h
-#define profoc_h
+#ifndef online_h
+#define online_h
 
 #include <RcppArmadillo.h>
 using namespace arma;
 
-Rcpp::List profoc(
+Rcpp::List online(
     arma::mat &y,
     const arma::cube &experts,
     Rcpp::NumericVector tau,

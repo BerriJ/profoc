@@ -18,7 +18,7 @@ for (t in 1:T) {
 
 # We expect approximately uniform weights (concerning the quantiles), when
 # lambda -> infinity
-boa_smooth <- profoc(
+boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,

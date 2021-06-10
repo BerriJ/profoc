@@ -16,7 +16,7 @@ for (t in 1:T) {
     experts[t, , 2] <- qnorm(prob_grid, mean = 5, sd = 2)
 }
 
-model <- profoc(
+model <- online(
     y = matrix(y),
     experts = experts,
     trace = FALSE
@@ -64,7 +64,7 @@ for (t in 1:T) {
     experts[t, , 2] <- qnorm(prob_grid, mean = 5, sd = 2)
 }
 
-model <- profoc(
+model <- online(
     y = matrix(y),
     experts = experts,
     trace = FALSE

@@ -16,7 +16,7 @@ for (t in 1:T) {
     experts[t, , 2] <- qnorm(prob_grid, mean = 5, sd = 2)
 }
 
-boa_smooth_crossed <- profoc(
+boa_smooth_crossed <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
@@ -24,7 +24,7 @@ boa_smooth_crossed <- profoc(
     trace = FALSE
 )
 
-boa_smooth <- profoc(
+boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
@@ -63,7 +63,7 @@ for (t in 1:T) {
     experts[t, , 2] <- qnorm(prob_grid, mean = 5, sd = 2)
 }
 
-boa_smooth_crossed <- profoc(
+boa_smooth_crossed <- online(
     y = y,
     tau = prob_grid,
     experts = experts,
@@ -72,7 +72,7 @@ boa_smooth_crossed <- profoc(
 )
 
 expect_warning(
-    boa_smooth <- profoc(
+    boa_smooth <- online(
         y = y,
         tau = prob_grid,
         experts = experts,

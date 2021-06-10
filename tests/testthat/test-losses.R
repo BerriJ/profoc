@@ -24,7 +24,7 @@ for (t in 1:T) {
 }
 
 # Mean
-boa_mean <- profoc(
+boa_mean <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
@@ -36,7 +36,7 @@ boa_mean <- profoc(
 expect_equal(round(mean(boa_mean$predictions), 1), mean_y)
 
 # Median
-boa_median <- profoc(
+boa_median <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,

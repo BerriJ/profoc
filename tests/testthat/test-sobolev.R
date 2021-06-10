@@ -17,7 +17,7 @@ for (t in 1:T) {
 }
 
 # We expect different results when using the sobolev space:
-boa_smooth <- profoc(
+boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
@@ -26,7 +26,7 @@ boa_smooth <- profoc(
     trace = FALSE
 )
 
-boa_smooth_sobol <- profoc(
+boa_smooth_sobol <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,

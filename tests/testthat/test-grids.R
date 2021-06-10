@@ -17,7 +17,7 @@ for (t in 1:T) {
 }
 
 # We expect that grids do effect the performance:
-boa_smooth <- profoc(
+boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
@@ -29,7 +29,7 @@ boa_smooth <- profoc(
     trace = FALSE
 )
 
-boa_smooth <- profoc(
+boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
@@ -48,7 +48,7 @@ expect_true(
     all(!duplicated(apply(boa_smooth$past_perf_wrt_params, 3, mean)))
 )
 
-boa_smooth <- profoc(
+boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
@@ -63,7 +63,7 @@ expect_true(
 
 # We expect that the some grids do *not* affect the performance if smoothing
 # is off (lambda = -Inf):
-boa_pseudo_smooth <- profoc(
+boa_pseudo_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,

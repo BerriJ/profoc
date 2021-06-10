@@ -10,7 +10,7 @@
 
 using namespace arma;
 
-//' Probabilistic Forecast Combination - ProFoC
+//' Probabilistic Forecast Combination - Online
 //'
 //' Returns predictions and weights calculated by online-learning algorithms
 //' using CRPS Learning. By default, the weights are calculated by
@@ -54,21 +54,21 @@ using namespace arma;
 //' experts forecast t+1 at t. Setting this to h means experts predictions refer
 //' to t+1+h at time t. The weight updates delay accordingly.
 //' @param allow_quantile_crossing Shall quantile crossing be allowed? Defaults to false which means that predictions are sorted in ascending order.
-//' @usage profoc(y, experts, tau, loss_function = "quantile",
+//' @usage online(y, experts, tau, loss_function = "quantile",
 //' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 //' lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
 //' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 //' knot_distance = 0.025, knot_distance_power = 1,
 //' gradient = TRUE, loss_array = NULL, regret_array = NULL,
 //' trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE)
-//' @return Profoc can tune various parameters automatically based on
+//' @return online can tune various parameters automatically based on
 //' the past loss. For this, lambda, forget, fixed_share, gamma, ndiff,
 //' deg and knot_distance can be specified as numeric vectors containing
-//' parameters to consider. Profoc will automatically try all possible
+//' parameters to consider. online will automatically try all possible
 //' combinations of values provide.
 //' @export
 // [[Rcpp::export]]
-Rcpp::List profoc(
+Rcpp::List online(
     mat &y,
     const cube &experts,
     Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
