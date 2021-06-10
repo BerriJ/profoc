@@ -1,5 +1,5 @@
-#include <misc.h>
 #include <loss.h>
+#include <misc.h>
 
 // [[Rcpp::export]]
 double loss(const double &y,

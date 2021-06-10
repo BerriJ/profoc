@@ -1,12 +1,13 @@
+#include <profoc.h>
+#include <misc.h>
+#include <loss.h>
+#include <splines2.h>
+#include <splines.h>
+
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::depends(RcppProgress)]]
 #include <RcppArmadillo.h>
 #include <progress.hpp>
-
-#include <loss.h>
-#include <misc.h>
-#include <splines.h>
-#include <profoc.h>
 
 using namespace arma;
 

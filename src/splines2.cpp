@@ -1,12 +1,12 @@
+#include <splines2.h>
+
 #include <RcppArmadillo.h>
 
 // include header file from splines2 package
 #include <splines2Armadillo.h>
 
-#include <splines2.h>
-
-using namespace arma;
 using namespace splines2;
+using namespace arma;
 
 // [[Rcpp::export]]
 mat splines2_basis(const vec &x,

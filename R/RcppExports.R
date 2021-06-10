@@ -90,14 +90,6 @@ set_default <- function(input, value) {
     .Call(`_profoc_set_default`, input, value)
 }
 
-optimize_weights <- function(initvals, truth, experts, convex_constraint = FALSE, loss_function = "quantile", tau = 0.5, loss_scaling = 1) {
-    .Call(`_profoc_optimize_weights`, initvals, truth, experts, convex_constraint, loss_function, tau, loss_scaling)
-}
-
-oracle <- function(y, experts, tau = as.numeric( c()), loss_function = "quantile", loss_parameter = 1, convex_constraint = FALSE) {
-    .Call(`_profoc_oracle`, y, experts, tau, loss_function, loss_parameter, convex_constraint)
-}
-
 #' Probabilistic Forecast Combination - Online
 #'
 #' Returns predictions and weights calculated by online-learning algorithms
@@ -157,6 +149,14 @@ oracle <- function(y, experts, tau = as.numeric( c()), loss_function = "quantile
 #' @export
 online <- function(y, experts, tau = as.numeric( c()), loss_function = "quantile", loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), method = "boa", method_var = "A", forget_regret = as.numeric( c()), forget_performance = 0, fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), knot_distance = as.numeric( c()), knot_distance_power = as.numeric( c()), gradient = TRUE, loss_array = as.numeric( c()), regret_array = as.numeric( c()), trace = TRUE, init_weights = NULL, lead_time = 0L, allow_quantile_crossing = FALSE) {
     .Call(`_profoc_online`, y, experts, tau, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, method, method_var, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, knot_distance, knot_distance_power, gradient, loss_array, regret_array, trace, init_weights, lead_time, allow_quantile_crossing)
+}
+
+optimize_weights <- function(initvals, truth, experts, convex_constraint = FALSE, loss_function = "quantile", tau = 0.5, loss_scaling = 1) {
+    .Call(`_profoc_optimize_weights`, initvals, truth, experts, convex_constraint, loss_function, tau, loss_scaling)
+}
+
+oracle <- function(y, experts, tau = as.numeric( c()), loss_function = "quantile", loss_parameter = 1, convex_constraint = FALSE) {
+    .Call(`_profoc_oracle`, y, experts, tau, loss_function, loss_parameter, convex_constraint)
 }
 
 make_knots <- function(kstep, a = 1, deg = 3L) {

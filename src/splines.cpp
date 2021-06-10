@@ -1,9 +1,10 @@
-// [[Rcpp::depends(RcppArmadillo)]]
-#include <RcppArmadillo.h>
+#include <splines.h>
 
 #include <misc.h>
-#include <splines.h>
 #include <splines2.h>
+
+// [[Rcpp::depends(RcppArmadillo)]]
+#include <RcppArmadillo.h>
 
 using namespace arma;
 

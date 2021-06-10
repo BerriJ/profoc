@@ -1,14 +1,17 @@
+#include <oracle.h>
+#include <loss.h>
+
 // [[Rcpp::depends(RcppArmadillo)]]
 #define RCPP_ARMADILLO_RETURN_ANYVEC_AS_VECTOR
-#include <RcppArmadillo.h>
 #define OPTIM_ENABLE_ARMA_WRAPPERS
 #include <optim.hpp>
+
+#include <RcppArmadillo.h>
+
 using namespace arma;
 
 using optim::Mat_t;
 using optim::Vec_t;
-
-#include <loss.h>
 
 // additional data for objective function
 struct objective_data
@@ -157,7 +160,7 @@ vec optimize_weights(vec initvals,
 }
 
 // [[Rcpp::export]]
-Rcpp::List oracle(mat &y,
+Rcpp::List oracle(arma::mat &y,
                   const cube &experts,
                   Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
                   const std::string loss_function = "quantile",
