@@ -2,6 +2,7 @@
 #define oracle_h
 
 #include <RcppArmadillo.h>
+#include <string>
 
 arma::vec optimize_weights(arma::vec initvals,
                            const arma::vec &truth,

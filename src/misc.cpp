@@ -1,5 +1,7 @@
-#include <RcppArmadillo.h>
 #include <misc.h>
+
+#include <RcppArmadillo.h>
+
 using namespace arma;
 
 // [[Rcpp::export]]

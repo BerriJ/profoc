@@ -1,9 +1,9 @@
 #include <splines2.h>
 
-#include <RcppArmadillo.h>
-
 // include header file from splines2 package
 #include <splines2Armadillo.h>
+
+#include <RcppArmadillo.h>
 
 using namespace splines2;
 using namespace arma;

@@ -2,6 +2,9 @@
 #define online_h
 
 #include <RcppArmadillo.h>
+
+#include <string>
+
 using namespace arma;
 
 Rcpp::List online(
