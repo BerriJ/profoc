@@ -3,4 +3,4 @@ importFrom(Rcpp, evalCpp)
 export(profoc)
 export(optimize_weights) # Remove export statement here
 export(oracle)
-export(learn_batch)
+export(batch)

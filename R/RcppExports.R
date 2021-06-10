@@ -58,8 +58,8 @@
 #' parameters to consider. Profoc will automatically try all possible
 #' combinations of values provide.
 #' @export
-learn_batch <- function(y, experts, tau = as.numeric( c()), loss_function = "quantile", loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), forget_regret = as.numeric( c()), forget_performance = 0, fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), knot_distance = as.numeric( c()), knot_distance_power = as.numeric( c()), trace = TRUE, init_weights = NULL, lead_time = 0L, allow_quantile_crossing = FALSE) {
-    .Call(`_profoc_learn_batch`, y, experts, tau, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, knot_distance, knot_distance_power, trace, init_weights, lead_time, allow_quantile_crossing)
+batch <- function(y, experts, tau = as.numeric( c()), expanding_window = TRUE, convex_constraint = FALSE, initial_window = 30L, loss_function = "quantile", loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), forget_regret = as.numeric( c()), forget_performance = 0, fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), knot_distance = as.numeric( c()), knot_distance_power = as.numeric( c()), trace = TRUE, init_weights = NULL, lead_time = 0L, allow_quantile_crossing = FALSE) {
+    .Call(`_profoc_batch`, y, experts, tau, expanding_window, convex_constraint, initial_window, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, knot_distance, knot_distance_power, trace, init_weights, lead_time, allow_quantile_crossing)
 }
 
 loss <- function(y, x, pred = 0, method = "quantile", tau = 0.5, a = 1, gradient = TRUE) {

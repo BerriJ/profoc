@@ -7,15 +7,18 @@
 
 using namespace Rcpp;
 
-// learn_batch
-Rcpp::List learn_batch(mat& y, const cube& experts, Rcpp::NumericVector tau, const std::string loss_function, const double& loss_parameter, const bool& ex_post_smooth, const bool& ex_post_fs, Rcpp::NumericVector lambda, Rcpp::NumericVector forget_regret, const double& forget_performance, Rcpp::NumericVector fixed_share, Rcpp::NumericVector gamma, Rcpp::NumericVector ndiff, Rcpp::NumericVector deg, Rcpp::NumericVector knot_distance, Rcpp::NumericVector knot_distance_power, const bool trace, Rcpp::Nullable<Rcpp::NumericMatrix> init_weights, const int& lead_time, bool allow_quantile_crossing);
-RcppExport SEXP _profoc_learn_batch(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP ex_post_smoothSEXP, SEXP ex_post_fsSEXP, SEXP lambdaSEXP, SEXP forget_regretSEXP, SEXP forget_performanceSEXP, SEXP fixed_shareSEXP, SEXP gammaSEXP, SEXP ndiffSEXP, SEXP degSEXP, SEXP knot_distanceSEXP, SEXP knot_distance_powerSEXP, SEXP traceSEXP, SEXP init_weightsSEXP, SEXP lead_timeSEXP, SEXP allow_quantile_crossingSEXP) {
+// batch
+Rcpp::List batch(mat& y, const cube& experts, Rcpp::NumericVector tau, const bool expanding_window, const bool convex_constraint, int initial_window, const std::string loss_function, const double& loss_parameter, const bool& ex_post_smooth, const bool& ex_post_fs, Rcpp::NumericVector lambda, Rcpp::NumericVector forget_regret, const double& forget_performance, Rcpp::NumericVector fixed_share, Rcpp::NumericVector gamma, Rcpp::NumericVector ndiff, Rcpp::NumericVector deg, Rcpp::NumericVector knot_distance, Rcpp::NumericVector knot_distance_power, const bool trace, Rcpp::Nullable<Rcpp::NumericMatrix> init_weights, const int& lead_time, bool allow_quantile_crossing);
+RcppExport SEXP _profoc_batch(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP expanding_windowSEXP, SEXP convex_constraintSEXP, SEXP initial_windowSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP ex_post_smoothSEXP, SEXP ex_post_fsSEXP, SEXP lambdaSEXP, SEXP forget_regretSEXP, SEXP forget_performanceSEXP, SEXP fixed_shareSEXP, SEXP gammaSEXP, SEXP ndiffSEXP, SEXP degSEXP, SEXP knot_distanceSEXP, SEXP knot_distance_powerSEXP, SEXP traceSEXP, SEXP init_weightsSEXP, SEXP lead_timeSEXP, SEXP allow_quantile_crossingSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< mat& >::type y(ySEXP);
     Rcpp::traits::input_parameter< const cube& >::type experts(expertsSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const bool >::type expanding_window(expanding_windowSEXP);
+    Rcpp::traits::input_parameter< const bool >::type convex_constraint(convex_constraintSEXP);
+    Rcpp::traits::input_parameter< int >::type initial_window(initial_windowSEXP);
     Rcpp::traits::input_parameter< const std::string >::type loss_function(loss_functionSEXP);
     Rcpp::traits::input_parameter< const double& >::type loss_parameter(loss_parameterSEXP);
     Rcpp::traits::input_parameter< const bool& >::type ex_post_smooth(ex_post_smoothSEXP);
@@ -33,7 +36,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericMatrix> >::type init_weights(init_weightsSEXP);
     Rcpp::traits::input_parameter< const int& >::type lead_time(lead_timeSEXP);
     Rcpp::traits::input_parameter< bool >::type allow_quantile_crossing(allow_quantile_crossingSEXP);
-    rcpp_result_gen = Rcpp::wrap(learn_batch(y, experts, tau, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, knot_distance, knot_distance_power, trace, init_weights, lead_time, allow_quantile_crossing));
+    rcpp_result_gen = Rcpp::wrap(batch(y, experts, tau, expanding_window, convex_constraint, initial_window, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, knot_distance, knot_distance_power, trace, init_weights, lead_time, allow_quantile_crossing));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -275,7 +278,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_profoc_learn_batch", (DL_FUNC) &_profoc_learn_batch, 20},
+    {"_profoc_batch", (DL_FUNC) &_profoc_batch, 23},
     {"_profoc_loss", (DL_FUNC) &_profoc_loss, 7},
     {"_profoc_loss_grad_wrt_w", (DL_FUNC) &_profoc_loss_grad_wrt_w, 7},
     {"_profoc_pmin_arma", (DL_FUNC) &_profoc_pmin_arma, 2},

@@ -11,3 +11,5 @@ devtools::test()
 # Update the Date in NEWS.md
 # Create a tagged commit
 # Merge develop into main, without squashing commits, wihtout extra merge commit
+
+devtools::load_all()
