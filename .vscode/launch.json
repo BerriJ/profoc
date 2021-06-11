@@ -28,6 +28,18 @@
         "program": "/Library/Frameworks/R.framework/Resources/bin/exec/R",
         "MIMode": "lldb"
       }
+    },
+    {
+      "type": "R-Debugger",
+      "name": "Debug R-Package",
+      "request": "launch",
+      "debugMode": "workspace",
+      "workingDirectory": "${workspaceFolder}",
+      "loadPackages": [
+        "."
+      ],
+      "includePackageScopes": true,
+      "allowGlobalDebugging": true
     }
   ]
 }

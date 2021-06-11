@@ -258,6 +258,7 @@ Rcpp::List batch(
                     convex_constraint,
                     loss_function,
                     tau_vec(p),
+                    param_grid(x, 1), // Forget
                     loss_parameter);
 
                 R_CheckUserInterrupt();

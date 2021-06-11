@@ -20,7 +20,6 @@ vec make_knots(const double &kstep, const double &a = 1, const int deg = 3)
 // Expose splines::splineDesign to Rcpp
 mat splineDesign_rcpp(const vec &x, const vec &knots, const int &deg)
 {
-    // TODO: Translate this function into C++ to get rid of the call to R
     Rcpp::Environment pkg = Rcpp::Environment::namespace_env("splines");
     Rcpp::Function f = pkg["splineDesign"];
     mat y = Rcpp::as<arma::mat>(f(knots, x, deg + 1, 0, true));

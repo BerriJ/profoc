@@ -33,6 +33,7 @@
         // R
         "ikuyadeu.r",
         "reditorsupport.r-lsp",
+        "rdebugger.r-debugger",
         // Latex
         "james-yu.latex-workshop",
         "znck.grammarly",

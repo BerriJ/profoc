@@ -22,6 +22,7 @@ struct objective_data
     double tau;
     std::string loss_function;
     double loss_scaling;
+    double forget;
 };
 
 // Global decleration of objective val
@@ -37,6 +38,7 @@ double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
     std::string loss_function = objfn_data->loss_function;
     double tau = objfn_data->tau;
     double loss_scaling = objfn_data->loss_scaling;
+    double forget = objfn_data->forget;
 
     vec pred = experts * vals_inp;
     vec loss_vec(experts.n_rows);
@@ -50,6 +52,7 @@ double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
                            tau,
                            loss_scaling, // Scaling parameter
                            false);
+        loss_vec(i) *= std::pow(1 - forget, experts.n_rows - (i + 1));
     }
 
     obj_val = sum(loss_vec);
@@ -69,6 +72,7 @@ double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
                                                loss_function,
                                                loss_scaling,
                                                vals_inp(k));
+                loss_grad(i) *= std::pow(1 - forget, experts.n_rows - (i + 1));
             }
 
             (*grad_out)(k) = sum(loss_grad);
@@ -112,6 +116,7 @@ vec optimize_weights(vec initvals,
                      const bool &convex_constraint = false,
                      const std::string &loss_function = "quantile",
                      const double &tau = 0.5,
+                     const double &forget = 0,
                      const double &loss_scaling = 1)
 {
 
@@ -125,6 +130,7 @@ vec optimize_weights(vec initvals,
     opt_obj_data.loss_function = std::move(loss_function);
     opt_obj_data.tau = std::move(tau);
     opt_obj_data.loss_scaling = std::move(loss_scaling);
+    opt_obj_data.forget = std::move(forget);
 
     bool success;
     optim::algo_settings_t settings;
@@ -165,6 +171,7 @@ Rcpp::List oracle(arma::mat &y,
                   Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
                   const std::string loss_function = "quantile",
                   const double &loss_parameter = 1,
+                  const double &forget = 0,
                   const bool &convex_constraint = false)
 {
     // Object Dimensions
@@ -209,6 +216,7 @@ Rcpp::List oracle(arma::mat &y,
                                           convex_constraint,
                                           loss_function,
                                           tau_vec(p),
+                                          forget,
                                           loss_parameter)
                              .t();
 

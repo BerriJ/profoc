@@ -10,6 +10,7 @@ arma::vec optimize_weights(arma::vec initvals,
                            const bool &convex_constraint,
                            const std::string &loss_function,
                            const double &tau,
+                           const double &forget,
                            const double &loss_scaling);
 
 #endif

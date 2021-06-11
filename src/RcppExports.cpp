@@ -171,8 +171,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // optimize_weights
-vec optimize_weights(vec initvals, const vec& truth, const mat& experts, const bool& convex_constraint, const std::string& loss_function, const double& tau, const double& loss_scaling);
-RcppExport SEXP _profoc_optimize_weights(SEXP initvalsSEXP, SEXP truthSEXP, SEXP expertsSEXP, SEXP convex_constraintSEXP, SEXP loss_functionSEXP, SEXP tauSEXP, SEXP loss_scalingSEXP) {
+vec optimize_weights(vec initvals, const vec& truth, const mat& experts, const bool& convex_constraint, const std::string& loss_function, const double& tau, const double& forget, const double& loss_scaling);
+RcppExport SEXP _profoc_optimize_weights(SEXP initvalsSEXP, SEXP truthSEXP, SEXP expertsSEXP, SEXP convex_constraintSEXP, SEXP loss_functionSEXP, SEXP tauSEXP, SEXP forgetSEXP, SEXP loss_scalingSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -182,14 +182,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const bool& >::type convex_constraint(convex_constraintSEXP);
     Rcpp::traits::input_parameter< const std::string& >::type loss_function(loss_functionSEXP);
     Rcpp::traits::input_parameter< const double& >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const double& >::type forget(forgetSEXP);
     Rcpp::traits::input_parameter< const double& >::type loss_scaling(loss_scalingSEXP);
-    rcpp_result_gen = Rcpp::wrap(optimize_weights(initvals, truth, experts, convex_constraint, loss_function, tau, loss_scaling));
+    rcpp_result_gen = Rcpp::wrap(optimize_weights(initvals, truth, experts, convex_constraint, loss_function, tau, forget, loss_scaling));
     return rcpp_result_gen;
 END_RCPP
 }
 // oracle
-Rcpp::List oracle(arma::mat& y, const cube& experts, Rcpp::NumericVector tau, const std::string loss_function, const double& loss_parameter, const bool& convex_constraint);
-RcppExport SEXP _profoc_oracle(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP convex_constraintSEXP) {
+Rcpp::List oracle(arma::mat& y, const cube& experts, Rcpp::NumericVector tau, const std::string loss_function, const double& loss_parameter, const double& forget, const bool& convex_constraint);
+RcppExport SEXP _profoc_oracle(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP forgetSEXP, SEXP convex_constraintSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -198,8 +199,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type tau(tauSEXP);
     Rcpp::traits::input_parameter< const std::string >::type loss_function(loss_functionSEXP);
     Rcpp::traits::input_parameter< const double& >::type loss_parameter(loss_parameterSEXP);
+    Rcpp::traits::input_parameter< const double& >::type forget(forgetSEXP);
     Rcpp::traits::input_parameter< const bool& >::type convex_constraint(convex_constraintSEXP);
-    rcpp_result_gen = Rcpp::wrap(oracle(y, experts, tau, loss_function, loss_parameter, convex_constraint));
+    rcpp_result_gen = Rcpp::wrap(oracle(y, experts, tau, loss_function, loss_parameter, forget, convex_constraint));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -287,8 +289,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_get_combinations", (DL_FUNC) &_profoc_get_combinations, 2},
     {"_profoc_set_default", (DL_FUNC) &_profoc_set_default, 2},
     {"_profoc_online", (DL_FUNC) &_profoc_online, 25},
-    {"_profoc_optimize_weights", (DL_FUNC) &_profoc_optimize_weights, 7},
-    {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 6},
+    {"_profoc_optimize_weights", (DL_FUNC) &_profoc_optimize_weights, 8},
+    {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 7},
     {"_profoc_make_knots", (DL_FUNC) &_profoc_make_knots, 3},
     {"_profoc_make_difference_matrix", (DL_FUNC) &_profoc_make_difference_matrix, 3},
     {"_profoc_make_hat_matrix", (DL_FUNC) &_profoc_make_hat_matrix, 6},
