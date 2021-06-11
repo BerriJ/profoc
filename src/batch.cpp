@@ -16,7 +16,8 @@ Rcpp::List batch(
     const cube &experts,
     Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
     const bool expanding_window = true,
-    const bool convex_constraint = false,
+    const bool &affine = false,
+    const bool &positive = false,
     int initial_window = 30,
     const std::string loss_function = "quantile",
     const double &loss_parameter = 1,
@@ -255,7 +256,8 @@ Rcpp::List batch(
                     vectorise(w_temp(span(p), span::all, span(x))),
                     y(span(start, t - lead_time), p),
                     experts_tmp,
-                    convex_constraint,
+                    affine,
+                    positive,
                     loss_function,
                     tau_vec(p),
                     param_grid(x, 1), // Forget
@@ -274,8 +276,6 @@ Rcpp::List batch(
                     if (!ex_post_smooth)
                     {
                         w_temp(span::all, span(k), span(x)) = hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
-                        // Truncate to zero
-                        // w_temp(span::all, span(k), span(x)) = pmax_arma(w_temp(span::all, span(k), span(x)), exp(-700));
                         w_post(span::all, span(k), span(x)) = w_temp(span::all, span(k), span(x));
                     }
                     else
@@ -284,7 +284,6 @@ Rcpp::List batch(
                         // Smoothing only added to w_post so learning continiues
                         // with w_temp
                         w_post(span::all, span(k), span(x)) = hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
-                        // w_post(span::all, span(k), span(x)) = pmax_arma(w_post(span::all, span(k), span(x)), exp(-700));
                     }
                 }
             }
@@ -292,15 +291,13 @@ Rcpp::List batch(
             //Add fixed_share
             for (unsigned int p = 0; p < P; p++)
             {
-                if (ex_post_fs) // Fixed share only added to w_post
+                if (ex_post_fs)
                 {
-                    // w_post(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w_post(span(p), span::all, span(x)) / accu(w_post(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
                     w_post(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * w_post(span(p), span::all, span(x)) + (param_grid(x, 2) / K);
                 }
                 else if (ex_post_smooth && !ex_post_fs)
                 {
                     // Add fixed_share to w_post
-                    // w_post(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w_post(span(p), span::all, span(x)) / accu(w_post(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
                     // Add fixed_share to w_temp
                     w_post(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * w_post(span(p), span::all, span(x)) + (param_grid(x, 2) / K);
                     w_temp(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * w_temp(span(p), span::all, span(x)) + (param_grid(x, 2) / K);
@@ -312,7 +309,12 @@ Rcpp::List batch(
                 }
 
                 // Ensure constraints are met
-                if (convex_constraint)
+                if (positive)
+                {
+                    w_temp(span(p), span::all, span(x)) = pmax_arma(w_temp(span(p), span::all, span(x)), 0);
+                    w_post(span(p), span::all, span(x)) = pmax_arma(w_post(span(p), span::all, span(x)), 0);
+                }
+                if (affine)
                 {
                     w_post(span(p), span::all, span(x)) /= accu(w_post(span(p), span::all, span(x)));
                     w_temp(span(p), span::all, span(x)) /= accu(w_temp(span(p), span::all, span(x)));

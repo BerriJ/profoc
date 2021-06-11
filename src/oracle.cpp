@@ -113,7 +113,8 @@ Vec_t constraint_function(const Vec_t &vals_inp, Mat_t *jacob_out, void *opt_dat
 vec optimize_weights(vec initvals,
                      const vec &truth,
                      const mat &experts,
-                     const bool &convex_constraint = false,
+                     const bool &affine = false,
+                     const bool &positive = false,
                      const std::string &loss_function = "quantile",
                      const double &tau = 0.5,
                      const double &forget = 0,
@@ -135,20 +136,37 @@ vec optimize_weights(vec initvals,
     bool success;
     optim::algo_settings_t settings;
 
-    if (convex_constraint)
+    if (affine || positive)
     {
         constraint_data opt_constr_data;
 
-        Mat_t convexity(2, K, fill::ones);
-        convexity.row(1) = -convexity.row(1);
-        Mat_t constr_positivity(K, K, fill::eye);
-        opt_constr_data.constr_mat = join_cols(convexity, -constr_positivity);
-
-        Vec_t constr_rhs(K + 2, fill::zeros);
-        constr_rhs(0) = 1.0;
-        constr_rhs(1) = -1.0;
-        opt_constr_data.constr_rhs = std::move(constr_rhs);
-
+        if (affine && positive)
+        {
+            Mat_t affinity(2, K, fill::ones);
+            affinity.row(1) = -affinity.row(1);
+            Mat_t positivity(K, K, fill::eye);
+            opt_constr_data.constr_mat = join_cols(affinity, -positivity);
+            Vec_t constr_rhs(2 + K, fill::zeros);
+            constr_rhs(0) = 1.0;
+            constr_rhs(1) = -1.0;
+            opt_constr_data.constr_rhs = std::move(constr_rhs);
+        }
+        else if (affine)
+        {
+            Mat_t affinity(2, K, fill::ones);
+            affinity.row(1) = -affinity.row(1);
+            opt_constr_data.constr_mat = affinity;
+            Vec_t constr_rhs(2, fill::ones);
+            constr_rhs(1) *= -1.0;
+            opt_constr_data.constr_rhs = std::move(constr_rhs);
+        }
+        else
+        {
+            Mat_t positivity(K, K, fill::eye);
+            opt_constr_data.constr_mat = -positivity;
+            Vec_t constr_rhs(K, fill::zeros);
+            opt_constr_data.constr_rhs = std::move(constr_rhs);
+        }
         success = optim::sumt(initvals, objective, &opt_obj_data, constraint_function, &opt_constr_data, settings);
     }
     else
@@ -170,9 +188,10 @@ Rcpp::List oracle(arma::mat &y,
                   const cube &experts,
                   Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
                   const std::string loss_function = "quantile",
-                  const double &loss_parameter = 1,
+                  const bool &affine = false,
+                  const bool &positive = false,
                   const double &forget = 0,
-                  const bool &convex_constraint = false)
+                  const double &loss_parameter = 1)
 {
     // Object Dimensions
     const int T = y.n_rows;
@@ -213,19 +232,21 @@ Rcpp::List oracle(arma::mat &y,
         weights.row(p) = optimize_weights(init_weights,
                                           y.col(p),
                                           experts.col(p),
-                                          convex_constraint,
+                                          affine,
+                                          positive,
                                           loss_function,
                                           tau_vec(p),
                                           forget,
                                           loss_parameter)
                              .t();
 
-        if (convex_constraint)
+        if (affine || positive)
             init_weights = weights.row(p).t();
 
         mat exp_tmp = experts.col(p);
         predictions.col(p) = exp_tmp * weights.row(p).t();
         oracles_loss(p) = obj_val / experts.n_rows;
+        R_CheckUserInterrupt();
     }
 
     cube loss_exp(T, P, K, fill::zeros);
