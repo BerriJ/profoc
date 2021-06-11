@@ -8,6 +8,7 @@ Maintainer: Jonathan Berrisch <Jonathan@Berrisch.biz>
 Description: Use multiple online-aggregation algorithms to combine Probabilistic forecasts using CRPS learning as described in Berrisch, Ziel: "CRPS Learning", 2021.
 License: GPL-3
 Encoding: UTF-8
+Depends: R (>= 3.0.2)
 Imports: Rcpp (>= 1.0.5)
 LinkingTo: Rcpp, RcppArmadillo, RcppProgress, splines2 (>= 0.3.0)
 URL: https://profoc.berrisch.biz/, https://github.com/BerriJ/profoc

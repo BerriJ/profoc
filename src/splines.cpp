@@ -46,6 +46,9 @@ mat make_hat_matrix(const vec &x, const double &kstep, const double &lambda, con
 
     mat B = splines2_basis(x, knots, deg, boundary_knots);
 
+    if (B.n_cols >= B.n_rows && lambda == 0)
+        Rcpp::stop("Spline design matrix singular. Either increase kstep, provide more quantiles or increase lambda.");
+
     mat P1(m + deg + 1, m + deg + 1);
     mat P2(m + deg + 1, m + deg + 1);
     mat P(m + deg + 1, m + deg + 1);

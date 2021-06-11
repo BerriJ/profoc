@@ -31,7 +31,6 @@ o_weights_linear <- oracle(
     experts,
     loss_function = "expectile",
     tau = prob_grid,
-    convex_constraint = FALSE
 )
 
 expect_equal(mean(o_weights_linear$predictions), mean_y, tolerance = 0.2)
@@ -42,7 +41,8 @@ convex <- oracle(
     experts,
     loss_function = "expectile",
     tau = prob_grid,
-    convex_constraint = TRUE
+    positive = TRUE,
+    affine = TRUE
 )
 
 expect_equal(mean(convex$predictions), mean_y, tolerance = 0.2)
@@ -52,8 +52,7 @@ o_weights_linear <- oracle(
     matrix(y),
     experts,
     loss_function = "quantile",
-    tau = prob_grid,
-    convex_constraint = FALSE
+    tau = prob_grid
 )
 
 median_y <- qSST(0.5, mu = mean_y, tau = tau_y, sigma = sd_y, nu = nu_y)
@@ -66,7 +65,8 @@ o_weights_convex <- oracle(
     experts,
     loss_function = "quantile",
     tau = prob_grid,
-    convex_constraint = TRUE
+    positive = TRUE,
+    affine = TRUE
 )
 
 expect_equal(mean(o_weights_convex$predictions), median_y, tolerance = 0.2)
