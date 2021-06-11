@@ -274,13 +274,16 @@ Rcpp::List batch(
                     {
                         w_temp(span::all, span(k), span(x)) = hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
                         // Truncate to zero
-                        w_temp(span::all, span(k), span(x)) = pmax_arma(w_temp(span::all, span(k), span(x)), exp(-700));
+                        // w_temp(span::all, span(k), span(x)) = pmax_arma(w_temp(span::all, span(k), span(x)), exp(-700));
                         w_post(span::all, span(k), span(x)) = w_temp(span::all, span(k), span(x));
                     }
                     else
                     {
+                        // TODO think about truncation in batch settings
+                        // Smoothing only added to w_post so learning continiues
+                        // with w_temp
                         w_post(span::all, span(k), span(x)) = hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
-                        w_post(span::all, span(k), span(x)) = pmax_arma(w_post(span::all, span(k), span(x)), exp(-700));
+                        // w_post(span::all, span(k), span(x)) = pmax_arma(w_post(span::all, span(k), span(x)), exp(-700));
                     }
                 }
             }
@@ -290,19 +293,28 @@ Rcpp::List batch(
             {
                 if (ex_post_fs) // Fixed share only added to w_post
                 {
-                    w_post(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w_post(span(p), span::all, span(x)) / accu(w_post(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
+                    // w_post(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w_post(span(p), span::all, span(x)) / accu(w_post(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
+                    w_post(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * w_post(span(p), span::all, span(x)) + (param_grid(x, 2) / K);
                 }
                 else if (ex_post_smooth && !ex_post_fs)
                 {
                     // Add fixed_share to w_post
-                    w_post(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w_post(span(p), span::all, span(x)) / accu(w_post(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
+                    // w_post(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w_post(span(p), span::all, span(x)) / accu(w_post(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
                     // Add fixed_share to w_temp
-                    w_temp(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
+                    w_post(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * w_post(span(p), span::all, span(x)) + (param_grid(x, 2) / K);
+                    w_temp(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * w_temp(span(p), span::all, span(x)) + (param_grid(x, 2) / K);
                 }
                 else if (!ex_post_smooth && !ex_post_fs)
                 {
-                    w_temp(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
+                    w_temp(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * w_temp(span(p), span::all, span(x)) + (param_grid(x, 2) / K);
                     w_post(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x));
+                }
+
+                // Ensure constraints are met
+                if (convex_constraint)
+                {
+                    w_post(span(p), span::all, span(x)) /= accu(w_post(span(p), span::all, span(x)));
+                    w_temp(span(p), span::all, span(x)) /= accu(w_temp(span(p), span::all, span(x)));
                 }
             }
             tmp_performance(x) = accu(past_performance(span(t), span::all, span(x)));
