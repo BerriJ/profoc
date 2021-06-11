@@ -1,11 +1,11 @@
-#include <profoc.h>
+// [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::depends(RcppProgress)]]
+#include <online.h>
 #include <misc.h>
 #include <loss.h>
 #include <splines2.h>
 #include <splines.h>
 
-// [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::depends(RcppProgress)]]
 #include <RcppArmadillo.h>
 #include <progress.hpp>
 
