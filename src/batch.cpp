@@ -83,7 +83,7 @@ Rcpp::List batch(
     vec gamma_vec = set_default(gamma, 1);
     vec knot_distance_vec = set_default(knot_distance, 0.025);
     vec deg_vec = set_default(deg, 3);
-    vec diff_vec = set_default(ndiff, 1);
+    vec diff_vec = set_default(ndiff, 1.5);
     vec knots_asym_vec = set_default(knot_distance_power, 1);
 
     // Init parametergrid

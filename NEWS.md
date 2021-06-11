@@ -1,3 +1,22 @@
+profoc 0.8.0 (Release date: 2021-06-30) This date may change
+==============
+
+## Changes:
+
+* The `profoc` function was renamed to `online` for consistency.
+* A new function `batch` is introduced to apply batch-learning.
+* A new function `oracle` was introduces to approximate the orcales.
+
+
+### Interface:
+
+* The default of `ndiff` was changed to 1.5 which means slope and curvature gets penalized in the smoothing step.
+
+### Internal changes:
+
+* The b-spline basis is now calculated using a fast C++ function imported from the [splines2](https://github.com/wenjie2wang/splines2) R package.
+* The source code is now distributed across different files.
+
 profoc 0.7.0 (Release date: 2021-06-04)
 ==============
 

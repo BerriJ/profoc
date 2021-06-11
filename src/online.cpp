@@ -42,7 +42,7 @@ using namespace arma;
 //' @param fixed_share Amount of fixed share to be added to the weights.
 //' Defaults to 0. 1 leads to uniform weights.
 //' @param gamma Scaling parameter for the learning rate.
-//' @param ndiff Degree of the differencing operator in the smoothing equation. 1 (default) leads to shrikage towards a constant. Can also be 2 or any value in between. If a value in between is used, a weighted sum of the first and second differentiation matrix is calculated.
+//' @param ndiff Degree of the differencing operator in the smoothing equation. 1.5 (default) leads to shrikage towards a constant. Can also be 2 or any value in between. If a value in between is used, a weighted sum of the first and second differentiation matrix is calculated.
 //' @param deg Degree of the B-Spine basis functions.
 //' @param knot_distance determines the distance of the knots. Defaults to 0.025 which corrsponds to the grid steps when knot_distance_power = 1 (the default).
 //' @param knot_distance_power Parameter which defining the symetrie of the b-spline basis. Defaults to 1 which corresponds to the equidistant case. Values less than 1 create more knots in the center while values above 1 concentrate more knots in the tails.
@@ -140,7 +140,7 @@ Rcpp::List online(
   vec gamma_vec = set_default(gamma, 1);
   vec knot_distance_vec = set_default(knot_distance, 0.025);
   vec deg_vec = set_default(deg, 3);
-  vec diff_vec = set_default(ndiff, 1);
+  vec diff_vec = set_default(ndiff, 1.5);
   vec knots_asym_vec = set_default(knot_distance_power, 1);
 
   // Init parametergrid
