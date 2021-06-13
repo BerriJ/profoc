@@ -183,6 +183,7 @@ vec optimize_weights(vec initvals,
     return initvals;
 }
 
+//' @export
 // [[Rcpp::export]]
 Rcpp::List oracle(arma::mat &y,
                   const cube &experts,

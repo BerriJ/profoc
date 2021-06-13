@@ -10,6 +10,7 @@
 
 using namespace arma;
 
+//' @export
 // [[Rcpp::export]]
 Rcpp::List batch(
     mat &y,
