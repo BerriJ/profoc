@@ -1,3 +1,5 @@
+skip_if(debug_mode)
+
 T <- 1000
 N <- 2
 P <- 99

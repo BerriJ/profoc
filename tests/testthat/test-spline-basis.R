@@ -1,3 +1,4 @@
+skip_if(debug_mode)
 kstep <- 0.1
 order <- 4
 deg <- order - 1

@@ -3,7 +3,6 @@
     "image": "ghcr.io/berrij/devenv:dev",
     // Grant xhost access to root user in order to start x11 devices (r plots)
     "initializeCommand": "docker pull ghcr.io/berrij/devenv:dev",
-    // "containerUser": "vscode",
     // Arguments to docker run so container can use local x11
     "runArgs": [
         "--rm",
@@ -41,12 +40,19 @@
         "npxms.hide-gitignored",
         // Markdown
         "yzhang.markdown-all-in-one",
+        // Preview HTML
+        "daiyy.quick-html-previewer",
         // Make fancy screenshots
-        "adpyke.codesnap",
+        "pnp.polacode",
     ],
     // Set *default* container specific settings
     // Important for radian and latex
     "settings": {
+        // C++
+        "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+        "cmake.configureSettings": {
+            "CMAKE_TOOLCHAIN_FILE": "/usr/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        },
         // Python
         // "python.dataScience.notebookFileRoot": "${workspaceFolder}/code",
         "python.dataScience.interactiveWindowMode": "perFile",

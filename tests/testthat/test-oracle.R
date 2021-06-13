@@ -1,3 +1,4 @@
+skip_if(debug_mode)
 suppressPackageStartupMessages(library(gamlss.dist))
 
 set.seed(1)

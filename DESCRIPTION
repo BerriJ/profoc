@@ -18,4 +18,3 @@ Suggests:
     testthat (>= 3.0.0),
     gamlss.dist
 Config/testthat/edition: 3
-Config/testthat/parallel: true
