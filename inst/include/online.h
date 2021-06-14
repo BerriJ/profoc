@@ -6,8 +6,9 @@
 
 Rcpp::List online(
     arma::mat &y,
-    const arma::cube &experts,
+    arma::cube &experts,
     Rcpp::NumericVector tau,
+    const bool &intercept,
     const std::string loss_function,
     const double &loss_parameter,
     const bool &ex_post_smooth,

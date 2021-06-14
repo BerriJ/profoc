@@ -2,8 +2,8 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #' @export
-batch <- function(y, experts, tau = as.numeric( c()), expanding_window = TRUE, affine = FALSE, positive = FALSE, initial_window = 30L, loss_function = "quantile", loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), forget_regret = as.numeric( c()), forget_performance = 0, fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), knot_distance = as.numeric( c()), knot_distance_power = as.numeric( c()), trace = TRUE, lead_time = 0L, allow_quantile_crossing = FALSE) {
-    .Call(`_profoc_batch`, y, experts, tau, expanding_window, affine, positive, initial_window, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, knot_distance, knot_distance_power, trace, lead_time, allow_quantile_crossing)
+batch <- function(y, experts, tau = as.numeric( c()), expanding_window = TRUE, affine = FALSE, positive = FALSE, intercept = FALSE, initial_window = 30L, loss_function = "quantile", loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), forget_regret = as.numeric( c()), forget_performance = 0, fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), knot_distance = as.numeric( c()), knot_distance_power = as.numeric( c()), trace = TRUE, lead_time = 0L, allow_quantile_crossing = FALSE) {
+    .Call(`_profoc_batch`, y, experts, tau, expanding_window, affine, positive, intercept, initial_window, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, knot_distance, knot_distance_power, trace, lead_time, allow_quantile_crossing)
 }
 
 loss <- function(y, x, pred = 0, method = "quantile", tau = 0.5, a = 1, gradient = TRUE) {
@@ -91,8 +91,8 @@ set_default <- function(input, value) {
 #' parameters to consider. online will automatically try all possible
 #' combinations of values provide.
 #' @export
-online <- function(y, experts, tau = as.numeric( c()), loss_function = "quantile", loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), method = "boa", method_var = "A", forget_regret = as.numeric( c()), forget_performance = 0, fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), knot_distance = as.numeric( c()), knot_distance_power = as.numeric( c()), gradient = TRUE, loss_array = as.numeric( c()), regret_array = as.numeric( c()), trace = TRUE, init_weights = NULL, lead_time = 0L, allow_quantile_crossing = FALSE) {
-    .Call(`_profoc_online`, y, experts, tau, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, method, method_var, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, knot_distance, knot_distance_power, gradient, loss_array, regret_array, trace, init_weights, lead_time, allow_quantile_crossing)
+online <- function(y, experts, tau = as.numeric( c()), intercept = FALSE, loss_function = "quantile", loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), method = "boa", method_var = "A", forget_regret = as.numeric( c()), forget_performance = 0, fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), knot_distance = as.numeric( c()), knot_distance_power = as.numeric( c()), gradient = TRUE, loss_array = as.numeric( c()), regret_array = as.numeric( c()), trace = TRUE, init_weights = NULL, lead_time = 0L, allow_quantile_crossing = FALSE) {
+    .Call(`_profoc_online`, y, experts, tau, intercept, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, method, method_var, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, knot_distance, knot_distance_power, gradient, loss_array, regret_array, trace, init_weights, lead_time, allow_quantile_crossing)
 }
 
 optimize_weights <- function(truth, experts, affine = FALSE, positive = FALSE, loss_function = "quantile", tau = 0.5, forget = 0, loss_scaling = 1) {
@@ -100,8 +100,8 @@ optimize_weights <- function(truth, experts, affine = FALSE, positive = FALSE, l
 }
 
 #' @export
-oracle <- function(y, experts, tau = as.numeric( c()), loss_function = "quantile", affine = FALSE, positive = FALSE, forget = 0, loss_parameter = 1) {
-    .Call(`_profoc_oracle`, y, experts, tau, loss_function, affine, positive, forget, loss_parameter)
+oracle <- function(y, experts, tau = as.numeric( c()), intercept = FALSE, loss_function = "quantile", affine = FALSE, positive = FALSE, forget = 0, loss_parameter = 1) {
+    .Call(`_profoc_oracle`, y, experts, tau, intercept, loss_function, affine, positive, forget, loss_parameter)
 }
 
 make_knots <- function(kstep, a = 1, deg = 3L) {

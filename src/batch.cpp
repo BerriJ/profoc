@@ -14,11 +14,12 @@ using namespace arma;
 // [[Rcpp::export]]
 Rcpp::List batch(
     mat &y,
-    const cube &experts,
+    cube &experts,
     Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
     const bool expanding_window = true,
     const bool &affine = false,
     const bool &positive = false,
+    const bool &intercept = false,
     int initial_window = 30,
     const std::string loss_function = "quantile",
     const double &loss_parameter = 1,
@@ -37,6 +38,13 @@ Rcpp::List batch(
     const int &lead_time = 0,
     bool allow_quantile_crossing = false)
 {
+
+    if (intercept)
+    {
+        mat intercept_mat(experts.n_rows, experts.n_cols, fill::ones);
+        experts = join_slices(intercept_mat, experts);
+    }
+
     // Indexing Convention -> (T, P, K, X)
     // T number of observations
     // P lengths of probability Grid

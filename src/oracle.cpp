@@ -199,14 +199,22 @@ vec optimize_weights(const vec &truth,
 //' @export
 // [[Rcpp::export]]
 Rcpp::List oracle(arma::mat &y,
-                  const cube &experts,
+                  cube &experts,
                   Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
+                  const bool &intercept = false,
                   const std::string loss_function = "quantile",
                   const bool &affine = false,
                   const bool &positive = false,
                   const double &forget = 0,
                   const double &loss_parameter = 1)
 {
+
+    if (intercept)
+    {
+        mat intercept_mat(experts.n_rows, experts.n_cols, fill::ones);
+        experts = join_slices(intercept_mat, experts);
+    }
+
     // Object Dimensions
     const int T = y.n_rows;
     const int P = experts.n_cols;

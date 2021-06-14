@@ -71,8 +71,9 @@ using namespace arma;
 // [[Rcpp::export]]
 Rcpp::List online(
     mat &y,
-    const cube &experts,
+    cube &experts,
     Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
+    const bool &intercept = false,
     const std::string loss_function = "quantile",
     const double &loss_parameter = 1,
     const bool &ex_post_smooth = false,
@@ -96,6 +97,13 @@ Rcpp::List online(
     const int &lead_time = 0,
     bool allow_quantile_crossing = false)
 {
+
+  if (intercept)
+  {
+    mat intercept_mat(experts.n_rows, experts.n_cols, fill::ones);
+    experts = join_slices(intercept_mat, experts);
+  }
+
   // Indexing Convention -> (T, P, K, X)
   // T number of observations
   // P lengths of probability Grid
