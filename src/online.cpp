@@ -11,62 +11,43 @@
 
 using namespace arma;
 
-//' Probabilistic Forecast Combination - Online
+//' @template function_online
 //'
-//' Returns predictions and weights calculated by online-learning algorithms
-//' using CRPS Learning. By default, the weights are calculated by
-//' gradient based bernstein online aggregation (BOAG).
-//'
-//' @param y A numeric vector of realizations.
-//' @param experts A an array of predictions with dimension
-//' (Observations, Quantiles, Experts).
-//' @param tau A numeric vector of probabilities.
-//' corresponding to the columns of experts.
-//' @param loss_function Either "quantile", "expectile" or "percentage".
-//' @param loss_parameter Optional parameter scaling the power of the loss function.
-//' @param ex_post_smooth Determines if smoothing is during or after
-//' online-learning. If true, contemporary weights are not affected
-//' but output weights are. If false (default) smoothed weights are
-//' also by the algorithm.
-//' @param ex_post_fs Analogous to ex_post_smooth: shall a fixed-share
-//' be added during (FALSE) or after online-learning (TRUE).
-//' @param lambda Penalization parameter used in the smoothing Step.
-//' -Inf causes the smoothing step to be skipped (default).
-//' @param method One of "boa", "ml_poly" or "ewa".
+//' @template param_y
+//' @template param_experts
+//' @template param_tau
+//' @template param_intercept
+//' @template param_loss_function
+//' @template param_loss_parameter
+//' @template param_ex_post_smooth
+//' @template param_ex_post_fs
+//' @template param_lambda
+//' @template param_method
 //' @param method_var Allows to calculate slight variations of the BOA
 //' algorithm
 //' @param forget_regret Share of past regret not to be considered, resp. to be
 //' forgotten in every iteration of the algorithm. Defaults to 0.
-//' @param forget_performance Share of past performance not to be considered, resp. to be
-//' forgotten in every iteration of the algorithm when choosing the parameter combination. Defaults to 0.
-//' @param fixed_share Amount of fixed share to be added to the weights.
-//' Defaults to 0. 1 leads to uniform weights.
+//' @template param_forget_performance
+//' @template param_fixed_share
 //' @param gamma Scaling parameter for the learning rate.
-//' @param ndiff Degree of the differencing operator in the smoothing equation. 1.5 (default) leads to shrikage towards a constant. Can also be 2 or any value in between. If a value in between is used, a weighted sum of the first and second differentiation matrix is calculated.
-//' @param deg Degree of the B-Spine basis functions.
-//' @param knot_distance determines the distance of the knots. Defaults to 0.025 which corrsponds to the grid steps when knot_distance_power = 1 (the default).
-//' @param knot_distance_power Parameter which defining the symetrie of the b-spline basis. Defaults to 1 which corresponds to the equidistant case. Values less than 1 create more knots in the center while values above 1 concentrate more knots in the tails.
+//' @template param_ndiff
+//' @template param_deg
+//' @template param_knot_distance
+//' @template param_knot_distance_power
 //' @param gradient Determines if a linearized version of the loss is used.
 //' @param loss_array User specified loss array. If specified, the loss will not be calculated by profoc.
 //' @param regret_array User specified regret array. If specifiec, the regret will not be calculated by profoc.
-//' @param trace If a progessbar shall be printed. Defaults to TRUE.
+//' @template param_trace
 //' @param init_weights Matrix of dimension Kx1 or KxP used as starting weights. Kx1 represents the constant solution with equal weights over all P whereas specifiying a KxP matrix allows different starting weights for each P.
-//' @param lead_time offset for expert forecasts. Defaults to 0, which means that
-//' experts forecast t+1 at t. Setting this to h means experts predictions refer
-//' to t+1+h at time t. The weight updates delay accordingly.
-//' @param allow_quantile_crossing Shall quantile crossing be allowed? Defaults to false which means that predictions are sorted in ascending order.
-//' @usage online(y, experts, tau, loss_function = "quantile",
+//' @template param_lead_time
+//' @template param_allow_quantile_crossing
+//' @usage online(y, experts, tau, intercept = FALSE, loss_function = "quantile",
 //' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 //' lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
 //' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 //' knot_distance = 0.025, knot_distance_power = 1,
 //' gradient = TRUE, loss_array = NULL, regret_array = NULL,
 //' trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE)
-//' @return online can tune various parameters automatically based on
-//' the past loss. For this, lambda, forget, fixed_share, gamma, ndiff,
-//' deg and knot_distance can be specified as numeric vectors containing
-//' parameters to consider. online will automatically try all possible
-//' combinations of values provide.
 //' @export
 // [[Rcpp::export]]
 Rcpp::List online(
