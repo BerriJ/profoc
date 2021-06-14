@@ -24,6 +24,7 @@ struct objective_data
     std::string loss_function;
     double loss_scaling;
     double forget;
+    double penalty_parameter = 0;
 };
 
 // Global decleration of objective val
@@ -40,6 +41,7 @@ double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
     double tau = objfn_data->tau;
     double loss_scaling = objfn_data->loss_scaling;
     double forget = objfn_data->forget;
+    double penalty_parameter = objfn_data->penalty_parameter;
 
     vec pred = experts * vals_inp;
     vec loss_vec(experts.n_rows);
@@ -57,6 +59,9 @@ double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
     }
 
     obj_val = sum(loss_vec);
+
+    double constraint_penalty;
+    constraint_penalty = penalty_parameter * fabs(sum(vals_inp) - 1);
 
     vec loss_grad(experts.n_rows);
 
@@ -80,7 +85,7 @@ double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
         }
     }
 
-    return obj_val;
+    return obj_val + constraint_penalty;
 }
 
 // additional data for constraint function
@@ -140,48 +145,47 @@ vec optimize_weights(const vec &truth,
     bool success;
     optim::algo_settings_t settings;
 
-    if (affine || positive)
+    constraint_data opt_constr_data;
+
+    if (affine && positive)
     {
-        constraint_data opt_constr_data;
+        initvals += 1E-08;
+        opt_obj_data.penalty_parameter = 0.1;
 
-        if (affine && positive)
+        settings.vals_bound = true;
+        settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
+        settings.lower_bounds.fill(0);
+        settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
+        settings.upper_bounds.fill(exp(700));
+
+        while (fabs(sum(initvals) - 1) >= 1E-08)
         {
+            opt_obj_data.penalty_parameter *= 10;
             success = optim::nm(initvals, objective, &opt_obj_data, settings);
-            initvals = pmax_arma(initvals, 0);
-            initvals /= accu(initvals);
-
-            Mat_t affinity(2, K, fill::ones);
-            affinity.row(1) = -affinity.row(1);
-            Mat_t positivity(K, K, fill::eye);
-            opt_constr_data.constr_mat = join_cols(affinity, -positivity);
-            Vec_t constr_rhs(2 + K, fill::zeros);
-            constr_rhs(0) = 1.0;
-            constr_rhs(1) = -1.0;
-            opt_constr_data.constr_rhs = std::move(constr_rhs);
         }
-        else if (affine)
+        // arma::cout << "final penalty was \n"
+        //            << opt_obj_data.penalty_parameter << arma::endl;
+    }
+    else if (affine)
+    {
+        initvals += 1E-08;
+        opt_obj_data.penalty_parameter = 0.1;
+
+        while (fabs(sum(initvals) - 1) >= 1E-08)
         {
+            opt_obj_data.penalty_parameter *= 10;
             success = optim::nm(initvals, objective, &opt_obj_data, settings);
-            initvals /= accu(initvals);
-
-            Mat_t affinity(2, K, fill::ones);
-            affinity.row(1) = -affinity.row(1);
-            opt_constr_data.constr_mat = affinity;
-            Vec_t constr_rhs(2, fill::ones);
-            constr_rhs(1) *= -1.0;
-            opt_constr_data.constr_rhs = std::move(constr_rhs);
         }
-        else
-        {
-            success = optim::nm(initvals, objective, &opt_obj_data, settings);
-            initvals = pmax_arma(initvals, 0);
+    }
+    else if (positive)
+    {
+        settings.vals_bound = true;
+        settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
+        settings.lower_bounds.fill(0);
+        settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
+        settings.upper_bounds.fill(exp(700));
 
-            Mat_t positivity(K, K, fill::eye);
-            opt_constr_data.constr_mat = -positivity;
-            Vec_t constr_rhs(K, fill::zeros);
-            opt_constr_data.constr_rhs = std::move(constr_rhs);
-        }
-        success = optim::sumt(initvals, objective, &opt_obj_data, constraint_function, &opt_constr_data, settings);
+        success = optim::nm(initvals, objective, &opt_obj_data, settings);
     }
     else
     {
@@ -207,8 +211,8 @@ vec optimize_weights(const vec &truth,
 //' @template param_loss_function
 //' @template param_loss_parameter
 //' @template param_forget
-//' @usage oracle(y, experts, tau, intercept = FALSE, affine = FALSE, positive = FALSE, loss_function = "quantile",
-//' loss_parameter = 1, forget = 0)
+//' @usage oracle(y, experts, tau, intercept = FALSE, affine = FALSE,
+//' positive = FALSE, loss_function = "quantile", loss_parameter = 1, forget = 0)
 //' @export
 // [[Rcpp::export]]
 Rcpp::List oracle(arma::mat &y,

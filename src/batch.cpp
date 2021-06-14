@@ -29,17 +29,19 @@ using namespace arma;
 //' @template param_forget_performance
 //' @template param_fixed_share
 //' @param gamma to be removed
+//' @template param_ndiff
 //' @template param_deg
 //' @template param_knot_distance
 //' @template param_knot_distance_power
 //' @template param_trace
 //' @template param_lead_time
 //' @template param_allow_quantile_crossing
-//' @usage online(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE, initial_window = 30, expanding_window = TRUE, loss_function = "quantile",
-//' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
-//' lambda = -Inf, forget = 0, forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
-//' knot_distance = 0.025, knot_distance_power = 1,
-//' trace = TRUE, lead_time = 0, allow_quantile_crossing = FALSE)
+//' @usage batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
+//' initial_window = 30, expanding_window = TRUE, loss_function = "quantile",
+//' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = -Inf,
+//' forget = 0, forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
+//' knot_distance = 0.025, knot_distance_power = 1, trace = TRUE, lead_time = 0,
+//' allow_quantile_crossing = FALSE)
 //' @export
 // [[Rcpp::export]]
 Rcpp::List batch(

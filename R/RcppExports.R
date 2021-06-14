@@ -20,17 +20,19 @@
 #' @template param_forget_performance
 #' @template param_fixed_share
 #' @param gamma to be removed
+#' @template param_ndiff
 #' @template param_deg
 #' @template param_knot_distance
 #' @template param_knot_distance_power
 #' @template param_trace
 #' @template param_lead_time
 #' @template param_allow_quantile_crossing
-#' @usage online(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE, initial_window = 30, expanding_window = TRUE, loss_function = "quantile",
-#' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
-#' lambda = -Inf, forget = 0, forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
-#' knot_distance = 0.025, knot_distance_power = 1,
-#' trace = TRUE, lead_time = 0, allow_quantile_crossing = FALSE)
+#' @usage batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
+#' initial_window = 30, expanding_window = TRUE, loss_function = "quantile",
+#' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = -Inf,
+#' forget = 0, forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
+#' knot_distance = 0.025, knot_distance_power = 1, trace = TRUE, lead_time = 0,
+#' allow_quantile_crossing = FALSE)
 #' @export
 batch <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive = FALSE, intercept = FALSE, initial_window = 30L, expanding_window = TRUE, loss_function = "quantile", loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), forget = as.numeric( c()), forget_performance = 0, fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), knot_distance = as.numeric( c()), knot_distance_power = as.numeric( c()), trace = TRUE, lead_time = 0L, allow_quantile_crossing = FALSE) {
     .Call(`_profoc_batch`, y, experts, tau, affine, positive, intercept, initial_window, expanding_window, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, forget, forget_performance, fixed_share, gamma, ndiff, deg, knot_distance, knot_distance_power, trace, lead_time, allow_quantile_crossing)
@@ -121,8 +123,8 @@ optimize_weights <- function(truth, experts, affine = FALSE, positive = FALSE, l
 #' @template param_loss_function
 #' @template param_loss_parameter
 #' @template param_forget
-#' @usage oracle(y, experts, tau, intercept = FALSE, affine = FALSE, positive = FALSE, loss_function = "quantile",
-#' loss_parameter = 1, forget = 0)
+#' @usage oracle(y, experts, tau, intercept = FALSE, affine = FALSE,
+#' positive = FALSE, loss_function = "quantile", loss_parameter = 1, forget = 0)
 #' @export
 oracle <- function(y, experts, tau = as.numeric( c()), intercept = FALSE, affine = FALSE, positive = FALSE, loss_function = "quantile", loss_parameter = 1, forget = 0) {
     .Call(`_profoc_oracle`, y, experts, tau, intercept, affine, positive, loss_function, loss_parameter, forget)

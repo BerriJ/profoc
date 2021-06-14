@@ -4,8 +4,8 @@
 \alias{oracle}
 \title{Probabilistic Forecast Combination - Oracle}
 \usage{
-oracle(y, experts, tau, intercept = FALSE, affine = FALSE, positive = FALSE, loss_function = "quantile",
-loss_parameter = 1, forget = 0)
+oracle(y, experts, tau, intercept = FALSE, affine = FALSE,
+positive = FALSE, loss_function = "quantile", loss_parameter = 1, forget = 0)
 }
 \arguments{
 \item{y}{A numeric vector of realizations.}
