@@ -10,23 +10,53 @@
 
 using namespace arma;
 
+//' @template function_batch
+//'
+//' @template param_y
+//' @template param_experts
+//' @template param_tau
+//' @template param_affine
+//' @template param_positive
+//' @template param_intercept
+//' @param initial_window Defines the size of the initial estimaton window.
+//' @param expanding_window Defines wether an expanding window or a rolling window shall be used for batch optimization. Defaults to TRUE.
+//' @template param_loss_function
+//' @template param_loss_parameter
+//' @template param_ex_post_smooth
+//' @template param_ex_post_fs
+//' @template param_lambda
+//' @template param_forget
+//' @template param_forget_performance
+//' @template param_fixed_share
+//' @param gamma to be removed
+//' @template param_deg
+//' @template param_knot_distance
+//' @template param_knot_distance_power
+//' @template param_trace
+//' @template param_lead_time
+//' @template param_allow_quantile_crossing
+//' @usage online(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE, initial_window = 30, expanding_window = TRUE, loss_function = "quantile",
+//' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
+//' lambda = -Inf, forget = 0, forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
+//' knot_distance = 0.025, knot_distance_power = 1,
+//' trace = TRUE, lead_time = 0, allow_quantile_crossing = FALSE)
 //' @export
 // [[Rcpp::export]]
 Rcpp::List batch(
     mat &y,
     cube &experts,
     Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
-    const bool expanding_window = true,
     const bool &affine = false,
     const bool &positive = false,
     const bool &intercept = false,
     int initial_window = 30,
+    const bool expanding_window = true,
     const std::string loss_function = "quantile",
     const double &loss_parameter = 1,
     const bool &ex_post_smooth = false,
     const bool &ex_post_fs = false,
     Rcpp::NumericVector lambda = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector forget_regret = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector forget = Rcpp::NumericVector::create(),
     const double &forget_performance = 0,
     Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(),
     Rcpp::NumericVector gamma = Rcpp::NumericVector::create(),
@@ -87,7 +117,7 @@ Rcpp::List batch(
 
     // Set default values
     vec lambda_vec = set_default(lambda, -datum::inf);
-    vec forget_vec = set_default(forget_regret, 0);
+    vec forget_vec = set_default(forget, 0);
     vec fixed_share_vec = set_default(fixed_share, 0);
     vec gamma_vec = set_default(gamma, 1);
     vec knot_distance_vec = set_default(knot_distance, 0.025);
@@ -370,7 +400,7 @@ Rcpp::List batch(
 
     Rcpp::DataFrame opt_params_df = Rcpp::DataFrame::create(
         Rcpp::Named("lambda") = chosen_params.col(0),
-        Rcpp::Named("forget_regret") = chosen_params.col(1),
+        Rcpp::Named("forget") = chosen_params.col(1),
         Rcpp::Named("fixed_share") = chosen_params.col(2),
         Rcpp::Named("gamma") = chosen_params.col(3),
         Rcpp::Named("knot_distance") = chosen_params.col(4),
@@ -380,7 +410,7 @@ Rcpp::List batch(
 
     Rcpp::DataFrame parametergrid = Rcpp::DataFrame::create(
         Rcpp::Named("lambda") = param_grid.col(0),
-        Rcpp::Named("forget_regret") = param_grid.col(1),
+        Rcpp::Named("forget") = param_grid.col(1),
         Rcpp::Named("fixed_share") = param_grid.col(2),
         Rcpp::Named("gamma") = param_grid.col(3),
         Rcpp::Named("knot_distance") = param_grid.col(4),

@@ -196,17 +196,30 @@ vec optimize_weights(const vec &truth,
     return initvals;
 }
 
+//' @template function_oracle
+//'
+//' @template param_y
+//' @template param_experts
+//' @template param_tau
+//' @template param_intercept
+//' @template param_affine
+//' @template param_positive
+//' @template param_loss_function
+//' @template param_loss_parameter
+//' @template param_forget
+//' @usage oracle(y, experts, tau, intercept = FALSE, affine = FALSE, positive = FALSE, loss_function = "quantile",
+//' loss_parameter = 1, forget = 0)
 //' @export
 // [[Rcpp::export]]
 Rcpp::List oracle(arma::mat &y,
                   cube &experts,
                   Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
                   const bool &intercept = false,
-                  const std::string loss_function = "quantile",
                   const bool &affine = false,
                   const bool &positive = false,
-                  const double &forget = 0,
-                  const double &loss_parameter = 1)
+                  const std::string loss_function = "quantile",
+                  const double &loss_parameter = 1,
+                  const double &forget = 0)
 {
 
     if (intercept)
