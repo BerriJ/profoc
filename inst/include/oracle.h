@@ -4,8 +4,7 @@
 #include <RcppArmadillo.h>
 #include <string>
 
-arma::vec optimize_weights(arma::vec initvals,
-                           const arma::vec &truth,
+arma::vec optimize_weights(const arma::vec &truth,
                            const arma::mat &experts,
                            const bool &affine,
                            const bool &positive,

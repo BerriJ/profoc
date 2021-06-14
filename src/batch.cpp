@@ -34,7 +34,6 @@ Rcpp::List batch(
     Rcpp::NumericVector knot_distance = Rcpp::NumericVector::create(),
     Rcpp::NumericVector knot_distance_power = Rcpp::NumericVector::create(),
     const bool trace = true,
-    Rcpp::Nullable<Rcpp::NumericMatrix> init_weights = R_NilValue,
     const int &lead_time = 0,
     bool allow_quantile_crossing = false)
 {
@@ -103,36 +102,14 @@ Rcpp::List batch(
     cube past_performance(T, P, X, fill::zeros);
     vec tmp_performance(X, fill::zeros);
     vec cum_performance(X, fill::zeros);
-    Progress prog(T * X + X, trace);
+    Progress prog((T - initial_window) * X + X, trace);
 
-    // Init weight objects
-    mat w0;
-    // Populate uniform weights if w0 was not specified
-    if (init_weights.isNotNull())
-    {
-        w0 = Rcpp::as<arma::mat>(init_weights);
-    }
-    else
-    {
-        w0.resize(K);
-        w0.fill(1 / double(K));
-    }
-
-    // Expand w0 if necessary
-    if (w0.n_cols == 1)
-    {
-        w0 = repmat(w0, 1, P);
-    }
-
-    // Truncate from below
-    w0 = pmax_arma(w0, exp(-350));
-
-    // Normalize weights
-    w0 = w0.each_row() / sum(w0);
+    // Populate uniform weights
 
     // Init object holding temp. weights, resp. ex-ante
     cube w_temp(P, K, X);
-    w_temp.each_slice() = w0.t();
+    w_temp.fill(1 / double(K));
+
     // Init object holding final weights, resp. ex-post
     cube w_post(w_temp);
 
@@ -254,7 +231,6 @@ Rcpp::List batch(
                 mat experts_tmp = experts.tube(span(start, t - lead_time), span(p, p));
 
                 w_temp(span(p), span::all, span(x)) = optimize_weights(
-                    vectorise(w_temp(span(p), span::all, span(x))),
                     y(span(start, t - lead_time), p),
                     experts_tmp,
                     affine,

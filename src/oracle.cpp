@@ -1,4 +1,5 @@
 #include <oracle.h>
+#include <misc.h>
 #include <loss.h>
 
 // [[Rcpp::depends(RcppArmadillo)]]
@@ -110,8 +111,7 @@ Vec_t constraint_function(const Vec_t &vals_inp, Mat_t *jacob_out, void *opt_dat
 }
 
 // [[Rcpp::export]]
-vec optimize_weights(vec initvals,
-                     const vec &truth,
+vec optimize_weights(const vec &truth,
                      const mat &experts,
                      const bool &affine = false,
                      const bool &positive = false,
@@ -133,6 +133,10 @@ vec optimize_weights(vec initvals,
     opt_obj_data.loss_scaling = std::move(loss_scaling);
     opt_obj_data.forget = std::move(forget);
 
+    // Iinit weights
+    vec initvals(K, fill::ones);
+    initvals /= accu(initvals);
+
     bool success;
     optim::algo_settings_t settings;
 
@@ -142,6 +146,10 @@ vec optimize_weights(vec initvals,
 
         if (affine && positive)
         {
+            success = optim::nm(initvals, objective, &opt_obj_data, settings);
+            initvals = pmax_arma(initvals, 0);
+            initvals /= accu(initvals);
+
             Mat_t affinity(2, K, fill::ones);
             affinity.row(1) = -affinity.row(1);
             Mat_t positivity(K, K, fill::eye);
@@ -153,6 +161,9 @@ vec optimize_weights(vec initvals,
         }
         else if (affine)
         {
+            success = optim::nm(initvals, objective, &opt_obj_data, settings);
+            initvals /= accu(initvals);
+
             Mat_t affinity(2, K, fill::ones);
             affinity.row(1) = -affinity.row(1);
             opt_constr_data.constr_mat = affinity;
@@ -162,6 +173,9 @@ vec optimize_weights(vec initvals,
         }
         else
         {
+            success = optim::nm(initvals, objective, &opt_obj_data, settings);
+            initvals = pmax_arma(initvals, 0);
+
             Mat_t positivity(K, K, fill::eye);
             opt_constr_data.constr_mat = -positivity;
             Vec_t constr_rhs(K, fill::zeros);
@@ -171,7 +185,6 @@ vec optimize_weights(vec initvals,
     }
     else
     {
-        settings.rel_objfn_change_tol = 1E-07;
         success = optim::nm(initvals, objective, &opt_obj_data, settings);
     }
 
@@ -217,10 +230,6 @@ Rcpp::List oracle(arma::mat &y,
         tau_vec.fill(tau_vec(0));
     }
 
-    // Iinit weights
-    vec init_weights(K, fill::ones);
-    init_weights /= accu(init_weights);
-
     // Matrix to store oracle weights
     mat weights(P, K);
     vec oracles_loss(P);
@@ -230,8 +239,7 @@ Rcpp::List oracle(arma::mat &y,
     for (int p = 0; p < P; p++)
     {
 
-        weights.row(p) = optimize_weights(init_weights,
-                                          y.col(p),
+        weights.row(p) = optimize_weights(y.col(p),
                                           experts.col(p),
                                           affine,
                                           positive,
@@ -240,9 +248,6 @@ Rcpp::List oracle(arma::mat &y,
                                           forget,
                                           loss_parameter)
                              .t();
-
-        if (affine || positive)
-            init_weights = weights.row(p).t();
 
         mat exp_tmp = experts.col(p);
         predictions.col(p) = exp_tmp * weights.row(p).t();
