@@ -534,7 +534,13 @@ Rcpp::List online(
   // 1-Indexing for R-Output
   opt_index = opt_index + 1;
 
-  Rcpp::DataFrame opt_params_df = Rcpp::DataFrame::create(
+  // Set unused values to NA
+  if (lead_time > 0)
+  {
+    chosen_params.rows(0, lead_time - 1).fill(datum::nan);
+  }
+
+  Rcpp::DataFrame chosen_parameters = Rcpp::DataFrame::create(
       Rcpp::Named("lambda") = chosen_params.col(0),
       Rcpp::Named("forget_regret") = chosen_params.col(1),
       Rcpp::Named("fixed_share") = chosen_params.col(2),
@@ -560,7 +566,7 @@ Rcpp::List online(
       Rcpp::Named("forecaster_loss") = loss_for,
       Rcpp::Named("experts_loss") = loss_exp,
       Rcpp::Named("past_perf_wrt_params") = past_performance,
-      Rcpp::Named("chosen_parameters") = opt_params_df,
+      Rcpp::Named("chosen_parameters") = chosen_parameters,
       Rcpp::Named("parametergrid") = parametergrid,
       Rcpp::Named("opt_index") = opt_index);
 }

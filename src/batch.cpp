@@ -354,6 +354,9 @@ Rcpp::List batch(
         }
     }
 
+    // Set unused values to NA
+    chosen_params.rows(0, lead_time + initial_window - 1).fill(datum::nan);
+
     // 1-Indexing for R-Output
     opt_index = opt_index + 1;
 
