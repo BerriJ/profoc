@@ -9,6 +9,7 @@
 #' @template param_affine
 #' @template param_positive
 #' @template param_intercept
+#' @template param_debias
 #' @param initial_window Defines the size of the initial estimaton window.
 #' @param expanding_window Defines wether an expanding window or a rolling window shall be used for batch optimization. Defaults to TRUE.
 #' @template param_loss_function
@@ -28,14 +29,15 @@
 #' @template param_lead_time
 #' @template param_allow_quantile_crossing
 #' @usage batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
-#' initial_window = 30, expanding_window = TRUE, loss_function = "quantile",
+#' debias = TRUE, initial_window = 30, expanding_window = TRUE,
+#' loss_function = "quantile",
 #' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = -Inf,
 #' forget = 0, forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 #' knot_distance = 0.025, knot_distance_power = 1, trace = TRUE, lead_time = 0,
 #' allow_quantile_crossing = FALSE)
 #' @export
-batch <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive = FALSE, intercept = FALSE, initial_window = 30L, expanding_window = TRUE, loss_function = "quantile", loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), forget = as.numeric( c()), forget_performance = 0, fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), knot_distance = as.numeric( c()), knot_distance_power = as.numeric( c()), trace = TRUE, lead_time = 0L, allow_quantile_crossing = FALSE) {
-    .Call(`_profoc_batch`, y, experts, tau, affine, positive, intercept, initial_window, expanding_window, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, forget, forget_performance, fixed_share, gamma, ndiff, deg, knot_distance, knot_distance_power, trace, lead_time, allow_quantile_crossing)
+batch <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, initial_window = 30L, expanding_window = TRUE, loss_function = "quantile", loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c()), forget = as.numeric( c()), forget_performance = 0, fixed_share = as.numeric( c()), gamma = as.numeric( c()), ndiff = as.numeric( c()), deg = as.numeric( c()), knot_distance = as.numeric( c()), knot_distance_power = as.numeric( c()), trace = TRUE, lead_time = 0L, allow_quantile_crossing = FALSE) {
+    .Call(`_profoc_batch`, y, experts, tau, affine, positive, intercept, debias, initial_window, expanding_window, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, forget, forget_performance, fixed_share, gamma, ndiff, deg, knot_distance, knot_distance_power, trace, lead_time, allow_quantile_crossing)
 }
 
 loss <- function(y, x, pred = 0, method = "quantile", tau = 0.5, a = 1, gradient = TRUE) {
@@ -108,8 +110,8 @@ online <- function(y, experts, tau = as.numeric( c()), intercept = FALSE, loss_f
     .Call(`_profoc_online`, y, experts, tau, intercept, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, method, method_var, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, knot_distance, knot_distance_power, gradient, loss_array, regret_array, trace, init_weights, lead_time, allow_quantile_crossing)
 }
 
-optimize_weights <- function(truth, experts, affine = FALSE, positive = FALSE, loss_function = "quantile", tau = 0.5, forget = 0, loss_scaling = 1) {
-    .Call(`_profoc_optimize_weights`, truth, experts, affine, positive, loss_function, tau, forget, loss_scaling)
+optimize_weights <- function(truth, experts, affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, loss_function = "quantile", tau = 0.5, forget = 0, loss_scaling = 1) {
+    .Call(`_profoc_optimize_weights`, truth, experts, affine, positive, intercept, debias, loss_function, tau, forget, loss_scaling)
 }
 
 #' @template function_oracle
@@ -117,17 +119,19 @@ optimize_weights <- function(truth, experts, affine = FALSE, positive = FALSE, l
 #' @template param_y
 #' @template param_experts
 #' @template param_tau
-#' @template param_intercept
 #' @template param_affine
 #' @template param_positive
+#' @template param_intercept
+#' @template param_debias
 #' @template param_loss_function
 #' @template param_loss_parameter
 #' @template param_forget
-#' @usage oracle(y, experts, tau, intercept = FALSE, affine = FALSE,
-#' positive = FALSE, loss_function = "quantile", loss_parameter = 1, forget = 0)
+#' @usage oracle(y, experts, tau, affine = FALSE,
+#' positive = FALSE, intercept = FALSE, debias = TRUE,
+#' loss_function = "quantile", loss_parameter = 1, forget = 0)
 #' @export
-oracle <- function(y, experts, tau = as.numeric( c()), intercept = FALSE, affine = FALSE, positive = FALSE, loss_function = "quantile", loss_parameter = 1, forget = 0) {
-    .Call(`_profoc_oracle`, y, experts, tau, intercept, affine, positive, loss_function, loss_parameter, forget)
+oracle <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, loss_function = "quantile", loss_parameter = 1, forget = 0) {
+    .Call(`_profoc_oracle`, y, experts, tau, affine, positive, intercept, debias, loss_function, loss_parameter, forget)
 }
 
 make_knots <- function(kstep, a = 1, deg = 3L) {

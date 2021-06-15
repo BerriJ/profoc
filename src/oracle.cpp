@@ -25,6 +25,8 @@ struct objective_data
     double loss_scaling;
     double forget;
     double penalty_parameter = 0;
+    bool intercept;
+    bool debias;
 };
 
 // Global decleration of objective val
@@ -42,6 +44,8 @@ double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
     double loss_scaling = objfn_data->loss_scaling;
     double forget = objfn_data->forget;
     double penalty_parameter = objfn_data->penalty_parameter;
+    bool intercept = objfn_data->intercept;
+    bool debias = objfn_data->debias;
 
     vec pred = experts * vals_inp;
     vec loss_vec(experts.n_rows);
@@ -61,7 +65,8 @@ double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
     obj_val = sum(loss_vec);
 
     double constraint_penalty;
-    constraint_penalty = penalty_parameter * fabs(sum(vals_inp) - 1);
+
+    constraint_penalty = penalty_parameter * fabs(sum(vals_inp.subvec(debias * intercept, vals_inp.n_elem - 1)) - 1);
 
     vec loss_grad(experts.n_rows);
 
@@ -120,6 +125,8 @@ vec optimize_weights(const vec &truth,
                      const mat &experts,
                      const bool &affine = false,
                      const bool &positive = false,
+                     const bool &intercept = false,
+                     const bool &debias = true,
                      const std::string &loss_function = "quantile",
                      const double &tau = 0.5,
                      const double &forget = 0,
@@ -137,6 +144,8 @@ vec optimize_weights(const vec &truth,
     opt_obj_data.tau = std::move(tau);
     opt_obj_data.loss_scaling = std::move(loss_scaling);
     opt_obj_data.forget = std::move(forget);
+    opt_obj_data.intercept = intercept;
+    opt_obj_data.debias = debias;
 
     // Iinit weights
     vec initvals(K, fill::ones);
@@ -144,7 +153,6 @@ vec optimize_weights(const vec &truth,
 
     bool success;
     optim::algo_settings_t settings;
-
     constraint_data opt_constr_data;
 
     if (affine && positive)
@@ -155,23 +163,25 @@ vec optimize_weights(const vec &truth,
         settings.vals_bound = true;
         settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
         settings.lower_bounds.fill(0);
+        if (debias && intercept)
+        {
+            settings.lower_bounds(0) = -exp(700);
+        }
         settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
         settings.upper_bounds.fill(exp(700));
 
-        while (fabs(sum(initvals) - 1) >= 1E-08)
+        while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-08)
         {
             opt_obj_data.penalty_parameter *= 10;
             success = optim::nm(initvals, objective, &opt_obj_data, settings);
         }
-        // arma::cout << "final penalty was \n"
-        //            << opt_obj_data.penalty_parameter << arma::endl;
     }
     else if (affine)
     {
         initvals += 1E-08;
         opt_obj_data.penalty_parameter = 0.1;
 
-        while (fabs(sum(initvals) - 1) >= 1E-08)
+        while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-08)
         {
             opt_obj_data.penalty_parameter *= 10;
             success = optim::nm(initvals, objective, &opt_obj_data, settings);
@@ -182,6 +192,10 @@ vec optimize_weights(const vec &truth,
         settings.vals_bound = true;
         settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
         settings.lower_bounds.fill(0);
+        if (debias && intercept)
+        {
+            settings.lower_bounds(0) = -exp(700);
+        }
         settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
         settings.upper_bounds.fill(exp(700));
 
@@ -205,22 +219,25 @@ vec optimize_weights(const vec &truth,
 //' @template param_y
 //' @template param_experts
 //' @template param_tau
-//' @template param_intercept
 //' @template param_affine
 //' @template param_positive
+//' @template param_intercept
+//' @template param_debias
 //' @template param_loss_function
 //' @template param_loss_parameter
 //' @template param_forget
-//' @usage oracle(y, experts, tau, intercept = FALSE, affine = FALSE,
-//' positive = FALSE, loss_function = "quantile", loss_parameter = 1, forget = 0)
+//' @usage oracle(y, experts, tau, affine = FALSE,
+//' positive = FALSE, intercept = FALSE, debias = TRUE,
+//' loss_function = "quantile", loss_parameter = 1, forget = 0)
 //' @export
 // [[Rcpp::export]]
 Rcpp::List oracle(arma::mat &y,
                   cube &experts,
                   Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
-                  const bool &intercept = false,
                   const bool &affine = false,
                   const bool &positive = false,
+                  const bool &intercept = false,
+                  const bool &debias = true,
                   const std::string loss_function = "quantile",
                   const double &loss_parameter = 1,
                   const double &forget = 0)
@@ -268,6 +285,8 @@ Rcpp::List oracle(arma::mat &y,
                                           experts.col(p),
                                           affine,
                                           positive,
+                                          intercept,
+                                          debias,
                                           loss_function,
                                           tau_vec(p),
                                           forget,

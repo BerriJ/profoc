@@ -5,7 +5,8 @@
 \title{Probabilistic Forecast Combination - Batch}
 \usage{
 batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
-initial_window = 30, expanding_window = TRUE, loss_function = "quantile",
+debias = TRUE, initial_window = 30, expanding_window = TRUE,
+loss_function = "quantile",
 loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = -Inf,
 forget = 0, forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 knot_distance = 0.025, knot_distance_power = 1, trace = TRUE, lead_time = 0,
@@ -24,6 +25,9 @@ allow_quantile_crossing = FALSE)
 \item{positive}{Defines wether weights have to positive. Defaults to FALSE.}
 
 \item{intercept}{Determines if an intercept is added, defaults to FALSE. In this case a new expert is added as expert 1 allways predicting 1.}
+
+\item{debias}{Defines wether the intercept is included in the affine constraint.
+Only affects the results if affine is TRUE.}
 
 \item{initial_window}{Defines the size of the initial estimaton window.}
 

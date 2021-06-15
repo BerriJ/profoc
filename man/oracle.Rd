@@ -4,8 +4,9 @@
 \alias{oracle}
 \title{Probabilistic Forecast Combination - Oracle}
 \usage{
-oracle(y, experts, tau, intercept = FALSE, affine = FALSE,
-positive = FALSE, loss_function = "quantile", loss_parameter = 1, forget = 0)
+oracle(y, experts, tau, affine = FALSE,
+positive = FALSE, intercept = FALSE, debias = TRUE,
+loss_function = "quantile", loss_parameter = 1, forget = 0)
 }
 \arguments{
 \item{y}{A numeric vector of realizations.}
@@ -15,11 +16,14 @@ positive = FALSE, loss_function = "quantile", loss_parameter = 1, forget = 0)
 
 \item{tau}{A numeric vector of probabilities.}
 
-\item{intercept}{Determines if an intercept is added, defaults to FALSE. In this case a new expert is added as expert 1 allways predicting 1.}
-
 \item{affine}{Defines wether weights are summing to 1 or now. Defaults to FALSE.}
 
 \item{positive}{Defines wether weights have to positive. Defaults to FALSE.}
+
+\item{intercept}{Determines if an intercept is added, defaults to FALSE. In this case a new expert is added as expert 1 allways predicting 1.}
+
+\item{debias}{Defines wether the intercept is included in the affine constraint.
+Only affects the results if affine is TRUE.}
 
 \item{loss_function}{Either "quantile", "expectile" or "percentage".}
 

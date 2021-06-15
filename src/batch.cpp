@@ -18,6 +18,7 @@ using namespace arma;
 //' @template param_affine
 //' @template param_positive
 //' @template param_intercept
+//' @template param_debias
 //' @param initial_window Defines the size of the initial estimaton window.
 //' @param expanding_window Defines wether an expanding window or a rolling window shall be used for batch optimization. Defaults to TRUE.
 //' @template param_loss_function
@@ -37,7 +38,8 @@ using namespace arma;
 //' @template param_lead_time
 //' @template param_allow_quantile_crossing
 //' @usage batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
-//' initial_window = 30, expanding_window = TRUE, loss_function = "quantile",
+//' debias = TRUE, initial_window = 30, expanding_window = TRUE,
+//' loss_function = "quantile",
 //' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = -Inf,
 //' forget = 0, forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 //' knot_distance = 0.025, knot_distance_power = 1, trace = TRUE, lead_time = 0,
@@ -51,6 +53,7 @@ Rcpp::List batch(
     const bool &affine = false,
     const bool &positive = false,
     const bool &intercept = false,
+    const bool &debias = true,
     int initial_window = 30,
     const bool expanding_window = true,
     const std::string loss_function = "quantile",
@@ -275,6 +278,8 @@ Rcpp::List batch(
                     experts_tmp,
                     affine,
                     positive,
+                    intercept,
+                    debias,
                     loss_function,
                     tau_vec(p),
                     param_grid(x, 1), // Forget
@@ -328,13 +333,13 @@ Rcpp::List batch(
                 // Ensure constraints are met
                 if (positive)
                 {
-                    w_temp(span(p), span::all, span(x)) = pmax_arma(w_temp(span(p), span::all, span(x)), 0);
-                    w_post(span(p), span::all, span(x)) = pmax_arma(w_post(span(p), span::all, span(x)), 0);
+                    w_temp(span(p), span(intercept * debias, K - 1), span(x)) = pmax_arma(w_temp(span(p), span(intercept * debias, K - 1), span(x)), 0);
+                    w_post(span(p), span(intercept * debias, K - 1), span(x)) = pmax_arma(w_post(span(p), span(intercept * debias, K - 1), span(x)), 0);
                 }
                 if (affine)
                 {
-                    w_post(span(p), span::all, span(x)) /= accu(w_post(span(p), span::all, span(x)));
-                    w_temp(span(p), span::all, span(x)) /= accu(w_temp(span(p), span::all, span(x)));
+                    w_post(span(p), span(intercept * debias, K - 1), span(x)) /= accu(w_post(span(p), span(intercept * debias, K - 1), span(x)));
+                    w_temp(span(p), span(intercept * debias, K - 1), span(x)) /= accu(w_temp(span(p), span(intercept * debias, K - 1), span(x)));
                 }
             }
             tmp_performance(x) = accu(past_performance(span(t), span::all, span(x)));
