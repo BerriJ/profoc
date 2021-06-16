@@ -94,7 +94,9 @@ double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
     // arma::cout << vals_inp << arma::endl;
     // arma::cout << constraint_penalty << arma::endl;
 
-    return obj_val + constraint_penalty;
+    obj_val += constraint_penalty;
+
+    return obj_val;
 }
 
 // additional data for constraint function
