@@ -155,7 +155,7 @@ vec optimize_weights(const vec &truth,
 
     // Iinit weights
     vec initvals(K, fill::zeros);
-    initvals.subvec(debias * intercept, initvals.n_elem - 1).fill(1);
+    initvals.fill(1);
     initvals.subvec(debias * intercept, initvals.n_elem - 1) /= (K - debias * intercept);
 
     bool success;
