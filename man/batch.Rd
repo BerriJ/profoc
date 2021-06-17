@@ -13,7 +13,11 @@ knot_distance = 0.025, knot_distance_power = 1, trace = TRUE, lead_time = 0,
 allow_quantile_crossing = FALSE)
 }
 \arguments{
-\item{y}{A numeric vector of realizations.}
+\item{y}{A numeric matrix of realizations. In probabilistic
+settings a matrix of dimension Tx1. In multivariate setting
+a TxP matrix can be used. In the latter case each slice of
+the experts array gets evaluated using the corresponding
+column of the y matrix.}
 
 \item{experts}{A an array of predictions with dimension
 (Observations, Quantiles, Experts).}
