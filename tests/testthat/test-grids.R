@@ -63,7 +63,7 @@ expect_true(
     all(!duplicated(apply(boa_smooth$past_perf_wrt_params, 3, mean)))
 )
 
-# We expect that the some grids do *not* affect the performance if smoothing
+# We expect that the grids do *not* affect the performance if smoothing
 # is off (lambda = -Inf):
 boa_pseudo_smooth <- online(
     y = matrix(y),
