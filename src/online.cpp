@@ -160,7 +160,9 @@ Rcpp::List online(
   else
   {
     w0.resize(K);
-    w0.fill(1 / double(K));
+    w0.fill(1 / double(K - intercept));
+    if (intercept)
+      w0.row(0).fill(0);
   }
 
   // Expand w0 if necessary
@@ -170,14 +172,15 @@ Rcpp::List online(
   }
 
   // Truncate from below
-  w0 = pmax_arma(w0, exp(-350));
+  w0.rows(intercept, w0.n_rows - 1) =
+      pmax_arma(w0.rows(intercept, w0.n_rows - 1), exp(-350));
 
   // Normalize weights
   w0 = w0.each_row() / sum(w0);
 
   // Init object holding temp. weights, resp. ex-ante
   cube w_temp(P, K, X);
-  w_temp.each_slice() = w0.t();
+  w_temp.each_slice() = w0.t(); // TODO change orientation of w0
   // Init object holding final weights, resp. ex-post
   cube w_post(w_temp);
 
