@@ -30,8 +30,10 @@ column of the y matrix.}
 
 \item{intercept}{Determines if an intercept is added, defaults to FALSE. In this case a new expert is added as expert 1 allways predicting 1.}
 
-\item{debias}{Defines wether the intercept is included in the affine constraint.
-Only affects the results if affine is TRUE.}
+\item{debias}{Defines wether the intercepts weight is constrainted or not.
+If TRUE (the default), the intercept weight is unconstrained.
+Only affects the results if affine and or positive is set to TRUE.
+If FALSE, the intercept is treated as an expert.}
 
 \item{initial_window}{Defines the size of the initial estimaton window.}
 

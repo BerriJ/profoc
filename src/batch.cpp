@@ -151,7 +151,10 @@ Rcpp::List batch(
 
     // Init object holding temp. weights, resp. ex-ante
     cube w_temp(P, K, X);
-    w_temp.fill(1 / double(K));
+    w_temp.fill(1 / double(K - intercept * debias));
+
+    if (intercept && debias)
+        w_temp.col(0).fill(0);
 
     // Init object holding final weights, resp. ex-post
     cube w_post(w_temp);
