@@ -90,10 +90,6 @@ double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
         }
     }
 
-    // arma::cout << obj_val << arma::endl;
-    // arma::cout << vals_inp << arma::endl;
-    // arma::cout << constraint_penalty << arma::endl;
-
     obj_val += constraint_penalty;
 
     return obj_val;
@@ -154,8 +150,7 @@ vec optimize_weights(const vec &truth,
     opt_obj_data.debias = debias;
 
     // Iinit weights
-    vec initvals(K, fill::zeros);
-    initvals.fill(1);
+    vec initvals(K, fill::ones);
     initvals.subvec(debias * intercept, initvals.n_elem - 1) /= (K - debias * intercept);
 
     bool success;
@@ -164,7 +159,6 @@ vec optimize_weights(const vec &truth,
 
     if (affine && positive)
     {
-        initvals += 1E-08;
         opt_obj_data.penalty_parameter = 0.1;
 
         settings.vals_bound = true;
@@ -177,16 +171,13 @@ vec optimize_weights(const vec &truth,
         settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
         settings.upper_bounds.fill(1E+06);
 
+        // Just a hack so that the while condition is not fulfilled directly
+        initvals += 1E-08;
         while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-08)
         {
-            if (intercept && debias)
-            {
-                initvals.fill(1);
-                initvals.subvec(debias * intercept, initvals.n_elem - 1) /= (K - debias * intercept);
-            }
             opt_obj_data.penalty_parameter *= 10;
             success = optim::nm(initvals, objective, &opt_obj_data, settings);
-            if (opt_obj_data.penalty_parameter > 1E+06)
+            if (opt_obj_data.penalty_parameter > 1E+10)
             {
                 break;
             }
@@ -194,19 +185,15 @@ vec optimize_weights(const vec &truth,
     }
     else if (affine)
     {
-        initvals += 1E-08;
         opt_obj_data.penalty_parameter = 0.1;
 
+        // Just a hack so that the while condition is not fulfilled directly
+        initvals += 1E-08;
         while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-08)
         {
-            if (intercept && debias)
-            {
-                initvals.subvec(debias * intercept, initvals.n_elem - 1).fill(1);
-                initvals.subvec(debias * intercept, initvals.n_elem - 1) /= (K - debias * intercept);
-            }
             opt_obj_data.penalty_parameter *= 10;
             success = optim::nm(initvals, objective, &opt_obj_data, settings);
-            if (opt_obj_data.penalty_parameter > 1E+06)
+            if (opt_obj_data.penalty_parameter > 1E+10)
             {
                 break;
             }
