@@ -76,10 +76,6 @@ threshold_hard <- function(x, threshold_val) {
     .Call(`_profoc_threshold_hard`, x, threshold_val)
 }
 
-threshold_matrix_soft <- function(input, threshold) {
-    .Call(`_profoc_threshold_matrix_soft`, input, threshold)
-}
-
 #' @template function_online
 #'
 #' @template param_y

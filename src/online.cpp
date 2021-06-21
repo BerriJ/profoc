@@ -135,8 +135,8 @@ Rcpp::List online(
   vec deg_vec = set_default(deg, 3);
   vec diff_vec = set_default(ndiff, 1.5);
   vec knots_asym_vec = set_default(knot_distance_power, 1);
-  vec threshold_soft_vec = set_default(soft_threshold, 0);
-  vec threshold_hard_vec = set_default(hard_threshold, 0);
+  vec threshold_soft_vec = set_default(soft_threshold, -datum::inf);
+  vec threshold_hard_vec = set_default(hard_threshold, -datum::inf);
 
   // Init parametergrid
   mat param_grid = get_combinations(lambda_vec, forget_vec);     // Index 0 & 1
@@ -436,11 +436,6 @@ Rcpp::List online(
 
       // Apply thresholds
 
-      for (double &e : w_post.slice(x))
-      {
-        threshold_soft(e, param_grid(x, 8));
-      }
-
       if (!ex_post_threshold_soft)
       {
         for (double &e : w_temp.slice(x))
@@ -451,7 +446,7 @@ Rcpp::List online(
 
       for (double &e : w_post.slice(x))
       {
-        threshold_hard(e, param_grid(x, 9));
+        threshold_soft(e, param_grid(x, 8));
       }
 
       if (!ex_post_threshold_hard)
@@ -462,47 +457,57 @@ Rcpp::List online(
         }
       }
 
-      // Smoothing Step
+      for (double &e : w_post.slice(x))
+      {
+        threshold_hard(e, param_grid(x, 9));
+      }
 
+      // Smoothing
       if (param_grid(x, 0) != -datum::inf)
       {
         for (unsigned int k = 0; k < K; k++)
         {
           if (!ex_post_smooth)
           {
-            w_temp(span::all, span(k), span(x)) = hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
-            // Truncate to zero
-            w_temp(span::all, span(k), span(x)) = pmax_arma(w_temp(span::all, span(k), span(x)), exp(-700));
-            w_post(span::all, span(k), span(x)) = w_temp(span::all, span(k), span(x));
+            w_temp(span::all, span(k), span(x)) =
+                hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
           }
-          else
-          {
-            w_post(span::all, span(k), span(x)) = hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
-            w_post(span::all, span(k), span(x)) = pmax_arma(w_post(span::all, span(k), span(x)), exp(-700));
-          }
+
+          w_post(span::all, span(k), span(x)) = hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
         }
       }
 
       //Add fixed_share
       for (unsigned int p = 0; p < P; p++)
       {
-        if (ex_post_fs) // Fixed share only added to w_post
+        if (!ex_post_fs)
         {
-          w_post(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w_post(span(p), span::all, span(x)) / accu(w_post(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
+          w_temp(span(p), span::all, span(x)) =
+              (1 - param_grid(x, 2)) * w_temp(span(p), span::all, span(x)) +
+              param_grid(x, 2) / K;
         }
-        else if (ex_post_smooth && !ex_post_fs)
-        {
-          // Add fixed_share to wtemp
-          w_post(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w_post(span(p), span::all, span(x)) / accu(w_post(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
-          // Add fixed_share to w_temp
-          w_temp(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
-        }
-        else if (!ex_post_smooth && !ex_post_fs)
-        {
-          w_temp(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * (w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)))) + (param_grid(x, 2) / K);
-          w_post(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x));
-        }
+
+        w_post(span(p), span::all, span(x)) =
+            (1 - param_grid(x, 2)) * w_post(span(p), span::all, span(x)) +
+            (param_grid(x, 2) / K);
       }
+
+      // Enshure that constraints hold
+      for (unsigned int p = 0; p < P; p++)
+      {
+        // Positivity
+        w_temp(span(p), span::all, span(x)) =
+            pmax_arma(w_temp(span(p), span::all, span(x)), exp(-700));
+        w_post(span(p), span::all, span(x)) =
+            pmax_arma(w_post(span(p), span::all, span(x)), exp(-700));
+
+        // Affinity
+        w_post(span(p), span::all, span(x)) /=
+            accu(w_post(span(p), span::all, span(x)));
+        w_temp(span(p), span::all, span(x)) /=
+            accu(w_temp(span(p), span::all, span(x)));
+      }
+
       tmp_performance(x) = accu(past_performance(span(t), span::all, span(x)));
       prog.increment(); // Update progress
       R_CheckUserInterrupt();
