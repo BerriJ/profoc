@@ -13,6 +13,12 @@ arma::mat get_combinations(const arma::mat &x, const arma::vec &y);
 
 arma::vec set_default(const arma::vec &input, const double &value);
 
+double threshold_hard(double &x,
+                      const double &threshold_val);
+
+double threshold_soft(double &x,
+                      const double &threshold_val);
+
 template <typename T>
 int sgn(T val)
 {

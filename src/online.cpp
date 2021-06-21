@@ -76,7 +76,11 @@ Rcpp::List online(
     const bool trace = true,
     Rcpp::Nullable<Rcpp::NumericMatrix> init_weights = R_NilValue,
     const int &lead_time = 0,
-    bool allow_quantile_crossing = false)
+    bool allow_quantile_crossing = false,
+    Rcpp::NumericVector soft_threshold = Rcpp::NumericVector::create(),
+    bool ex_post_threshold_soft = false,
+    Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create(),
+    bool ex_post_threshold_hard = false)
 {
 
   if (intercept)
@@ -131,15 +135,19 @@ Rcpp::List online(
   vec deg_vec = set_default(deg, 3);
   vec diff_vec = set_default(ndiff, 1.5);
   vec knots_asym_vec = set_default(knot_distance_power, 1);
+  vec threshold_soft_vec = set_default(soft_threshold, 0);
+  vec threshold_hard_vec = set_default(hard_threshold, 0);
 
   // Init parametergrid
-  mat param_grid = get_combinations(lambda_vec, forget_vec);
-  param_grid = get_combinations(param_grid, fixed_share_vec);
-  param_grid = get_combinations(param_grid, gamma_vec);
-  param_grid = get_combinations(param_grid, knot_distance_vec);
-  param_grid = get_combinations(param_grid, deg_vec);
-  param_grid = get_combinations(param_grid, diff_vec);
-  param_grid = get_combinations(param_grid, knots_asym_vec);
+  mat param_grid = get_combinations(lambda_vec, forget_vec);     // Index 0 & 1
+  param_grid = get_combinations(param_grid, fixed_share_vec);    // index 2
+  param_grid = get_combinations(param_grid, gamma_vec);          // Index 3
+  param_grid = get_combinations(param_grid, knot_distance_vec);  // Index 4
+  param_grid = get_combinations(param_grid, deg_vec);            // Index 5
+  param_grid = get_combinations(param_grid, diff_vec);           // index 6
+  param_grid = get_combinations(param_grid, knots_asym_vec);     // Index 7
+  param_grid = get_combinations(param_grid, threshold_soft_vec); // Index 8
+  param_grid = get_combinations(param_grid, threshold_hard_vec); // Index 9
 
   const int X = param_grid.n_rows;
   mat chosen_params(T, param_grid.n_cols);
@@ -426,7 +434,36 @@ Rcpp::List online(
 
       w_post.slice(x) = w_temp.slice(x);
 
+      // Apply thresholds
+
+      for (double &e : w_post.slice(x))
+      {
+        threshold_soft(e, param_grid(x, 8));
+      }
+
+      if (!ex_post_threshold_soft)
+      {
+        for (double &e : w_temp.slice(x))
+        {
+          threshold_soft(e, param_grid(x, 8));
+        }
+      }
+
+      for (double &e : w_post.slice(x))
+      {
+        threshold_hard(e, param_grid(x, 9));
+      }
+
+      if (!ex_post_threshold_hard)
+      {
+        for (double &e : w_temp.slice(x))
+        {
+          threshold_hard(e, param_grid(x, 9));
+        }
+      }
+
       // Smoothing Step
+
       if (param_grid(x, 0) != -datum::inf)
       {
         for (unsigned int k = 0; k < K; k++)
