@@ -172,16 +172,16 @@ vec optimize_weights(const vec &truth,
         settings.lower_bounds.fill(0);
         if (debias && intercept)
         {
-            settings.lower_bounds(0) = -exp(700);
+            settings.lower_bounds(0) = -1E+06;
         }
         settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
-        settings.upper_bounds.fill(exp(700));
+        settings.upper_bounds.fill(1E+06);
 
         while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-08)
         {
             if (intercept && debias)
             {
-                initvals.subvec(debias * intercept, initvals.n_elem - 1).fill(1);
+                initvals.fill(1);
                 initvals.subvec(debias * intercept, initvals.n_elem - 1) /= (K - debias * intercept);
             }
             opt_obj_data.penalty_parameter *= 10;
@@ -219,10 +219,10 @@ vec optimize_weights(const vec &truth,
         settings.lower_bounds.fill(0);
         if (debias && intercept)
         {
-            settings.lower_bounds(0) = -exp(700);
+            settings.lower_bounds(0) = -1E+06;
         }
         settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
-        settings.upper_bounds.fill(exp(700));
+        settings.upper_bounds.fill(1E+06);
 
         success = optim::nm(initvals, objective, &opt_obj_data, settings);
     }
