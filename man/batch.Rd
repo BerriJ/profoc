@@ -6,8 +6,7 @@
 \usage{
 batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
 debias = TRUE, initial_window = 30, expanding_window = TRUE,
-loss_function = "quantile",
-loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = -Inf,
+loss_function = "quantile", loss_parameter = 1, lambda = -Inf,
 forget = 0, forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 knot_distance = 0.025, knot_distance_power = 1, trace = TRUE, lead_time = 0,
 allow_quantile_crossing = FALSE)
@@ -42,14 +41,6 @@ If FALSE, the intercept is treated as an expert.}
 \item{loss_function}{Either "quantile", "expectile" or "percentage".}
 
 \item{loss_parameter}{Optional parameter scaling the power of the loss function.}
-
-\item{ex_post_smooth}{Determines if smoothing is during or after
-online-learning. If true, contemporary weights are not affected
-but output weights are. If false (default) smoothed weights are
-also by the algorithm.}
-
-\item{ex_post_fs}{Analogous to ex_post_smooth: shall a fixed-share
-be added during (FALSE) or after online-learning (TRUE).}
 
 \item{lambda}{Penalization parameter used in the smoothing Step.
 -Inf causes the smoothing step to be skipped (default).}

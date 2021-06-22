@@ -23,8 +23,6 @@ using namespace arma;
 //' @param expanding_window Defines wether an expanding window or a rolling window shall be used for batch optimization. Defaults to TRUE.
 //' @template param_loss_function
 //' @template param_loss_parameter
-//' @template param_ex_post_smooth
-//' @template param_ex_post_fs
 //' @template param_lambda
 //' @template param_forget
 //' @template param_forget_performance
@@ -39,8 +37,7 @@ using namespace arma;
 //' @template param_allow_quantile_crossing
 //' @usage batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
 //' debias = TRUE, initial_window = 30, expanding_window = TRUE,
-//' loss_function = "quantile",
-//' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = -Inf,
+//' loss_function = "quantile", loss_parameter = 1, lambda = -Inf,
 //' forget = 0, forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 //' knot_distance = 0.025, knot_distance_power = 1, trace = TRUE, lead_time = 0,
 //' allow_quantile_crossing = FALSE)
@@ -58,8 +55,6 @@ Rcpp::List batch(
     const bool expanding_window = true,
     const std::string loss_function = "quantile",
     const double &loss_parameter = 1,
-    const bool &ex_post_smooth = false,
-    const bool &ex_post_fs = false,
     Rcpp::NumericVector lambda = Rcpp::NumericVector::create(),
     Rcpp::NumericVector forget = Rcpp::NumericVector::create(),
     const double &forget_performance = 0,
@@ -71,7 +66,9 @@ Rcpp::List batch(
     Rcpp::NumericVector knot_distance_power = Rcpp::NumericVector::create(),
     const bool trace = true,
     const int &lead_time = 0,
-    bool allow_quantile_crossing = false)
+    bool allow_quantile_crossing = false,
+    Rcpp::NumericVector soft_threshold = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create())
 {
 
     if (intercept)
@@ -129,15 +126,19 @@ Rcpp::List batch(
     vec deg_vec = set_default(deg, 3);
     vec diff_vec = set_default(ndiff, 1.5);
     vec knots_asym_vec = set_default(knot_distance_power, 1);
+    vec threshold_soft_vec = set_default(soft_threshold, -datum::inf);
+    vec threshold_hard_vec = set_default(hard_threshold, -datum::inf);
 
     // Init parametergrid
-    mat param_grid = get_combinations(lambda_vec, forget_vec);
-    param_grid = get_combinations(param_grid, fixed_share_vec);
-    param_grid = get_combinations(param_grid, gamma_vec);
-    param_grid = get_combinations(param_grid, knot_distance_vec);
-    param_grid = get_combinations(param_grid, deg_vec);
-    param_grid = get_combinations(param_grid, diff_vec);
-    param_grid = get_combinations(param_grid, knots_asym_vec);
+    mat param_grid = get_combinations(lambda_vec, forget_vec);     // Index 0 & 1
+    param_grid = get_combinations(param_grid, fixed_share_vec);    // Index 2
+    param_grid = get_combinations(param_grid, gamma_vec);          // Index 3
+    param_grid = get_combinations(param_grid, knot_distance_vec);  // Index 4
+    param_grid = get_combinations(param_grid, deg_vec);            // Index 5
+    param_grid = get_combinations(param_grid, diff_vec);           // Index 6
+    param_grid = get_combinations(param_grid, knots_asym_vec);     // Index 7
+    param_grid = get_combinations(param_grid, threshold_soft_vec); // Index 8
+    param_grid = get_combinations(param_grid, threshold_hard_vec); // Index 9
 
     const int X = param_grid.n_rows;
     mat chosen_params(T, param_grid.n_cols);
@@ -150,14 +151,11 @@ Rcpp::List batch(
     // Populate uniform weights
 
     // Init object holding temp. weights, resp. ex-ante
-    cube w_temp(P, K, X);
-    w_temp.fill(1 / double(K - intercept * debias));
+    cube w_post(P, K, X);
+    w_post.fill(1 / double(K - intercept * debias));
 
     if (intercept && debias)
-        w_temp.col(0).fill(0);
-
-    // Init object holding final weights, resp. ex-post
-    cube w_post(w_temp);
+        w_post.col(0).fill(0);
 
     // Weights output
     cube weights(T + 1, P, K, fill::zeros);
@@ -165,7 +163,6 @@ Rcpp::List batch(
     mat experts_mat(P, K);
 
     cube predictions_post(T, P, X);
-    cube predictions_ante(T, P, X);
     mat predictions_temp(P, K);
     mat predictions_final(T + T_E_Y, P, fill::zeros);
 
@@ -217,12 +214,7 @@ Rcpp::List batch(
         // Store expert predictions temporarily
         experts_mat = experts.row(t);
 
-        // Forecasters prediction(ex-ante)
-        predictions_temp = sum(w_temp.each_slice() % experts_mat, 1);
-        predictions_ante.row(t) = predictions_temp;
-
         // Forecasters prediction (ex-post)
-        // Note that w_post != w_temp in ex post setting and w_post = w_temp otherwise
         predictions_temp = sum(w_post.each_slice() % experts_mat, 1);
         predictions_post.row(t) = predictions_temp;
 
@@ -246,12 +238,7 @@ Rcpp::List batch(
         // Store expert predictions temporarily
         experts_mat = experts.row(t);
 
-        // Forecasters prediction(ex-ante)
-        predictions_temp = sum(w_temp.each_slice() % experts_mat, 1);
-        predictions_ante.row(t) = predictions_temp;
-
         // Forecasters prediction (ex-post)
-        // Note that w_post != w_temp in ex post setting and w_post = w_temp otherwise
         predictions_temp = sum(w_post.each_slice() % experts_mat, 1);
         predictions_post.row(t) = predictions_temp;
 
@@ -276,7 +263,7 @@ Rcpp::List batch(
                 // optim_weights()
                 mat experts_tmp = experts.tube(span(start, t - lead_time), span(p, p));
 
-                w_temp(span(p), span::all, span(x)) = optimize_weights(
+                w_post(span(p), span::all, span(x)) = optimize_weights(
                     y(span(start, t - lead_time), p),
                     experts_tmp,
                     affine,
@@ -291,60 +278,48 @@ Rcpp::List batch(
                 R_CheckUserInterrupt();
             }
 
-            w_post.slice(x) = w_temp.slice(x);
+            // Apply thresholds
 
-            // Smoothing Step
+            for (double &e : w_post(span::all, span(intercept * debias, K - 1), span(x)))
+            {
+                threshold_soft(e, param_grid(x, 8));
+            }
+
+            for (double &e : w_post(span::all, span(intercept * debias, K - 1), span(x)))
+            {
+                threshold_hard(e, param_grid(x, 9));
+            }
+
+            // Smoothing
             if (param_grid(x, 0) != -datum::inf)
             {
                 for (unsigned int k = 0; k < K; k++)
                 {
-                    if (!ex_post_smooth)
-                    {
-                        w_temp(span::all, span(k), span(x)) = hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
-                        w_post(span::all, span(k), span(x)) = w_temp(span::all, span(k), span(x));
-                    }
-                    else
-                    {
-                        // TODO think about truncation in batch settings
-                        // Smoothing only added to w_post so learning continiues
-                        // with w_temp
-                        w_post(span::all, span(k), span(x)) = hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
-                    }
+                    w_post(span::all, span(k), span(x)) =
+                        hat_mats(x) *
+                        vectorise(w_post(span::all, span(k), span(x)));
                 }
             }
 
-            //Add fixed_share
             for (unsigned int p = 0; p < P; p++)
             {
-                if (ex_post_fs)
-                {
-                    w_post(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * w_post(span(p), span::all, span(x)) + (param_grid(x, 2) / K);
-                }
-                else if (ex_post_smooth && !ex_post_fs)
-                {
-                    // Add fixed_share to w_post
-                    // Add fixed_share to w_temp
-                    w_post(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * w_post(span(p), span::all, span(x)) + (param_grid(x, 2) / K);
-                    w_temp(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * w_temp(span(p), span::all, span(x)) + (param_grid(x, 2) / K);
-                }
-                else if (!ex_post_smooth && !ex_post_fs)
-                {
-                    w_temp(span(p), span::all, span(x)) = (1 - param_grid(x, 2)) * w_temp(span(p), span::all, span(x)) + (param_grid(x, 2) / K);
-                    w_post(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x));
-                }
+                //Add fixed_share
+                w_post(span(p), span(intercept * debias, K - 1), span(x)) =
+                    (1 - param_grid(x, 2)) * w_post(span(p), span(intercept * debias, K - 1), span(x)) +
+                    (param_grid(x, 2) / (K - intercept * debias));
 
                 // Ensure constraints are met
                 if (positive)
                 {
-                    w_temp(span(p), span(intercept * debias, K - 1), span(x)) = pmax_arma(w_temp(span(p), span(intercept * debias, K - 1), span(x)), 0);
                     w_post(span(p), span(intercept * debias, K - 1), span(x)) = pmax_arma(w_post(span(p), span(intercept * debias, K - 1), span(x)), 0);
                 }
+
                 if (affine)
                 {
                     w_post(span(p), span(intercept * debias, K - 1), span(x)) /= accu(w_post(span(p), span(intercept * debias, K - 1), span(x)));
-                    w_temp(span(p), span(intercept * debias, K - 1), span(x)) /= accu(w_temp(span(p), span(intercept * debias, K - 1), span(x)));
                 }
             }
+
             tmp_performance(x) = accu(past_performance(span(t), span::all, span(x)));
             prog.increment(); // Update progress
             R_CheckUserInterrupt();

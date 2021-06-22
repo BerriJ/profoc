@@ -1,6 +1,6 @@
 skip_if(debug_mode)
 
-# %% Test lead for online
+# %% Test Threshold online
 set.seed(1)
 
 # Experts

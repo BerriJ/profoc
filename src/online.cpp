@@ -477,9 +477,10 @@ Rcpp::List online(
         }
       }
 
-      //Add fixed_share
       for (unsigned int p = 0; p < P; p++)
       {
+        //Add fixed_share
+
         if (!ex_post_fs)
         {
           w_temp(span(p), span::all, span(x)) =
@@ -490,11 +491,9 @@ Rcpp::List online(
         w_post(span(p), span::all, span(x)) =
             (1 - param_grid(x, 2)) * w_post(span(p), span::all, span(x)) +
             (param_grid(x, 2) / K);
-      }
 
-      // Enshure that constraints hold
-      for (unsigned int p = 0; p < P; p++)
-      {
+        // Enshure that constraints hold
+
         // Positivity
         w_temp(span(p), span::all, span(x)) =
             pmax_arma(w_temp(span(p), span::all, span(x)), exp(-700));
