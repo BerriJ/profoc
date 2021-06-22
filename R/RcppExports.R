@@ -68,14 +68,6 @@ set_default <- function(input, value) {
     .Call(`_profoc_set_default`, input, value)
 }
 
-threshold_soft <- function(x, threshold_val) {
-    .Call(`_profoc_threshold_soft`, x, threshold_val)
-}
-
-threshold_hard <- function(x, threshold_val) {
-    .Call(`_profoc_threshold_hard`, x, threshold_val)
-}
-
 #' @template function_online
 #'
 #' @template param_y

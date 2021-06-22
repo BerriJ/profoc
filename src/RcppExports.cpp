@@ -137,30 +137,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// threshold_soft
-double threshold_soft(double& x, const double& threshold_val);
-RcppExport SEXP _profoc_threshold_soft(SEXP xSEXP, SEXP threshold_valSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const double& >::type threshold_val(threshold_valSEXP);
-    rcpp_result_gen = Rcpp::wrap(threshold_soft(x, threshold_val));
-    return rcpp_result_gen;
-END_RCPP
-}
-// threshold_hard
-double threshold_hard(double& x, const double& threshold_val);
-RcppExport SEXP _profoc_threshold_hard(SEXP xSEXP, SEXP threshold_valSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const double& >::type threshold_val(threshold_valSEXP);
-    rcpp_result_gen = Rcpp::wrap(threshold_hard(x, threshold_val));
-    return rcpp_result_gen;
-END_RCPP
-}
 // online
 Rcpp::List online(mat& y, cube& experts, Rcpp::NumericVector tau, const bool& intercept, const std::string loss_function, const double& loss_parameter, const bool& ex_post_smooth, const bool& ex_post_fs, Rcpp::NumericVector lambda, const std::string method, const std::string method_var, Rcpp::NumericVector forget_regret, const double& forget_performance, Rcpp::NumericVector fixed_share, Rcpp::NumericVector gamma, Rcpp::NumericVector ndiff, Rcpp::NumericVector deg, Rcpp::NumericVector knot_distance, Rcpp::NumericVector knot_distance_power, const bool& gradient, Rcpp::NumericVector loss_array, Rcpp::NumericVector regret_array, const bool trace, Rcpp::Nullable<Rcpp::NumericMatrix> init_weights, const int& lead_time, bool allow_quantile_crossing, Rcpp::NumericVector soft_threshold, bool ex_post_threshold_soft, Rcpp::NumericVector hard_threshold, bool ex_post_threshold_hard);
 RcppExport SEXP _profoc_online(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP interceptSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP ex_post_smoothSEXP, SEXP ex_post_fsSEXP, SEXP lambdaSEXP, SEXP methodSEXP, SEXP method_varSEXP, SEXP forget_regretSEXP, SEXP forget_performanceSEXP, SEXP fixed_shareSEXP, SEXP gammaSEXP, SEXP ndiffSEXP, SEXP degSEXP, SEXP knot_distanceSEXP, SEXP knot_distance_powerSEXP, SEXP gradientSEXP, SEXP loss_arraySEXP, SEXP regret_arraySEXP, SEXP traceSEXP, SEXP init_weightsSEXP, SEXP lead_timeSEXP, SEXP allow_quantile_crossingSEXP, SEXP soft_thresholdSEXP, SEXP ex_post_threshold_softSEXP, SEXP hard_thresholdSEXP, SEXP ex_post_threshold_hardSEXP) {
@@ -324,8 +300,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_diff_cpp", (DL_FUNC) &_profoc_diff_cpp, 3},
     {"_profoc_get_combinations", (DL_FUNC) &_profoc_get_combinations, 2},
     {"_profoc_set_default", (DL_FUNC) &_profoc_set_default, 2},
-    {"_profoc_threshold_soft", (DL_FUNC) &_profoc_threshold_soft, 2},
-    {"_profoc_threshold_hard", (DL_FUNC) &_profoc_threshold_hard, 2},
     {"_profoc_online", (DL_FUNC) &_profoc_online, 30},
     {"_profoc_optimize_weights", (DL_FUNC) &_profoc_optimize_weights, 10},
     {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 10},

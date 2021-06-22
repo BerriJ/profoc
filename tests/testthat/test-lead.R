@@ -12,9 +12,6 @@ prob_grid <- 1:P / (P + 1)
 # Realized observations
 y <- rnorm(T)
 
-dev <- c(-2, 3)
-experts_sd <- c(1, 2)
-
 # Expert predictions
 experts <- array(dim = c(T, P, N))
 

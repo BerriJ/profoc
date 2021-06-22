@@ -83,20 +83,18 @@ vec set_default(const vec &input,
     return output;
 }
 
-// [[Rcpp::export]]
-double threshold_soft(double &x,
-                      const double &threshold_val)
-{
-    if (threshold_val != -datum::inf)
-        x = sgn(x) * std::max(fabs(x) - threshold_val, double(0));
-    return x;
-}
-
-// [[Rcpp::export]]
 double threshold_hard(double &x,
                       const double &threshold_val)
 {
     if (threshold_val != -datum::inf)
         x *= fabs(x) > threshold_val;
-    return x;
+    return 0;
+}
+
+double threshold_soft(double &x,
+                      const double &threshold_val)
+{
+    if (threshold_val != -datum::inf)
+        x = sgn(x) * std::max(fabs(x) - threshold_val, double(0));
+    return 0;
 }
