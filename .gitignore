@@ -3,4 +3,5 @@ docs
 src/*.o
 src/*.so
 src/*.dll
+src/test.cpp
 .vscode/.*

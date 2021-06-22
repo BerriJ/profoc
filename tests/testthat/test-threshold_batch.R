@@ -191,19 +191,11 @@ expect_true(
 # %% Thresholds should influence experts in convex setting
 # Test if expert weights are in the threshold region
 expect_true(
-    any(results_convex_intercept$weights[, , 2] < threshold_val &
-        results_convex_intercept$weights[, , 2] > 0.01)
-)
-expect_true(
     any(results_convex_intercept$weights[, , 3] < threshold_val &
         results_convex_intercept$weights[, , 3] > 0.01)
 )
 
 # Weights removed from the threshold region? (either set to > threshold or 0)
-expect_false(
-    any(results_convex_intercept_hard$weights[, , 2] < threshold_val &
-        results_convex_intercept_hard$weights[, , 2] > 0.01)
-)
 expect_false(
     any(results_convex_intercept_hard$weights[, , 3] < threshold_val &
         results_convex_intercept_hard$weights[, , 3] > 0.01)

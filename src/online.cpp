@@ -65,17 +65,17 @@ Rcpp::List online(
     const double &loss_parameter = 1,
     const bool &ex_post_smooth = false,
     const bool &ex_post_fs = false,
-    Rcpp::NumericVector lambda = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector lambda = Rcpp::NumericVector::create(-1 / 0),
     const std::string method = "boa",
     const std::string method_var = "A",
-    Rcpp::NumericVector forget_regret = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector forget_regret = Rcpp::NumericVector::create(0),
     const double &forget_performance = 0,
-    Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector gamma = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector ndiff = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector deg = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector knot_distance = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector knot_distance_power = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(0),
+    Rcpp::NumericVector gamma = Rcpp::NumericVector::create(1),
+    Rcpp::NumericVector ndiff = Rcpp::NumericVector::create(1.5),
+    Rcpp::NumericVector deg = Rcpp::NumericVector::create(3),
+    Rcpp::NumericVector knot_distance = Rcpp::NumericVector::create(0.025),
+    Rcpp::NumericVector knot_distance_power = Rcpp::NumericVector::create(1),
     const bool &gradient = true,
     Rcpp::NumericVector loss_array = Rcpp::NumericVector::create(),
     Rcpp::NumericVector regret_array = Rcpp::NumericVector::create(),
@@ -83,9 +83,9 @@ Rcpp::List online(
     Rcpp::Nullable<Rcpp::NumericMatrix> init_weights = R_NilValue,
     const int &lead_time = 0,
     bool allow_quantile_crossing = false,
-    Rcpp::NumericVector soft_threshold = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector soft_threshold = Rcpp::NumericVector::create(-1 / 0),
     bool ex_post_soft_threshold = false,
-    Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create(-1 / 0),
     bool ex_post_hard_threshold = false)
 {
 
@@ -132,28 +132,16 @@ Rcpp::List online(
     tau_vec.fill(tau_vec(0));
   }
 
-  // Set default values
-  vec lambda_vec = set_default(lambda, -datum::inf);
-  vec forget_vec = set_default(forget_regret, 0);
-  vec fixed_share_vec = set_default(fixed_share, 0);
-  vec gamma_vec = set_default(gamma, 1);
-  vec knot_distance_vec = set_default(knot_distance, 0.025);
-  vec deg_vec = set_default(deg, 3);
-  vec diff_vec = set_default(ndiff, 1.5);
-  vec knots_asym_vec = set_default(knot_distance_power, 1);
-  vec threshold_soft_vec = set_default(soft_threshold, -datum::inf);
-  vec threshold_hard_vec = set_default(hard_threshold, -datum::inf);
-
   // Init parametergrid
-  mat param_grid = get_combinations(lambda_vec, forget_vec);     // Index 0 & 1
-  param_grid = get_combinations(param_grid, fixed_share_vec);    // index 2
-  param_grid = get_combinations(param_grid, gamma_vec);          // Index 3
-  param_grid = get_combinations(param_grid, knot_distance_vec);  // Index 4
-  param_grid = get_combinations(param_grid, deg_vec);            // Index 5
-  param_grid = get_combinations(param_grid, diff_vec);           // index 6
-  param_grid = get_combinations(param_grid, knots_asym_vec);     // Index 7
-  param_grid = get_combinations(param_grid, threshold_soft_vec); // Index 8
-  param_grid = get_combinations(param_grid, threshold_hard_vec); // Index 9
+  mat param_grid = get_combinations(lambda, forget_regret);       // Index 0 & 1
+  param_grid = get_combinations(param_grid, fixed_share);         // index 2
+  param_grid = get_combinations(param_grid, gamma);               // Index 3
+  param_grid = get_combinations(param_grid, knot_distance);       // Index 4
+  param_grid = get_combinations(param_grid, deg);                 // Index 5
+  param_grid = get_combinations(param_grid, ndiff);               // index 6
+  param_grid = get_combinations(param_grid, knot_distance_power); // Index 7
+  param_grid = get_combinations(param_grid, soft_threshold);      // Index 8
+  param_grid = get_combinations(param_grid, hard_threshold);      // Index 9
 
   const int X = param_grid.n_rows;
   mat chosen_params(T, param_grid.n_cols);

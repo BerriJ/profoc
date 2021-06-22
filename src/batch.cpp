@@ -27,7 +27,6 @@ using namespace arma;
 //' @template param_forget
 //' @template param_forget_performance
 //' @template param_fixed_share
-//' @param gamma to be removed
 //' @template param_ndiff
 //' @template param_deg
 //' @template param_knot_distance
@@ -40,7 +39,7 @@ using namespace arma;
 //' @usage batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
 //' debias = TRUE, initial_window = 30, expanding_window = TRUE,
 //' loss_function = "quantile", loss_parameter = 1, lambda = -Inf,
-//' forget = 0, forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
+//' forget = 0, forget_performance = 0, fixed_share = 0, ndiff = 1, deg = 3,
 //' knot_distance = 0.025, knot_distance_power = 1, trace = TRUE, lead_time = 0,
 //' allow_quantile_crossing = FALSE, soft_threshold = -Inf, hard_threshold = -Inf)
 //' @export
@@ -57,20 +56,19 @@ Rcpp::List batch(
     const bool expanding_window = true,
     const std::string loss_function = "quantile",
     const double &loss_parameter = 1,
-    Rcpp::NumericVector lambda = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector forget = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector lambda = Rcpp::NumericVector::create(-1 / 0),
+    Rcpp::NumericVector forget = Rcpp::NumericVector::create(0),
     const double &forget_performance = 0,
-    Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector gamma = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector ndiff = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector deg = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector knot_distance = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector knot_distance_power = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(0),
+    Rcpp::NumericVector ndiff = Rcpp::NumericVector::create(1.5),
+    Rcpp::NumericVector deg = Rcpp::NumericVector::create(3),
+    Rcpp::NumericVector knot_distance = Rcpp::NumericVector::create(0.025),
+    Rcpp::NumericVector knot_distance_power = Rcpp::NumericVector::create(1),
     const bool trace = true,
     const int &lead_time = 0,
     bool allow_quantile_crossing = false,
-    Rcpp::NumericVector soft_threshold = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create())
+    Rcpp::NumericVector soft_threshold = Rcpp::NumericVector::create(-1 / 0),
+    Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create(-1 / 0))
 {
 
     if (intercept)
@@ -119,28 +117,15 @@ Rcpp::List batch(
         tau_vec.fill(tau_vec(0));
     }
 
-    // Set default values
-    vec lambda_vec = set_default(lambda, -datum::inf);
-    vec forget_vec = set_default(forget, 0);
-    vec fixed_share_vec = set_default(fixed_share, 0);
-    vec gamma_vec = set_default(gamma, 1);
-    vec knot_distance_vec = set_default(knot_distance, 0.025);
-    vec deg_vec = set_default(deg, 3);
-    vec diff_vec = set_default(ndiff, 1.5);
-    vec knots_asym_vec = set_default(knot_distance_power, 1);
-    vec threshold_soft_vec = set_default(soft_threshold, -datum::inf);
-    vec threshold_hard_vec = set_default(hard_threshold, -datum::inf);
-
     // Init parametergrid
-    mat param_grid = get_combinations(lambda_vec, forget_vec);     // Index 0 & 1
-    param_grid = get_combinations(param_grid, fixed_share_vec);    // Index 2
-    param_grid = get_combinations(param_grid, gamma_vec);          // Index 3
-    param_grid = get_combinations(param_grid, knot_distance_vec);  // Index 4
-    param_grid = get_combinations(param_grid, deg_vec);            // Index 5
-    param_grid = get_combinations(param_grid, diff_vec);           // Index 6
-    param_grid = get_combinations(param_grid, knots_asym_vec);     // Index 7
-    param_grid = get_combinations(param_grid, threshold_soft_vec); // Index 8
-    param_grid = get_combinations(param_grid, threshold_hard_vec); // Index 9
+    mat param_grid = get_combinations(lambda, forget);              // Index 0 & 1
+    param_grid = get_combinations(param_grid, fixed_share);         // index 2
+    param_grid = get_combinations(param_grid, knot_distance);       // Index 3
+    param_grid = get_combinations(param_grid, deg);                 // Index 4
+    param_grid = get_combinations(param_grid, ndiff);               // index 5
+    param_grid = get_combinations(param_grid, knot_distance_power); // Index 6
+    param_grid = get_combinations(param_grid, soft_threshold);      // Index 7
+    param_grid = get_combinations(param_grid, hard_threshold);      // Index 8
 
     const int X = param_grid.n_rows;
     mat chosen_params(T, param_grid.n_cols);
@@ -181,10 +166,10 @@ Rcpp::List batch(
             // In second step: skip if recalc is not necessary:
             if (x > 0 &&
                 param_grid(x, 0) == param_grid(x - 1, 0) &&
+                param_grid(x, 3) == param_grid(x - 1, 3) &&
                 param_grid(x, 4) == param_grid(x - 1, 4) &&
                 param_grid(x, 5) == param_grid(x - 1, 5) &&
-                param_grid(x, 6) == param_grid(x - 1, 6) &&
-                param_grid(x, 7) == param_grid(x - 1, 7))
+                param_grid(x, 6) == param_grid(x - 1, 6))
             {
                 hat_mats(x) = hat_mats(x - 1);
             }
@@ -192,11 +177,11 @@ Rcpp::List batch(
             {
 
                 hat_mats(x) = make_hat_matrix(spline_basis_x,
-                                              param_grid(x, 4), // kstep
+                                              param_grid(x, 3), // kstep
                                               param_grid(x, 0), // lambda
-                                              param_grid(x, 6), // differences
-                                              param_grid(x, 5), // degree
-                                              param_grid(x, 7)  // uneven grid
+                                              param_grid(x, 5), // differences
+                                              param_grid(x, 4), // degree
+                                              param_grid(x, 6)  // uneven grid
                 );
             }
             R_CheckUserInterrupt();
@@ -284,12 +269,12 @@ Rcpp::List batch(
 
             for (double &e : w_post(span::all, span(intercept * debias, K - 1), span(x)))
             {
-                threshold_soft(e, param_grid(x, 8));
+                threshold_soft(e, param_grid(x, 7));
             }
 
             for (double &e : w_post(span::all, span(intercept * debias, K - 1), span(x)))
             {
-                threshold_hard(e, param_grid(x, 9));
+                threshold_hard(e, param_grid(x, 8));
             }
 
             // Smoothing
@@ -389,25 +374,23 @@ Rcpp::List batch(
         Rcpp::Named("lambda") = chosen_params.col(0),
         Rcpp::Named("forget") = chosen_params.col(1),
         Rcpp::Named("fixed_share") = chosen_params.col(2),
-        Rcpp::Named("gamma") = chosen_params.col(3),
-        Rcpp::Named("knot_distance") = chosen_params.col(4),
-        Rcpp::Named("deg") = chosen_params.col(5),
-        Rcpp::Named("diff") = chosen_params.col(6),
-        Rcpp::Named("knot_distance_power") = chosen_params.col(7),
-        Rcpp::Named("threshold_soft") = chosen_params.col(8),
-        Rcpp::Named("threshold_hard") = chosen_params.col(9));
+        Rcpp::Named("knot_distance") = chosen_params.col(3),
+        Rcpp::Named("deg") = chosen_params.col(4),
+        Rcpp::Named("diff") = chosen_params.col(5),
+        Rcpp::Named("knot_distance_power") = chosen_params.col(6),
+        Rcpp::Named("threshold_soft") = chosen_params.col(7),
+        Rcpp::Named("threshold_hard") = chosen_params.col(8));
 
     Rcpp::DataFrame parametergrid = Rcpp::DataFrame::create(
         Rcpp::Named("lambda") = param_grid.col(0),
         Rcpp::Named("forget") = param_grid.col(1),
         Rcpp::Named("fixed_share") = param_grid.col(2),
-        Rcpp::Named("gamma") = param_grid.col(3),
-        Rcpp::Named("knot_distance") = param_grid.col(4),
-        Rcpp::Named("deg") = param_grid.col(5),
-        Rcpp::Named("diff") = param_grid.col(6),
-        Rcpp::Named("knot_distance_power") = param_grid.col(7),
-        Rcpp::Named("threshold_soft") = param_grid.col(8),
-        Rcpp::Named("threshold_hard") = param_grid.col(9));
+        Rcpp::Named("knot_distance") = param_grid.col(3),
+        Rcpp::Named("deg") = param_grid.col(4),
+        Rcpp::Named("diff") = param_grid.col(5),
+        Rcpp::Named("knot_distance_power") = param_grid.col(6),
+        Rcpp::Named("threshold_soft") = param_grid.col(7),
+        Rcpp::Named("threshold_hard") = param_grid.col(8));
 
     return Rcpp::List::create(
         Rcpp::Named("predictions") = predictions_final,

@@ -7,7 +7,7 @@
 batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
 debias = TRUE, initial_window = 30, expanding_window = TRUE,
 loss_function = "quantile", loss_parameter = 1, lambda = -Inf,
-forget = 0, forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
+forget = 0, forget_performance = 0, fixed_share = 0, ndiff = 1, deg = 3,
 knot_distance = 0.025, knot_distance_power = 1, trace = TRUE, lead_time = 0,
 allow_quantile_crossing = FALSE, soft_threshold = -Inf, hard_threshold = -Inf)
 }
@@ -52,8 +52,6 @@ forgotten in every iteration of the algorithm when choosing the parameter combin
 
 \item{fixed_share}{Amount of fixed share to be added to the weights.
 Defaults to 0. 1 leads to uniform weights.}
-
-\item{gamma}{to be removed}
 
 \item{ndiff}{Degree of the differencing operator in the smoothing equation. 1.5 (default) leads to shrikage towards a constant. Can also be 2 or any value in between. If a value in between is used, a weighted sum of the first and second differentiation matrix is calculated.}
 
