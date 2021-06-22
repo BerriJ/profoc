@@ -41,13 +41,19 @@ using namespace arma;
 //' @param init_weights Matrix of dimension Kx1 or KxP used as starting weights. Kx1 represents the constant solution with equal weights over all P whereas specifiying a KxP matrix allows different starting weights for each P.
 //' @template param_lead_time
 //' @template param_allow_quantile_crossing
+//' @template param_soft_threshold
+//' @template param_ex_post_soft_threshold
+//' @template param_hard_threshold
+//' @template param_ex_post_hard_threshold
 //' @usage online(y, experts, tau, intercept = FALSE, loss_function = "quantile",
 //' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 //' lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
 //' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 //' knot_distance = 0.025, knot_distance_power = 1,
 //' gradient = TRUE, loss_array = NULL, regret_array = NULL,
-//' trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE)
+//' trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE,
+//' soft_threshold = -Inf, ex_post_soft_threshold = FALSE, hard_threshold = -Inf,
+//' ex_post_hard_threshold = FALSE)
 //' @export
 // [[Rcpp::export]]
 Rcpp::List online(
@@ -78,9 +84,9 @@ Rcpp::List online(
     const int &lead_time = 0,
     bool allow_quantile_crossing = false,
     Rcpp::NumericVector soft_threshold = Rcpp::NumericVector::create(),
-    bool ex_post_threshold_soft = false,
+    bool ex_post_soft_threshold = false,
     Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create(),
-    bool ex_post_threshold_hard = false)
+    bool ex_post_hard_threshold = false)
 {
 
   if (intercept)
@@ -436,7 +442,7 @@ Rcpp::List online(
 
       // Apply thresholds
 
-      if (!ex_post_threshold_soft)
+      if (!ex_post_soft_threshold)
       {
         for (double &e : w_temp.slice(x))
         {
@@ -449,7 +455,7 @@ Rcpp::List online(
         threshold_soft(e, param_grid(x, 8));
       }
 
-      if (!ex_post_threshold_hard)
+      if (!ex_post_hard_threshold)
       {
         for (double &e : w_temp.slice(x))
         {
@@ -581,7 +587,9 @@ Rcpp::List online(
       Rcpp::Named("knot_distance") = chosen_params.col(4),
       Rcpp::Named("deg") = chosen_params.col(5),
       Rcpp::Named("diff") = chosen_params.col(6),
-      Rcpp::Named("knot_distance_power") = chosen_params.col(7));
+      Rcpp::Named("knot_distance_power") = chosen_params.col(7),
+      Rcpp::Named("threshold_soft") = chosen_params.col(8),
+      Rcpp::Named("threshold_hard") = chosen_params.col(9));
 
   Rcpp::DataFrame parametergrid = Rcpp::DataFrame::create(
       Rcpp::Named("lambda") = param_grid.col(0),
@@ -591,7 +599,9 @@ Rcpp::List online(
       Rcpp::Named("knot_distance") = param_grid.col(4),
       Rcpp::Named("deg") = param_grid.col(5),
       Rcpp::Named("diff") = param_grid.col(6),
-      Rcpp::Named("knot_distance_power") = param_grid.col(7));
+      Rcpp::Named("knot_distance_power") = param_grid.col(7),
+      Rcpp::Named("threshold_soft") = param_grid.col(8),
+      Rcpp::Named("threshold_hard") = param_grid.col(9));
 
   return Rcpp::List::create(
       Rcpp::Named("predictions") = predictions_final,

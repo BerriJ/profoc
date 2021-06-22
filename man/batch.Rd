@@ -9,7 +9,7 @@ debias = TRUE, initial_window = 30, expanding_window = TRUE,
 loss_function = "quantile", loss_parameter = 1, lambda = -Inf,
 forget = 0, forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 knot_distance = 0.025, knot_distance_power = 1, trace = TRUE, lead_time = 0,
-allow_quantile_crossing = FALSE)
+allow_quantile_crossing = FALSE, soft_threshold = -Inf, hard_threshold = -Inf)
 }
 \arguments{
 \item{y}{A numeric matrix of realizations. In probabilistic
@@ -70,6 +70,14 @@ experts forecast t+1 at t. Setting this to h means experts predictions refer
 to t+1+h at time t. The weight updates delay accordingly.}
 
 \item{allow_quantile_crossing}{Shall quantile crossing be allowed? Defaults to false which means that predictions are sorted in ascending order.}
+
+\item{soft_threshold}{If specified the following soft threshold will be applied
+to the weights: w = sgn(w)*max(abs(w)-t,0) where t is the soft_threshold parameter.
+Defaults to -inf which means that no threshold will be applied.}
+
+\item{hard_threshold}{If specified the following hard thresholding will be applied
+to the weights: w = w*(abs(w)>t) where t is the threshold_hard parameter.
+Defaults to -inf which means that no threshold will be applied.}
 }
 \value{
 Returns weights and corresponding predictions.

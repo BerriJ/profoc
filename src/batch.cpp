@@ -35,12 +35,14 @@ using namespace arma;
 //' @template param_trace
 //' @template param_lead_time
 //' @template param_allow_quantile_crossing
+//' @template param_soft_threshold
+//' @template param_hard_threshold
 //' @usage batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
 //' debias = TRUE, initial_window = 30, expanding_window = TRUE,
 //' loss_function = "quantile", loss_parameter = 1, lambda = -Inf,
 //' forget = 0, forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 //' knot_distance = 0.025, knot_distance_power = 1, trace = TRUE, lead_time = 0,
-//' allow_quantile_crossing = FALSE)
+//' allow_quantile_crossing = FALSE, soft_threshold = -Inf, hard_threshold = -Inf)
 //' @export
 // [[Rcpp::export]]
 Rcpp::List batch(
@@ -391,7 +393,9 @@ Rcpp::List batch(
         Rcpp::Named("knot_distance") = chosen_params.col(4),
         Rcpp::Named("deg") = chosen_params.col(5),
         Rcpp::Named("diff") = chosen_params.col(6),
-        Rcpp::Named("knot_distance_power") = chosen_params.col(7));
+        Rcpp::Named("knot_distance_power") = chosen_params.col(7),
+        Rcpp::Named("threshold_soft") = chosen_params.col(8),
+        Rcpp::Named("threshold_hard") = chosen_params.col(9));
 
     Rcpp::DataFrame parametergrid = Rcpp::DataFrame::create(
         Rcpp::Named("lambda") = param_grid.col(0),
@@ -401,7 +405,9 @@ Rcpp::List batch(
         Rcpp::Named("knot_distance") = param_grid.col(4),
         Rcpp::Named("deg") = param_grid.col(5),
         Rcpp::Named("diff") = param_grid.col(6),
-        Rcpp::Named("knot_distance_power") = param_grid.col(7));
+        Rcpp::Named("knot_distance_power") = param_grid.col(7),
+        Rcpp::Named("threshold_soft") = param_grid.col(8),
+        Rcpp::Named("threshold_hard") = param_grid.col(9));
 
     return Rcpp::List::create(
         Rcpp::Named("predictions") = predictions_final,

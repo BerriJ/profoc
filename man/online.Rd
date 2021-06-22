@@ -10,7 +10,9 @@ lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
 forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
 knot_distance = 0.025, knot_distance_power = 1,
 gradient = TRUE, loss_array = NULL, regret_array = NULL,
-trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE)
+trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE,
+soft_threshold = -Inf, ex_post_soft_threshold = FALSE, hard_threshold = -Inf,
+ex_post_hard_threshold = FALSE)
 }
 \arguments{
 \item{y}{A numeric matrix of realizations. In probabilistic
@@ -80,6 +82,20 @@ experts forecast t+1 at t. Setting this to h means experts predictions refer
 to t+1+h at time t. The weight updates delay accordingly.}
 
 \item{allow_quantile_crossing}{Shall quantile crossing be allowed? Defaults to false which means that predictions are sorted in ascending order.}
+
+\item{soft_threshold}{If specified the following soft threshold will be applied
+to the weights: w = sgn(w)*max(abs(w)-t,0) where t is the soft_threshold parameter.
+Defaults to -inf which means that no threshold will be applied.}
+
+\item{ex_post_soft_threshold}{Analogous to ex_post_smooth: shall the soft
+thresholding be applied during (the default, FALSE) or after online-learning (TRUE).}
+
+\item{hard_threshold}{If specified the following hard thresholding will be applied
+to the weights: w = w*(abs(w)>t) where t is the threshold_hard parameter.
+Defaults to -inf which means that no threshold will be applied.}
+
+\item{ex_post_hard_threshold}{Analogous to ex_post_smooth: shall the hard
+thresholding be applied during (the default, FALSE) or after online-learning (TRUE).}
 }
 \value{
 online can tune various parameters automatically based on

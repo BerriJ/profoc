@@ -155,10 +155,12 @@ vec optimize_weights(const vec &truth,
 
     bool success;
     optim::algo_settings_t settings;
+    //settings.rel_objfn_change_tol = 1E-07;
     constraint_data opt_constr_data;
 
     if (affine && positive)
     {
+        // opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
         opt_obj_data.penalty_parameter = 0.1;
 
         settings.vals_bound = true;
@@ -185,6 +187,7 @@ vec optimize_weights(const vec &truth,
     }
     else if (affine)
     {
+        // opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
         opt_obj_data.penalty_parameter = 0.1;
 
         // Just a hack so that the while condition is not fulfilled directly
