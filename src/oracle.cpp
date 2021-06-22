@@ -155,14 +155,12 @@ vec optimize_weights(const vec &truth,
 
     bool success;
     optim::algo_settings_t settings;
-    //settings.rel_objfn_change_tol = 1E-07;
+    settings.rel_objfn_change_tol = 1E-07;
     constraint_data opt_constr_data;
 
     if (affine && positive)
     {
-        // opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
-        opt_obj_data.penalty_parameter = 0.1;
-
+        opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
         settings.vals_bound = true;
         settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
         settings.lower_bounds.fill(0);
@@ -174,8 +172,8 @@ vec optimize_weights(const vec &truth,
         settings.upper_bounds.fill(1E+06);
 
         // Just a hack so that the while condition is not fulfilled directly
-        initvals += 1E-08;
-        while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-08)
+        initvals += 1E-04;
+        while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-06)
         {
             opt_obj_data.penalty_parameter *= 10;
             success = optim::nm(initvals, objective, &opt_obj_data, settings);
@@ -187,12 +185,11 @@ vec optimize_weights(const vec &truth,
     }
     else if (affine)
     {
-        // opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
-        opt_obj_data.penalty_parameter = 0.1;
+        opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
 
         // Just a hack so that the while condition is not fulfilled directly
-        initvals += 1E-08;
-        while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-08)
+        initvals += 1E-04;
+        while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-06)
         {
             opt_obj_data.penalty_parameter *= 10;
             success = optim::nm(initvals, objective, &opt_obj_data, settings);
