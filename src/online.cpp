@@ -248,6 +248,7 @@ Rcpp::List online(
         param_grid(x, 7) == param_grid(x - 1, 7))
     {
       basis_mats(x) = basis_mats(x - 1);
+      basis = basis_mats(x);
     }
     else
     {
