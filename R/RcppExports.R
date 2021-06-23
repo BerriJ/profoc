@@ -150,6 +150,10 @@ make_hat_matrix <- function(x, kstep, lambda, bdiff, deg, a) {
     .Call(`_profoc_make_hat_matrix`, x, kstep, lambda, bdiff, deg, a)
 }
 
+make_basis_matrix <- function(x, kstep, deg, a) {
+    .Call(`_profoc_make_basis_matrix`, x, kstep, deg, a)
+}
+
 spline_fit <- function(y, x, lambda = 1, ndiff = 1L, deg = 3L, knot_distance = 0.1, knot_distance_power = 1) {
     .Call(`_profoc_spline_fit`, y, x, lambda, ndiff, deg, knot_distance, knot_distance_power)
 }

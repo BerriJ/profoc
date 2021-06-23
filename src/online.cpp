@@ -206,7 +206,9 @@ Rcpp::List online(
   mat predictions_final(T + T_E_Y, P, fill::zeros);
 
   vec lpred(1);
+  vec lpred_new(P);
   vec lexp(K);
+  mat lexp_new(P, K);
   vec r(K);
   vec r_reg(K);
   cube loss_cube(T, P, K, fill::zeros);
@@ -230,6 +232,7 @@ Rcpp::List online(
 
   // Smoothing Setup
   field<mat> hat_mats(param_grid.n_rows);
+  field<mat> basis_mats(param_grid.n_rows);
   vec spline_basis_x = regspace(1, P) / (P + 1);
 
   // Only if smoothing is possible (tau_vec.size > 1)
@@ -313,6 +316,31 @@ Rcpp::List online(
 
     for (unsigned int x = 0; x < X; x++)
     {
+
+      // NEW -------------------------------------------------------------------
+      // for (unsigned int p = 0; p < P; p++)
+      // {
+      //   for (unsigned int k = 0; k < K; k++)
+      //   {
+      //     lexp_new(p, k) = loss(y(t, p),
+      //                           experts(t, p, k),
+      //                           predictions_ante(t - lead_time, p, x), // where evaluate gradient
+      //                           loss_function,                         // method
+      //                           tau_vec(p),                            // tau_vec
+      //                           loss_parameter,                        // alpha
+      //                           gradient);
+      //   }
+      //   lpred_new(p) = loss(y(t, p),
+      //                       predictions_ante(t - lead_time, p, x),
+      //                       predictions_ante(t - lead_time, p, x), // where to evaluate gradient
+      //                       loss_function,                         // method
+      //                       tau_vec(p),                            // tau_vec
+      //                       loss_parameter,                        // alpha
+      //                       gradient);
+      // }
+
+      // -----------------------------------------------------------------------
+
       for (unsigned int p = 0; p < P; p++)
       {
 
@@ -418,7 +446,8 @@ Rcpp::List online(
             w_temp(span(p), span::all, span(x)) = exp(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x))));
             w_temp(span(p), span::all, span(x)) = pmin_arma(pmax_arma(w_temp(span(p), span::all, span(x)), exp(-700)), exp(700));
             w_temp(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)));
-          }
+          } //p
+          // w_temp = beta * basis
         }
         else
         {

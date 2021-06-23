@@ -258,6 +258,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// make_basis_matrix
+mat make_basis_matrix(const vec& x, const double& kstep, const int deg, const double& a);
+RcppExport SEXP _profoc_make_basis_matrix(SEXP xSEXP, SEXP kstepSEXP, SEXP degSEXP, SEXP aSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const double& >::type kstep(kstepSEXP);
+    Rcpp::traits::input_parameter< const int >::type deg(degSEXP);
+    Rcpp::traits::input_parameter< const double& >::type a(aSEXP);
+    rcpp_result_gen = Rcpp::wrap(make_basis_matrix(x, kstep, deg, a));
+    return rcpp_result_gen;
+END_RCPP
+}
 // spline_fit
 vec spline_fit(const vec& y, const vec& x, const double& lambda, const int& ndiff, const int& deg, const double& knot_distance, const double& knot_distance_power);
 RcppExport SEXP _profoc_spline_fit(SEXP ySEXP, SEXP xSEXP, SEXP lambdaSEXP, SEXP ndiffSEXP, SEXP degSEXP, SEXP knot_distanceSEXP, SEXP knot_distance_powerSEXP) {
@@ -305,6 +319,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_make_knots", (DL_FUNC) &_profoc_make_knots, 3},
     {"_profoc_make_difference_matrix", (DL_FUNC) &_profoc_make_difference_matrix, 3},
     {"_profoc_make_hat_matrix", (DL_FUNC) &_profoc_make_hat_matrix, 6},
+    {"_profoc_make_basis_matrix", (DL_FUNC) &_profoc_make_basis_matrix, 4},
     {"_profoc_spline_fit", (DL_FUNC) &_profoc_spline_fit, 7},
     {"_profoc_splines2_basis", (DL_FUNC) &_profoc_splines2_basis, 4},
     {NULL, NULL, 0}

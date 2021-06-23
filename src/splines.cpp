@@ -66,6 +66,29 @@ mat make_hat_matrix(const vec &x, const double &kstep, const double &lambda, con
 }
 
 // [[Rcpp::export]]
+mat make_basis_matrix(const vec &x, const double &kstep, const int deg, const double &a)
+{
+    mat B;
+
+    // Will be passed to make_hat_matrix
+    if (kstep <= 0.5)
+    {
+        vec knots = make_knots(kstep, a, deg);
+        vec boundary_knots({arma::min(knots), arma::max(knots)});
+        B = splines2_basis(x, knots, deg, boundary_knots);
+        // Remove columns without contribution
+        B = B.cols(find(sum(B) >= 1E-6));
+    }
+    else
+    {
+        mat B_(x.n_elem, 1, fill::ones);
+        B = B_;
+    }
+
+    return B;
+}
+
+// [[Rcpp::export]]
 vec spline_fit(const vec &y,
                const vec &x,
                const double &lambda = 1,

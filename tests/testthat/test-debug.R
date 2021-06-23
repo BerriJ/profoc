@@ -36,15 +36,12 @@ test_that("Debug", {
         experts[t, , 2] <- qnorm(prob_grid, mean = dev[2], sd = experts_sd[2])
     }
 
-    experts <- experts + 5
-
-    results <- batch(
+    results <- online(
         matrix(y),
         experts,
         prob_grid,
-        positive = TRUE,
-        affine = TRUE,
-        intercept = TRUE,
-        debias = TRUE
+        lambda = 5,
+        ndiff = 2,
+        deg = 2
     )
 })
