@@ -8,14 +8,12 @@ using namespace arma;
 mat pmin_arma(const mat &x, const double &bound)
 {
     mat out(x);
-    for (size_t r = 0; r < x.n_rows; r++)
+    for (double &e : out)
     {
-        for (size_t c = 0; c < x.n_cols; c++)
-        {
-            if (out(r, c) > bound)
-                out(r, c) = bound;
-        }
+        if (e > bound)
+            e = bound;
     }
+
     return out;
 }
 
@@ -23,13 +21,10 @@ mat pmin_arma(const mat &x, const double &bound)
 mat pmax_arma(const mat &x, const double &bound)
 {
     mat out(x);
-    for (size_t r = 0; r < x.n_rows; r++)
+    for (double &e : out)
     {
-        for (size_t c = 0; c < x.n_cols; c++)
-        {
-            if (out(r, c) < bound)
-                out(r, c) = bound;
-        }
+        if (e < bound)
+            e = bound;
     }
     return out;
 }
