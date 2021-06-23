@@ -191,13 +191,13 @@ Rcpp::List online(
 
   cube R(P, K, X, fill::zeros);
   cube R_reg(R);
-  cube eta(P, K, X, fill::zeros);
-  if (method == "ml_poly")
-    eta.fill(exp(350));
 
   cube V(P, K, X, fill::zeros);
   cube E(P, K, X, fill::zeros);
   cube k(P, K, X, fill::zeros);
+  cube eta(P, K, X, fill::zeros);
+  if (method == "ml_poly")
+    eta.fill(exp(350));
 
   k = k.fill(-699);
   mat experts_mat(P, K);
@@ -238,6 +238,9 @@ Rcpp::List online(
   field<mat> basis_mats(param_grid.n_rows);
   vec spline_basis_x = regspace(1, P) / (P + 1);
   field<mat> Vfield(param_grid.n_rows);
+  field<mat> Efield(param_grid.n_rows);
+  field<mat> kfield(param_grid.n_rows);
+  field<mat> etafield(param_grid.n_rows);
 
   // Init hat matrix field
   for (unsigned int x = 0; x < X; x++)
@@ -262,6 +265,17 @@ Rcpp::List online(
 
     int L = basis_mats(x).n_cols;
     Vfield(x).zeros(L, K);
+    Efield(x).zeros(L, K);
+    kfield(x).zeros(L, K);
+
+    mat eta_(L, K, fill::zeros);
+    etafield(x) = eta_;
+    if (method == "ml_poly")
+    {
+      eta_.fill(exp(350));
+      etafield(x) = eta_;
+    }
+
     R_CheckUserInterrupt();
   }
 
@@ -403,6 +417,30 @@ Rcpp::List online(
       for (unsigned int l = 0; l < Q_regret.n_cols; l++)
       {
         r = Q_regret.col(l);
+
+        Vfield(x).row(l) =
+            Vfield(x).row(l) * (1 - param_grid(x, 1)) + square(r.t());
+
+        Efield(x).row(l) =
+            max(Efield(x).row(l) * (1 - param_grid(x, 1)), abs(r.t()));
+
+        etafield(x).row(l) =
+            pmin_arma(
+                min(1 / (2 * Efield(x).row(l)),
+                    sqrt(log(K) / Vfield(x).row(l))),
+                exp(350));
+
+        r_reg = r - etafield(x).row(l).t() % square(r);
+
+        // if (method_var.find('A') != std::string::npos)
+        // {
+        //   R_reg(span(p), span::all, span(x)) = vectorise(R_reg(span(p), span::all, span(x))) * (1 - param_grid(x, 1)) + 0.5 * (r_reg + conv_to<colvec>::from(vectorise(etafield(x).row(l)) % r > 0.5) % (2 * vectorise(Efield(x).row(l))));
+        // }
+        // else
+        // {
+        //   // Gaillard
+        //   R_reg(span(p), span::all, span(x)) = vectorise(R_reg(span(p), span::all, span(x))) * (1 - param_grid(x, 1)) + r_reg;
+        // }
       }
 
       for (unsigned int p = 0; p < P; p++)
@@ -448,8 +486,6 @@ Rcpp::List online(
         else
         {
           r = regret_cube(span(t), span(p), span::all);
-
-          //Vfield(x).row(l) = vectorise(Vfield(x).row(l)) * (1 - param_grid(x, 1)) + square(r);
         }
 
         // if (method == "ewa")
