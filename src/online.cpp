@@ -183,37 +183,21 @@ Rcpp::List online(
   // Init object holding temp. weights, resp. ex-ante
   cube w_temp(P, K, X);
   w_temp.each_slice() = w0.t(); // TODO change orientation of w0
-  // Init object holding final weights, resp. ex-post
+  // Object temporary holding ex-post weights
   cube w_post(w_temp);
 
   // Weights output
-  cube weights(T + 1, P, K, fill::zeros);
 
-  cube R(P, K, X, fill::zeros);
-  cube R_reg(R);
-
-  cube V(P, K, X, fill::zeros);
-  cube E(P, K, X, fill::zeros);
-  cube k(P, K, X, fill::zeros);
-  cube eta(P, K, X, fill::zeros);
-  if (method == "ml_poly")
-    eta.fill(exp(350));
-
-  k = k.fill(-699);
   mat experts_mat(P, K);
 
   cube predictions_post(T, P, X);
   cube predictions_ante(T, P, X);
   mat predictions_temp(P, K);
-  mat predictions_final(T + T_E_Y, P, fill::zeros);
 
-  vec lpred(1);
-  vec lpred_new(P);
-  vec lexp(K);
-  mat lexp_new(P, K);
-  mat Q(P, K);
-  vec r(K);
-  vec r_reg(K);
+  // Output Objects
+  mat predictions_final(T + T_E_Y, P, fill::zeros);
+  cube weights(T + 1, P, K, fill::zeros);
+
   cube loss_cube(T, P, K, fill::zeros);
 
   // Init loss array (if existent)
@@ -233,18 +217,24 @@ Rcpp::List online(
     regret_cube = tmp_cube;
   }
 
-  // Smoothing Setup
-  field<mat> hat_mats(param_grid.n_rows);
-  field<mat> basis_mats(param_grid.n_rows);
+  // Learning parameters
+  field<mat> hat_mats(X);
+  field<mat> basis_mats(X);
+  field<mat> V(X);
+  field<mat> E(X);
+  field<mat> k(X);
+  field<mat> eta(X);
+  vec lpred(P);
+  mat lexp(P, K);
+  mat Q(P, K);
+  vec r(K);
+  field<mat> R(X);
+  vec r_reg(K);
+  field<mat> R_reg(X);
+  field<mat> beta(X);
+  field<mat> w0field(X);
+
   vec spline_basis_x = regspace(1, P) / (P + 1);
-  field<mat> Vfield(param_grid.n_rows);
-  field<mat> Efield(param_grid.n_rows);
-  field<mat> kfield(param_grid.n_rows);
-  field<mat> etafield(param_grid.n_rows);
-  field<mat> Rfield(param_grid.n_rows);
-  field<mat> R_regfield(param_grid.n_rows);
-  field<mat> beta(param_grid.n_rows);
-  field<mat> w0field(param_grid.n_rows);
 
   // Init hat matrix field
   for (unsigned int x = 0; x < X; x++)
@@ -268,20 +258,20 @@ Rcpp::List online(
     }
 
     int L = basis_mats(x).n_cols;
-    Vfield(x).zeros(L, K);
-    Efield(x).zeros(L, K);
-    kfield(x).zeros(L, K);
+    V(x).zeros(L, K);
+    E(x).zeros(L, K);
+    k(x).zeros(L, K);
 
     mat eta_(L, K, fill::zeros);
-    etafield(x) = eta_;
+    eta(x) = eta_;
     if (method == "ml_poly")
     {
       eta_.fill(exp(350));
-      etafield(x) = eta_;
+      eta(x) = eta_;
     }
 
-    R_regfield(x).zeros(L, K);
-    Rfield(x).zeros(L, K);
+    R_reg(x).zeros(L, K);
+    R(x).zeros(L, K);
 
     beta(x) = (w0 * pinv(basis_mats(x)).t()).t();
 
@@ -387,29 +377,29 @@ Rcpp::List online(
 
         for (unsigned int k = 0; k < K; k++)
         {
-          lexp_new(p, k) = loss(y(t, p),
-                                experts(t, p, k),
-                                predictions_ante(t - lead_time, p, x), // where evaluate gradient
-                                loss_function,                         // method
-                                tau_vec(p),                            // tau_vec
-                                loss_parameter,                        // alpha
-                                gradient);
-        }
-
-        if (loss_array.size() != 0)
-        {
-          lexp_new.row(p) = vectorise(loss_cube.tube(t, p));
-        }
-
-        lpred_new(p) = loss(y(t, p),
-                            predictions_ante(t - lead_time, p, x),
-                            predictions_ante(t - lead_time, p, x), // where to evaluate gradient
+          lexp(p, k) = loss(y(t, p),
+                            experts(t, p, k),
+                            predictions_ante(t - lead_time, p, x), // where evaluate gradient
                             loss_function,                         // method
                             tau_vec(p),                            // tau_vec
                             loss_parameter,                        // alpha
                             gradient);
+        }
 
-        Q.row(p) = lpred_new(p) - lexp_new.row(p);
+        if (loss_array.size() != 0)
+        {
+          lexp.row(p) = vectorise(loss_cube.tube(t, p));
+        }
+
+        lpred(p) = loss(y(t, p),
+                        predictions_ante(t - lead_time, p, x),
+                        predictions_ante(t - lead_time, p, x), // where to evaluate gradient
+                        loss_function,                         // method
+                        tau_vec(p),                            // tau_vec
+                        loss_parameter,                        // alpha
+                        gradient);
+
+        Q.row(p) = lpred(p) - lexp.row(p);
       }
 
       mat Q_regret;
@@ -431,70 +421,70 @@ Rcpp::List online(
         if (method == "ewa")
         {
           // Update the cumulative regret used by eta
-          Rfield(x).row(l) *= (1 - param_grid(x, 1));
-          Rfield(x).row(l) += r.t();
+          R(x).row(l) *= (1 - param_grid(x, 1));
+          R(x).row(l) += r.t();
 
-          beta(x).row(l) = exp(param_grid(x, 3) * Rfield(x).row(l));
+          beta(x).row(l) = exp(param_grid(x, 3) * R(x).row(l));
           beta(x).row(l) /= accu(beta(x).row(l));
         }
         else if (method == "ml_poly")
         {
           // Update the cumulative regret used by ML_Poly
-          Rfield(x).row(l) *= (1 - param_grid(x, 1));
-          Rfield(x).row(l) += r.t();
+          R(x).row(l) *= (1 - param_grid(x, 1));
+          R(x).row(l) += r.t();
 
           //   // Update the learning rate
-          etafield(x).row(l) = 1 / (1 / etafield(x).row(l) + square(r.t()));
+          eta(x).row(l) = 1 / (1 / eta(x).row(l) + square(r.t()));
 
           // param_grid(x, 3) = gamma
           beta(x).row(l) =
-              param_grid(x, 3) * etafield(x).row(l) % pmax_arma(Rfield(x).row(l), exp(-700));
+              param_grid(x, 3) * eta(x).row(l) % pmax_arma(R(x).row(l), exp(-700));
           beta(x).row(l) /= accu(beta(x).row(l));
         }
         else if (method == "boa")
         {
 
-          Vfield(x).row(l) *= (1 - param_grid(x, 1));
-          Vfield(x).row(l) += square(r.t());
+          V(x).row(l) *= (1 - param_grid(x, 1));
+          V(x).row(l) += square(r.t());
 
-          Efield(x).row(l) =
-              max(Efield(x).row(l) * (1 - param_grid(x, 1)), abs(r.t()));
+          E(x).row(l) =
+              max(E(x).row(l) * (1 - param_grid(x, 1)), abs(r.t()));
 
-          etafield(x).row(l) =
+          eta(x).row(l) =
               pmin_arma(
-                  min(1 / (2 * Efield(x).row(l)),
-                      sqrt(log(K) / Vfield(x).row(l))),
+                  min(1 / (2 * E(x).row(l)),
+                      sqrt(log(K) / V(x).row(l))),
                   exp(350));
 
-          r_reg = r - etafield(x).row(l).t() % square(r);
+          r_reg = r - eta(x).row(l).t() % square(r);
 
           if (method_var.find('A') != std::string::npos)
           {
-            R_regfield(x).row(l) *= (1 - param_grid(x, 1));
-            R_regfield(x).row(l) +=
-                0.5 * (r_reg.t() + conv_to<colvec>::from(etafield(x).row(l) % r.t() > 0.5).t() % (2 * Efield(x).row(l)));
+            R_reg(x).row(l) *= (1 - param_grid(x, 1));
+            R_reg(x).row(l) +=
+                0.5 * (r_reg.t() + conv_to<colvec>::from(eta(x).row(l) % r.t() > 0.5).t() % (2 * E(x).row(l)));
           }
           else
           {
             // Gaillard
-            R_regfield(x).row(l) *= (1 - param_grid(x, 1));
-            R_regfield(x).row(l) += r_reg.t();
+            R_reg(x).row(l) *= (1 - param_grid(x, 1));
+            R_reg(x).row(l) += r_reg.t();
           }
 
           if (method_var.find('C') != std::string::npos)
           {
             // Wintenberger
             beta(x).row(l) =
-                param_grid(x, 3) * etafield(x).row(l) % exp(param_grid(x, 3) * etafield(x).row(l) % R_regfield(x).row(l)) % w0field(x).row(l);
+                param_grid(x, 3) * eta(x).row(l) % exp(param_grid(x, 3) * eta(x).row(l) % R_reg(x).row(l)) % w0field(x).row(l);
 
             beta(x).row(l) /=
-                mean(param_grid(x, 3) * etafield(x).row(l) % exp(param_grid(x, 3) * etafield(x).row(l) % R_regfield(x).row(l)));
+                mean(param_grid(x, 3) * eta(x).row(l) % exp(param_grid(x, 3) * eta(x).row(l) % R_reg(x).row(l)));
           }
           else
           {
             // Gaillard
             beta(x).row(l) =
-                exp(param_grid(x, 3) * etafield(x).row(l) % R_regfield(x).row(l));
+                exp(param_grid(x, 3) * eta(x).row(l) % R_reg(x).row(l));
             beta(x).row(l) = pmin_arma(pmax_arma(beta(x).row(l), exp(-700)), exp(700));
 
             beta(x).row(l) /= accu(beta(x).row(l));
