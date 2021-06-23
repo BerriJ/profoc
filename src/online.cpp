@@ -209,6 +209,7 @@ Rcpp::List online(
   vec lpred_new(P);
   vec lexp(K);
   mat lexp_new(P, K);
+  mat Q(P, K);
   vec r(K);
   vec r_reg(K);
   cube loss_cube(T, P, K, fill::zeros);
@@ -318,26 +319,28 @@ Rcpp::List online(
     {
 
       // NEW -------------------------------------------------------------------
-      // for (unsigned int p = 0; p < P; p++)
-      // {
-      //   for (unsigned int k = 0; k < K; k++)
-      //   {
-      //     lexp_new(p, k) = loss(y(t, p),
-      //                           experts(t, p, k),
-      //                           predictions_ante(t - lead_time, p, x), // where evaluate gradient
-      //                           loss_function,                         // method
-      //                           tau_vec(p),                            // tau_vec
-      //                           loss_parameter,                        // alpha
-      //                           gradient);
-      //   }
-      //   lpred_new(p) = loss(y(t, p),
-      //                       predictions_ante(t - lead_time, p, x),
-      //                       predictions_ante(t - lead_time, p, x), // where to evaluate gradient
-      //                       loss_function,                         // method
-      //                       tau_vec(p),                            // tau_vec
-      //                       loss_parameter,                        // alpha
-      //                       gradient);
-      // }
+      for (unsigned int p = 0; p < P; p++)
+      {
+        for (unsigned int k = 0; k < K; k++)
+        {
+          lexp_new(p, k) = loss(y(t, p),
+                                experts(t, p, k),
+                                predictions_ante(t - lead_time, p, x), // where evaluate gradient
+                                loss_function,                         // method
+                                tau_vec(p),                            // tau_vec
+                                loss_parameter,                        // alpha
+                                gradient);
+        }
+        lpred_new(p) = loss(y(t, p),
+                            predictions_ante(t - lead_time, p, x),
+                            predictions_ante(t - lead_time, p, x), // where to evaluate gradient
+                            loss_function,                         // method
+                            tau_vec(p),                            // tau_vec
+                            loss_parameter,                        // alpha
+                            gradient);
+
+        Q.row(p) = lpred_new(p) - lexp_new.row(p);
+      }
 
       // -----------------------------------------------------------------------
 

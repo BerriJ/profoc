@@ -303,6 +303,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// test
+mat test(const mat& x, const vec& y);
+RcppExport SEXP _profoc_test(SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const mat& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const vec& >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(test(x, y));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_profoc_batch", (DL_FUNC) &_profoc_batch, 24},
@@ -322,6 +334,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_make_basis_matrix", (DL_FUNC) &_profoc_make_basis_matrix, 4},
     {"_profoc_spline_fit", (DL_FUNC) &_profoc_spline_fit, 7},
     {"_profoc_splines2_basis", (DL_FUNC) &_profoc_splines2_basis, 4},
+    {"_profoc_test", (DL_FUNC) &_profoc_test, 2},
     {NULL, NULL, 0}
 };
 
