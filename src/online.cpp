@@ -241,6 +241,10 @@ Rcpp::List online(
   field<mat> Efield(param_grid.n_rows);
   field<mat> kfield(param_grid.n_rows);
   field<mat> etafield(param_grid.n_rows);
+  field<mat> Rfield(param_grid.n_rows);
+  field<mat> R_regfield(param_grid.n_rows);
+  field<mat> beta(param_grid.n_rows);
+  field<mat> w0field(param_grid.n_rows);
 
   // Init hat matrix field
   for (unsigned int x = 0; x < X; x++)
@@ -275,6 +279,13 @@ Rcpp::List online(
       eta_.fill(exp(350));
       etafield(x) = eta_;
     }
+
+    R_regfield(x).zeros(L, K);
+    Rfield(x).zeros(L, K);
+
+    beta(x) = (w0 * pinv(basis_mats(x)).t()).t();
+
+    w0field(x) = beta(x);
 
     R_CheckUserInterrupt();
   }
@@ -412,142 +423,76 @@ Rcpp::List online(
         Q_regret = regret_cube.row(t);
       }
 
-      // -----------------------------------------------------------------------
-
       for (unsigned int l = 0; l < Q_regret.n_cols; l++)
       {
-        r = Q_regret.col(l);
 
-        Vfield(x).row(l) =
-            Vfield(x).row(l) * (1 - param_grid(x, 1)) + square(r.t());
-
-        Efield(x).row(l) =
-            max(Efield(x).row(l) * (1 - param_grid(x, 1)), abs(r.t()));
-
-        etafield(x).row(l) =
-            pmin_arma(
-                min(1 / (2 * Efield(x).row(l)),
-                    sqrt(log(K) / Vfield(x).row(l))),
-                exp(350));
-
-        r_reg = r - etafield(x).row(l).t() % square(r);
-
-        // if (method_var.find('A') != std::string::npos)
-        // {
-        //   R_reg(span(p), span::all, span(x)) = vectorise(R_reg(span(p), span::all, span(x))) * (1 - param_grid(x, 1)) + 0.5 * (r_reg + conv_to<colvec>::from(vectorise(etafield(x).row(l)) % r > 0.5) % (2 * vectorise(Efield(x).row(l))));
-        // }
-        // else
-        // {
-        //   // Gaillard
-        //   R_reg(span(p), span::all, span(x)) = vectorise(R_reg(span(p), span::all, span(x))) * (1 - param_grid(x, 1)) + r_reg;
-        // }
-      }
-
-      for (unsigned int p = 0; p < P; p++)
-      {
-
-        // Evaluate the ex-post predictive performance
-        past_performance(t, p, x) = loss(y(t, p),
-                                         predictions_post(t - lead_time, p, x),
-                                         9999,           // where evaluate gradient
-                                         loss_function,  // method
-                                         tau_vec(p),     // tau_vec
-                                         loss_parameter, // alpha
-                                         false);
-
-        for (unsigned int k = 0; k < K; k++)
+        if (method == "ewa")
         {
-          lexp(k) = loss(y(t, p),
-                         experts(t, p, k),
-                         predictions_ante(t - lead_time, p, x), // where evaluate gradient
-                         loss_function,                         // method
-                         tau_vec(p),                            // tau_vec
-                         loss_parameter,                        // alpha
-                         gradient);
+          //   // Update the cumulative regret used by eta
+          //   R(span(p), span::all, span(x)) = vectorise(R(span(p), span::all, span(x))) * (1 - param_grid(x, 1)) + r;
+          //   w_temp(span(p), span::all, span(x)) = exp(param_grid(x, 3) * vectorise(R(span(p), span::all, span(x))));
+          //   w_temp(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)));
         }
-
-        lpred = loss(y(t, p),
-                     predictions_ante(t - lead_time, p, x),
-                     predictions_ante(t - lead_time, p, x), // where to evaluate gradient
-                     loss_function,                         // method
-                     tau_vec(p),                            // tau_vec
-                     loss_parameter,                        // alpha
-                     gradient);
-
-        if (loss_array.size() != 0)
+        else if (method == "ml_poly")
         {
-          lexp = loss_cube(span(t), span(p), span::all);
+          //   // Update the cumulative regret used by ML_Poly
+          //   R(span(p), span::all, span(x)) = vectorise(R(span(p), span::all, span(x))) * (1 - param_grid(x, 1)) + r;
+
+          //   // Update the learning rate
+          //   eta(span(p), span::all, span(x)) = 1 / (1 / vectorise(eta(span(p), span::all, span(x))) + square(r));
+
+          //   // param_grid(x, 3) = gamma
+          //   w_temp(span(p), span::all, span(x)) = param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % pmax_arma(R(span(p), span::all, span(x)), exp(-700)).t();
+          //   w_temp(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)));
         }
-
-        if (regret_array.size() == 0)
+        else if (method == "boa")
         {
-          r = lpred - lexp.each_row();
-        }
-        else
-        {
-          r = regret_cube(span(t), span(p), span::all);
-        }
+          r = Q_regret.col(l);
 
-        // if (method == "ewa")
-        // {
-        //   // Update the cumulative regret used by eta
-        //   R(span(p), span::all, span(x)) = vectorise(R(span(p), span::all, span(x))) * (1 - param_grid(x, 1)) + r;
-        //   w_temp(span(p), span::all, span(x)) = exp(param_grid(x, 3) * vectorise(R(span(p), span::all, span(x))));
-        //   w_temp(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)));
-        // }
-        // else if (method == "ml_poly")
-        // {
-        //   // Update the cumulative regret used by ML_Poly
-        //   R(span(p), span::all, span(x)) = vectorise(R(span(p), span::all, span(x))) * (1 - param_grid(x, 1)) + r;
+          Vfield(x).row(l) *= (1 - param_grid(x, 1));
+          Vfield(x).row(l) += square(r.t());
 
-        //   // Update the learning rate
-        //   eta(span(p), span::all, span(x)) = 1 / (1 / vectorise(eta(span(p), span::all, span(x))) + square(r));
+          Efield(x).row(l) =
+              max(Efield(x).row(l) * (1 - param_grid(x, 1)), abs(r.t()));
 
-        //   // param_grid(x, 3) = gamma
-        //   w_temp(span(p), span::all, span(x)) = param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % pmax_arma(R(span(p), span::all, span(x)), exp(-700)).t();
-        //   w_temp(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)));
-        // } else
-        if (method == "boa")
-        {
-
-          V(span(p), span::all, span(x)) = vectorise(V(span(p), span::all, span(x))) * (1 - param_grid(x, 1)) + square(r);
-
-          // Update the bounds and learning rates
-          E(span(p), span::all, span(x)) = max(vectorise(E(span(p), span::all, span(x))) * (1 - param_grid(x, 1)), abs(r));
-
-          eta(span(p), span::all, span(x)) =
+          etafield(x).row(l) =
               pmin_arma(
-                  min(1 / (2 * vectorise(E(span(p), span::all, span(x)))),
-                      sqrt(log(K) / vectorise(V(span(p), span::all, span(x))))),
+                  min(1 / (2 * Efield(x).row(l)),
+                      sqrt(log(K) / Vfield(x).row(l))),
                   exp(350));
 
-          // Instantaneous regularized regret
-          r_reg = r - vectorise(eta(span(p), span::all, span(x))) % square(r);
+          r_reg = r - etafield(x).row(l).t() % square(r);
 
-          // Update cumulative regularized regret
           if (method_var.find('A') != std::string::npos)
           {
-            R_reg(span(p), span::all, span(x)) = vectorise(R_reg(span(p), span::all, span(x))) * (1 - param_grid(x, 1)) + 0.5 * (r_reg + conv_to<colvec>::from(vectorise(eta(span(p), span::all, span(x))) % r > 0.5) % (2 * vectorise(E(span(p), span::all, span(x)))));
+            R_regfield(x).row(l) *= (1 - param_grid(x, 1));
+            R_regfield(x).row(l) +=
+                0.5 * (r_reg.t() + conv_to<colvec>::from(etafield(x).row(l) % r.t() > 0.5).t() % (2 * Efield(x).row(l)));
           }
           else
           {
             // Gaillard
-            R_reg(span(p), span::all, span(x)) = vectorise(R_reg(span(p), span::all, span(x))) * (1 - param_grid(x, 1)) + r_reg;
+            R_regfield(x).row(l) *= (1 - param_grid(x, 1));
+            R_regfield(x).row(l) += r_reg.t();
           }
 
-          // Update weights and truncate if necessary
           if (method_var.find('C') != std::string::npos)
           {
             // Wintenberger
-            w_temp(span(p), span::all, span(x)) = param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % exp(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x)))) % w0.col(p);
-            w_temp(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x)) / mean(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % exp(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x)))));
+            beta(x).row(l) =
+                param_grid(x, 3) * etafield(x).row(l) % exp(param_grid(x, 3) * etafield(x).row(l) % R_regfield(x).row(l)) % w0field(x).row(l);
+
+            beta(x).row(l) /=
+                mean(param_grid(x, 3) * etafield(x).row(l) % exp(param_grid(x, 3) * etafield(x).row(l) % R_regfield(x).row(l)));
           }
           else
           {
             // Gaillard
-            w_temp(span(p), span::all, span(x)) = exp(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x))));
-            w_temp(span(p), span::all, span(x)) = pmin_arma(pmax_arma(w_temp(span(p), span::all, span(x)), exp(-700)), exp(700));
-            w_temp(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)));
+            beta(x).row(l) =
+                exp(param_grid(x, 3) * etafield(x).row(l) % R_regfield(x).row(l));
+            beta(x).row(l) = pmin_arma(pmax_arma(beta(x).row(l), exp(-700)), exp(700));
+
+            beta(x).row(l) /= accu(beta(x).row(l));
           }
         }
         else
@@ -555,6 +500,8 @@ Rcpp::List online(
           Rcpp::stop("Choose 'boa', 'ml_poly' or 'ewa' as method.");
         }
       }
+
+      w_temp.slice(x) = basis_mats(x) * beta(x);
 
       w_post.slice(x) = w_temp.slice(x);
 

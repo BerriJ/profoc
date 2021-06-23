@@ -39,8 +39,8 @@ boa_smooth_post <- online(
 )
 
 expect_true(
-    round(mean(boa_smooth$forecaster_loss), 4) !=
-        round(mean(boa_smooth_post$forecaster_loss), 4)
+    round(mean(boa_smooth$forecaster_loss), 6) !=
+        round(mean(boa_smooth_post$forecaster_loss), 6)
 )
 
 boa_fs <- online(
