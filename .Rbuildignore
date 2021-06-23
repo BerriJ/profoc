@@ -6,3 +6,4 @@
 ^docs$
 ^pkgdown$
 ^man-roxygen
+src/test.cpp

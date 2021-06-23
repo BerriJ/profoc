@@ -357,6 +357,12 @@ Rcpp::List online(
                                 loss_parameter,                        // alpha
                                 gradient);
         }
+
+        if (loss_array.size() != 0)
+        {
+          lexp_new.row(p) = vectorise(loss_cube.tube(t, p));
+        }
+
         lpred_new(p) = loss(y(t, p),
                             predictions_ante(t - lead_time, p, x),
                             predictions_ante(t - lead_time, p, x), // where to evaluate gradient
@@ -368,7 +374,23 @@ Rcpp::List online(
         Q.row(p) = lpred_new(p) - lexp_new.row(p);
       }
 
+      mat Q_regret;
+
+      if (regret_array.size() == 0)
+      {
+        Q_regret = Q.t() * basis_mats(x);
+      }
+      else
+      {
+        Q_regret = regret_cube.row(t);
+      }
+
       // -----------------------------------------------------------------------
+
+      for (unsigned int l = 0; l < Q_regret.n_cols; l++)
+      {
+        r = Q_regret.col(l);
+      }
 
       for (unsigned int p = 0; p < P; p++)
       {
@@ -475,8 +497,7 @@ Rcpp::List online(
             w_temp(span(p), span::all, span(x)) = exp(param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % vectorise(R_reg(span(p), span::all, span(x))));
             w_temp(span(p), span::all, span(x)) = pmin_arma(pmax_arma(w_temp(span(p), span::all, span(x)), exp(-700)), exp(700));
             w_temp(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)));
-          } //p
-          // w_temp = beta * basis
+          }
         }
         else
         {
