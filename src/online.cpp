@@ -426,28 +426,33 @@ Rcpp::List online(
       for (unsigned int l = 0; l < Q_regret.n_cols; l++)
       {
 
+        r = Q_regret.col(l);
+
         if (method == "ewa")
         {
-          //   // Update the cumulative regret used by eta
-          //   R(span(p), span::all, span(x)) = vectorise(R(span(p), span::all, span(x))) * (1 - param_grid(x, 1)) + r;
-          //   w_temp(span(p), span::all, span(x)) = exp(param_grid(x, 3) * vectorise(R(span(p), span::all, span(x))));
-          //   w_temp(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)));
+          // Update the cumulative regret used by eta
+          Rfield(x).row(l) *= (1 - param_grid(x, 1));
+          Rfield(x).row(l) += r.t();
+
+          beta(x).row(l) = exp(param_grid(x, 3) * Rfield(x).row(l));
+          beta(x).row(l) /= accu(beta(x).row(l));
         }
         else if (method == "ml_poly")
         {
-          //   // Update the cumulative regret used by ML_Poly
-          //   R(span(p), span::all, span(x)) = vectorise(R(span(p), span::all, span(x))) * (1 - param_grid(x, 1)) + r;
+          // Update the cumulative regret used by ML_Poly
+          Rfield(x).row(l) *= (1 - param_grid(x, 1));
+          Rfield(x).row(l) += r.t();
 
           //   // Update the learning rate
-          //   eta(span(p), span::all, span(x)) = 1 / (1 / vectorise(eta(span(p), span::all, span(x))) + square(r));
+          etafield(x).row(l) = 1 / (1 / etafield(x).row(l) + square(r.t()));
 
-          //   // param_grid(x, 3) = gamma
-          //   w_temp(span(p), span::all, span(x)) = param_grid(x, 3) * vectorise(eta(span(p), span::all, span(x))) % pmax_arma(R(span(p), span::all, span(x)), exp(-700)).t();
-          //   w_temp(span(p), span::all, span(x)) = w_temp(span(p), span::all, span(x)) / accu(w_temp(span(p), span::all, span(x)));
+          // param_grid(x, 3) = gamma
+          beta(x).row(l) =
+              param_grid(x, 3) * etafield(x).row(l) % pmax_arma(Rfield(x).row(l), exp(-700));
+          beta(x).row(l) /= accu(beta(x).row(l));
         }
         else if (method == "boa")
         {
-          r = Q_regret.col(l);
 
           Vfield(x).row(l) *= (1 - param_grid(x, 1));
           Vfield(x).row(l) += square(r.t());
