@@ -219,7 +219,7 @@ Rcpp::List online(
 
   // Learning parameters
   field<mat> hat_mats(X);
-  field<mat> basis_mats(X);
+  field<sp_mat> basis_mats(X);
   field<mat> V(X);
   field<mat> E(X);
   field<mat> k(X);
@@ -239,6 +239,8 @@ Rcpp::List online(
   // Init hat matrix field
   for (unsigned int x = 0; x < X; x++)
   {
+    mat basis;
+
     // In second step: skip if recalc is not necessary:
     if (x > 0 &&
         param_grid(x, 4) == param_grid(x - 1, 4) &&
@@ -250,11 +252,12 @@ Rcpp::List online(
     else
     {
 
-      basis_mats(x) = make_basis_matrix(spline_basis_x,
-                                        param_grid(x, 4), // kstep
-                                        param_grid(x, 5), // degree
-                                        param_grid(x, 7)  // uneven grid
-      );
+      basis = make_basis_matrix(spline_basis_x,
+                                param_grid(x, 4),  // kstep
+                                param_grid(x, 5),  // degree
+                                param_grid(x, 7)); // uneven grid
+
+      basis_mats(x) = sp_mat(basis);
     }
 
     int L = basis_mats(x).n_cols;
@@ -273,7 +276,7 @@ Rcpp::List online(
     R_reg(x).zeros(L, K);
     R(x).zeros(L, K);
 
-    beta(x) = (w0 * pinv(basis_mats(x)).t()).t();
+    beta(x) = (w0 * pinv(basis).t()).t();
 
     w0field(x) = beta(x);
 
