@@ -236,6 +236,32 @@ Rcpp::List online(
   field<mat> basis_mats(param_grid.n_rows);
   vec spline_basis_x = regspace(1, P) / (P + 1);
 
+  if (P > 1)
+  {
+    // Init hat matrix field
+    for (unsigned int x = 0; x < X; x++)
+    {
+      // In second step: skip if recalc is not necessary:
+      if (x > 0 &&
+          param_grid(x, 4) == param_grid(x - 1, 4) &&
+          param_grid(x, 5) == param_grid(x - 1, 5) &&
+          param_grid(x, 7) == param_grid(x - 1, 7))
+      {
+        basis_mats(x) = basis_mats(x - 1);
+      }
+      else
+      {
+
+        basis_mats(x) = make_basis_matrix(spline_basis_x,
+                                          param_grid(x, 4), // kstep
+                                          param_grid(x, 5), // degree
+                                          param_grid(x, 7)  // uneven grid
+        );
+      }
+      R_CheckUserInterrupt();
+    }
+  }
+
   // Only if smoothing is possible (tau_vec.size > 1)
   if (P > 1)
   {

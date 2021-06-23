@@ -16,6 +16,11 @@ arma::mat make_hat_matrix(const arma::vec &x,
                           const int deg,
                           const double &a);
 
+arma::mat make_basis_matrix(const arma::vec &x,
+                            const double &kstep,
+                            const int deg,
+                            const double &a);
+
 arma::vec spline_fit(const arma::vec &y,
                      const arma::vec &x,
                      const double &lambda,
