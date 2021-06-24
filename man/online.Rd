@@ -8,7 +8,7 @@ online(y, experts, tau, intercept = FALSE, loss_function = "quantile",
 loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
 forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
-knot_distance = 0.025, knot_distance_power = 1,
+knot_distance = 0.1, knot_distance_power = 1,
 gradient = TRUE, loss_array = NULL, regret_array = NULL,
 trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE,
 soft_threshold = -Inf, ex_post_soft_threshold = FALSE, hard_threshold = -Inf,
@@ -63,7 +63,7 @@ Defaults to 0. 1 leads to uniform weights.}
 
 \item{deg}{Degree of the B-Spine basis functions.}
 
-\item{knot_distance}{determines the distance of the knots. Defaults to 0.025 which corrsponds to the grid steps when knot_distance_power = 1 (the default).}
+\item{knot_distance}{determines the distance of the knots. Defaults to 0.1 which corrsponds to the grid steps when knot_distance_power = 1 (the default).}
 
 \item{knot_distance_power}{Parameter which defines the symetrie of the b-spline basis. Defaults to 1 which corresponds to the equidistant case. Values less than 1 create more knots in the center while values above 1 concentrate more knots in the tails.}
 
