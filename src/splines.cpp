@@ -78,6 +78,12 @@ mat make_basis_matrix(const vec &x, const double &kstep, const int deg, const do
         B = splines2_basis(x, knots, deg, boundary_knots);
         // Remove columns without contribution
         B = B.cols(find(sum(B) >= 1E-6));
+
+        for (double &e : B)
+        {
+            if (e < 1E-10)
+                e = 0;
+        }
     }
     else
     {
