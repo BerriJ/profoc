@@ -27,6 +27,9 @@ struct objective_data
     double penalty_parameter = 0;
     bool intercept;
     bool debias;
+    sp_mat basis;
+    cube experts_cube;
+    vec tau_vec;
 };
 
 // Global decleration of objective val
@@ -95,6 +98,71 @@ double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
     return obj_val;
 }
 
+double objective2(const vec &vals_inp, vec *grad_out, void *opt_data)
+{
+    objective_data *objfn_data = reinterpret_cast<objective_data *>(opt_data);
+
+    int K = objfn_data->K;
+    vec truth = objfn_data->truth;
+    mat experts = objfn_data->experts;
+    std::string loss_function = objfn_data->loss_function;
+    vec tau_vec = objfn_data->tau_vec;
+    double loss_scaling = objfn_data->loss_scaling;
+    double forget = objfn_data->forget;
+    double penalty_parameter = objfn_data->penalty_parameter;
+    bool intercept = objfn_data->intercept;
+    bool debias = objfn_data->debias;
+    sp_mat basis = objfn_data->basis;
+    cube experts_cube = objfn_data->experts_cube;
+
+    vec pred = experts * vals_inp;
+    vec loss_vec(experts.n_rows);
+
+    // for (unsigned int i = 0; i < experts.n_rows; i++)
+    // {
+    //     loss_vec(i) = loss(truth(i),
+    //                        pred(i),
+    //                        0, // Only used when gradient = TRUE
+    //                        loss_function,
+    //                        tau,
+    //                        loss_scaling, // Scaling parameter
+    //                        false);
+    //     loss_vec(i) *= std::pow(1 - forget, experts.n_rows - (i + 1));
+    // }
+
+    // obj_val = sum(loss_vec);
+
+    // double constraint_penalty;
+
+    // constraint_penalty = penalty_parameter * fabs(sum(vals_inp.subvec(debias * intercept, vals_inp.n_elem - 1)) - 1);
+
+    // vec loss_grad(experts.n_rows);
+
+    // if (grad_out)
+    // {
+    //     for (int k = 0; k < K; k++)
+    //     {
+    //         for (unsigned int i = 0; i < experts.n_rows; i++)
+    //         {
+    //             loss_grad(i) = loss_grad_wrt_w(experts(i, k),
+    //                                            pred(i),
+    //                                            truth(i),
+    //                                            tau,
+    //                                            loss_function,
+    //                                            loss_scaling,
+    //                                            vals_inp(k));
+    //             loss_grad(i) *= std::pow(1 - forget, experts.n_rows - (i + 1));
+    //         }
+
+    //         (*grad_out)(k) = sum(loss_grad);
+    //     }
+    // }
+
+    // obj_val += constraint_penalty;
+
+    return obj_val;
+}
+
 // additional data for constraint function
 struct constraint_data
 {
@@ -148,6 +216,113 @@ vec optimize_weights(const vec &truth,
     opt_obj_data.forget = std::move(forget);
     opt_obj_data.intercept = intercept;
     opt_obj_data.debias = debias;
+
+    // Iinit weights
+    vec initvals(K, fill::ones);
+    initvals.subvec(debias * intercept, initvals.n_elem - 1) /= (K - debias * intercept);
+
+    bool success;
+    optim::algo_settings_t settings;
+    settings.rel_objfn_change_tol = 1E-07;
+    constraint_data opt_constr_data;
+
+    if (affine && positive)
+    {
+        opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
+        settings.vals_bound = true;
+        settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
+        settings.lower_bounds.fill(0);
+        if (debias && intercept)
+        {
+            settings.lower_bounds(0) = -1E+06;
+        }
+        settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
+        settings.upper_bounds.fill(1E+06);
+
+        // Just a hack so that the while condition is not fulfilled directly
+        initvals += 1E-04;
+        while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-06)
+        {
+            opt_obj_data.penalty_parameter *= 10;
+            success = optim::nm(initvals, objective, &opt_obj_data, settings);
+            if (opt_obj_data.penalty_parameter > 1E+10)
+            {
+                break;
+            }
+        }
+    }
+    else if (affine)
+    {
+        opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
+
+        // Just a hack so that the while condition is not fulfilled directly
+        initvals += 1E-04;
+        while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-06)
+        {
+            opt_obj_data.penalty_parameter *= 10;
+            success = optim::nm(initvals, objective, &opt_obj_data, settings);
+            if (opt_obj_data.penalty_parameter > 1E+10)
+            {
+                break;
+            }
+        }
+    }
+    else if (positive)
+    {
+        settings.vals_bound = true;
+        settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
+        settings.lower_bounds.fill(0);
+        if (debias && intercept)
+        {
+            settings.lower_bounds(0) = -1E+06;
+        }
+        settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
+        settings.upper_bounds.fill(1E+06);
+
+        success = optim::nm(initvals, objective, &opt_obj_data, settings);
+    }
+    else
+    {
+        success = optim::nm(initvals, objective, &opt_obj_data, settings);
+    }
+
+    if (!success)
+    {
+        Rcpp::warning("Warning: Convergence was not succesfull.");
+    }
+
+    return initvals;
+}
+
+// [[Rcpp::export]]
+vec optimize_weights2(const vec &truth,
+                      const cube &experts,
+                      const bool &affine,
+                      const bool &positive,
+                      const bool &intercept,
+                      const bool &debias,
+                      const std::string &loss_function,
+                      const vec &tau_vec,
+                      const double &forget,
+                      const double &loss_scaling,
+                      const sp_mat &basis)
+{
+
+    const int P = experts.n_cols;
+    const int K = experts.n_slices;
+
+    // Prepare additional data for objective
+    objective_data opt_obj_data;
+    opt_obj_data.K = K;
+    opt_obj_data.truth = std::move(truth);
+    opt_obj_data.loss_function = std::move(loss_function);
+    opt_obj_data.tau_vec = std::move(tau_vec);
+    opt_obj_data.loss_scaling = std::move(loss_scaling);
+    opt_obj_data.forget = std::move(forget);
+    opt_obj_data.intercept = intercept;
+    opt_obj_data.debias = debias;
+    opt_obj_data.basis = basis;
+    opt_obj_data.experts_cube = std::move(experts);
 
     // Iinit weights
     vec initvals(K, fill::ones);

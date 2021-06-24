@@ -189,6 +189,39 @@ Rcpp::List batch(
         }
     }
 
+    field<sp_mat> basis_mats(X);
+    field<mat> beta(X);
+
+    // Init hat matrix field
+    for (unsigned int x = 0; x < X; x++)
+    {
+        mat basis;
+
+        // In second step: skip if recalc is not necessary:
+        if (x > 0 &&
+            param_grid(x, 4) == param_grid(x - 1, 3) &&
+            param_grid(x, 5) == param_grid(x - 1, 4) &&
+            param_grid(x, 7) == param_grid(x - 1, 6))
+        {
+            basis_mats(x) = basis_mats(x - 1);
+            basis = basis_mats(x);
+        }
+        else
+        {
+
+            basis = make_basis_matrix(spline_basis_x,
+                                      param_grid(x, 3),  // kstep
+                                      param_grid(x, 4),  // degree
+                                      param_grid(x, 6)); // uneven grid
+
+            basis_mats(x) = sp_mat(basis);
+        }
+
+        beta(x) = (w_post.slice(x).t() * pinv(basis).t()).t();
+
+        R_CheckUserInterrupt();
+    }
+
     // Used for rolling window
     int start = 0;
 
@@ -235,6 +268,22 @@ Rcpp::List batch(
 
         for (unsigned int x = 0; x < X; x++)
         {
+            cube experts_tmp_cube = experts.rows(start, t - lead_time);
+
+            // >> Insert optimization of betas
+            // optimize_weights2(
+            //     y(span(start, t - lead_time), 0),
+            //     experts_tmp_cube,
+            //     affine,
+            //     positive,
+            //     intercept,
+            //     debias,
+            //     loss_function,
+            //     tau_vec,
+            //     param_grid(x, 1), // Forget
+            //     loss_parameter,
+            //     basis_mats(x));
+
             for (unsigned int p = 0; p < P; p++)
             {
 

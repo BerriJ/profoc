@@ -66,6 +66,14 @@ set_default <- function(input, value) {
     .Call(`_profoc_set_default`, input, value)
 }
 
+vec2mat <- function(x, matrows, matcols) {
+    .Call(`_profoc_vec2mat`, x, matrows, matcols)
+}
+
+mat2vec <- function(x) {
+    .Call(`_profoc_mat2vec`, x)
+}
+
 #' @template function_online
 #'
 #' @template param_y
@@ -116,6 +124,10 @@ online <- function(y, experts, tau = as.numeric( c()), intercept = FALSE, loss_f
 
 optimize_weights <- function(truth, experts, affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, loss_function = "quantile", tau = 0.5, forget = 0, loss_scaling = 1) {
     .Call(`_profoc_optimize_weights`, truth, experts, affine, positive, intercept, debias, loss_function, tau, forget, loss_scaling)
+}
+
+optimize_weights2 <- function(truth, experts, affine, positive, intercept, debias, loss_function, tau_vec, forget, loss_scaling, basis) {
+    .Call(`_profoc_optimize_weights2`, truth, experts, affine, positive, intercept, debias, loss_function, tau_vec, forget, loss_scaling, basis)
 }
 
 #' @template function_oracle

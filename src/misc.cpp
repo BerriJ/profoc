@@ -93,3 +93,38 @@ double threshold_soft(double &x,
         x = sgn(x) * std::max(fabs(x) - threshold_val, double(0));
     return 0;
 }
+
+// [[Rcpp::export]]
+mat vec2mat(vec &x,
+            int &matrows,
+            int &matcols)
+{
+
+    mat outmat(matrows, matcols);
+    int i = 0;
+    for (int row = 0; row < matrows; row++)
+    {
+        for (int col = 0; col < matcols; col++)
+        {
+            outmat(row, col) = x(i);
+            i += 1;
+        }
+    }
+    return outmat;
+}
+
+// [[Rcpp::export]]
+vec mat2vec(mat &x)
+{
+    vec outvec(x.n_rows * x.n_cols);
+    int i = 0;
+    for (int row = 0; row < x.n_rows; row++)
+    {
+        for (int col = 0; col < x.n_cols; col++)
+        {
+            outvec(i) = x(row, col);
+            i += 1;
+        }
+    }
+    return outvec;
+}

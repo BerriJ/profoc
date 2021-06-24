@@ -136,6 +136,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// vec2mat
+mat vec2mat(vec& x, int& matrows, int& matcols);
+RcppExport SEXP _profoc_vec2mat(SEXP xSEXP, SEXP matrowsSEXP, SEXP matcolsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int& >::type matrows(matrowsSEXP);
+    Rcpp::traits::input_parameter< int& >::type matcols(matcolsSEXP);
+    rcpp_result_gen = Rcpp::wrap(vec2mat(x, matrows, matcols));
+    return rcpp_result_gen;
+END_RCPP
+}
+// mat2vec
+vec mat2vec(mat& x);
+RcppExport SEXP _profoc_mat2vec(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< mat& >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(mat2vec(x));
+    return rcpp_result_gen;
+END_RCPP
+}
 // online
 Rcpp::List online(mat& y, cube& experts, Rcpp::NumericVector tau, const bool& intercept, const std::string loss_function, const double& loss_parameter, const bool& ex_post_smooth, const bool& ex_post_fs, Rcpp::NumericVector lambda, const std::string method, const std::string method_var, Rcpp::NumericVector forget_regret, const double& forget_performance, Rcpp::NumericVector fixed_share, Rcpp::NumericVector gamma, Rcpp::NumericVector ndiff, Rcpp::NumericVector deg, Rcpp::NumericVector knot_distance, Rcpp::NumericVector knot_distance_power, const bool& gradient, Rcpp::NumericVector loss_array, Rcpp::NumericVector regret_array, const bool trace, Rcpp::Nullable<Rcpp::NumericMatrix> init_weights, const int& lead_time, bool allow_quantile_crossing, Rcpp::NumericVector soft_threshold, bool ex_post_soft_threshold, Rcpp::NumericVector hard_threshold, bool ex_post_hard_threshold);
 RcppExport SEXP _profoc_online(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP interceptSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP ex_post_smoothSEXP, SEXP ex_post_fsSEXP, SEXP lambdaSEXP, SEXP methodSEXP, SEXP method_varSEXP, SEXP forget_regretSEXP, SEXP forget_performanceSEXP, SEXP fixed_shareSEXP, SEXP gammaSEXP, SEXP ndiffSEXP, SEXP degSEXP, SEXP knot_distanceSEXP, SEXP knot_distance_powerSEXP, SEXP gradientSEXP, SEXP loss_arraySEXP, SEXP regret_arraySEXP, SEXP traceSEXP, SEXP init_weightsSEXP, SEXP lead_timeSEXP, SEXP allow_quantile_crossingSEXP, SEXP soft_thresholdSEXP, SEXP ex_post_soft_thresholdSEXP, SEXP hard_thresholdSEXP, SEXP ex_post_hard_thresholdSEXP) {
@@ -193,6 +217,27 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type forget(forgetSEXP);
     Rcpp::traits::input_parameter< const double& >::type loss_scaling(loss_scalingSEXP);
     rcpp_result_gen = Rcpp::wrap(optimize_weights(truth, experts, affine, positive, intercept, debias, loss_function, tau, forget, loss_scaling));
+    return rcpp_result_gen;
+END_RCPP
+}
+// optimize_weights2
+vec optimize_weights2(const vec& truth, const cube& experts, const bool& affine, const bool& positive, const bool& intercept, const bool& debias, const std::string& loss_function, const vec& tau_vec, const double& forget, const double& loss_scaling, const sp_mat& basis);
+RcppExport SEXP _profoc_optimize_weights2(SEXP truthSEXP, SEXP expertsSEXP, SEXP affineSEXP, SEXP positiveSEXP, SEXP interceptSEXP, SEXP debiasSEXP, SEXP loss_functionSEXP, SEXP tau_vecSEXP, SEXP forgetSEXP, SEXP loss_scalingSEXP, SEXP basisSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const vec& >::type truth(truthSEXP);
+    Rcpp::traits::input_parameter< const cube& >::type experts(expertsSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type affine(affineSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type positive(positiveSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type intercept(interceptSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type debias(debiasSEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type loss_function(loss_functionSEXP);
+    Rcpp::traits::input_parameter< const vec& >::type tau_vec(tau_vecSEXP);
+    Rcpp::traits::input_parameter< const double& >::type forget(forgetSEXP);
+    Rcpp::traits::input_parameter< const double& >::type loss_scaling(loss_scalingSEXP);
+    Rcpp::traits::input_parameter< const sp_mat& >::type basis(basisSEXP);
+    rcpp_result_gen = Rcpp::wrap(optimize_weights2(truth, experts, affine, positive, intercept, debias, loss_function, tau_vec, forget, loss_scaling, basis));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -313,8 +358,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_diff_cpp", (DL_FUNC) &_profoc_diff_cpp, 3},
     {"_profoc_get_combinations", (DL_FUNC) &_profoc_get_combinations, 2},
     {"_profoc_set_default", (DL_FUNC) &_profoc_set_default, 2},
+    {"_profoc_vec2mat", (DL_FUNC) &_profoc_vec2mat, 3},
+    {"_profoc_mat2vec", (DL_FUNC) &_profoc_mat2vec, 1},
     {"_profoc_online", (DL_FUNC) &_profoc_online, 30},
     {"_profoc_optimize_weights", (DL_FUNC) &_profoc_optimize_weights, 10},
+    {"_profoc_optimize_weights2", (DL_FUNC) &_profoc_optimize_weights2, 11},
     {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 10},
     {"_profoc_make_knots", (DL_FUNC) &_profoc_make_knots, 3},
     {"_profoc_make_difference_matrix", (DL_FUNC) &_profoc_make_difference_matrix, 3},
