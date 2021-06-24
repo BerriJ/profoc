@@ -221,12 +221,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // optimize_weights2
-vec optimize_weights2(const vec& truth, const cube& experts, const bool& affine, const bool& positive, const bool& intercept, const bool& debias, const std::string& loss_function, const vec& tau_vec, const double& forget, const double& loss_scaling, const sp_mat& basis, const mat& beta);
+mat optimize_weights2(const mat& truth, const cube& experts, const bool& affine, const bool& positive, const bool& intercept, const bool& debias, const std::string& loss_function, const vec& tau_vec, const double& forget, const double& loss_scaling, const sp_mat& basis, const mat& beta);
 RcppExport SEXP _profoc_optimize_weights2(SEXP truthSEXP, SEXP expertsSEXP, SEXP affineSEXP, SEXP positiveSEXP, SEXP interceptSEXP, SEXP debiasSEXP, SEXP loss_functionSEXP, SEXP tau_vecSEXP, SEXP forgetSEXP, SEXP loss_scalingSEXP, SEXP basisSEXP, SEXP betaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const vec& >::type truth(truthSEXP);
+    Rcpp::traits::input_parameter< const mat& >::type truth(truthSEXP);
     Rcpp::traits::input_parameter< const cube& >::type experts(expertsSEXP);
     Rcpp::traits::input_parameter< const bool& >::type affine(affineSEXP);
     Rcpp::traits::input_parameter< const bool& >::type positive(positiveSEXP);

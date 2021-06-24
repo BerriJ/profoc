@@ -8,7 +8,7 @@ batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
 debias = TRUE, initial_window = 30, expanding_window = TRUE,
 loss_function = "quantile", loss_parameter = 1, lambda = -Inf,
 forget = 0, forget_performance = 0, fixed_share = 0, ndiff = 1, deg = 3,
-knot_distance = 0.025, knot_distance_power = 1, trace = TRUE, lead_time = 0,
+knot_distance = 0.1, knot_distance_power = 1, trace = TRUE, lead_time = 0,
 allow_quantile_crossing = FALSE, soft_threshold = -Inf, hard_threshold = -Inf)
 }
 \arguments{

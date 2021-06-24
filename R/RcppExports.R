@@ -31,10 +31,10 @@
 #' debias = TRUE, initial_window = 30, expanding_window = TRUE,
 #' loss_function = "quantile", loss_parameter = 1, lambda = -Inf,
 #' forget = 0, forget_performance = 0, fixed_share = 0, ndiff = 1, deg = 3,
-#' knot_distance = 0.025, knot_distance_power = 1, trace = TRUE, lead_time = 0,
+#' knot_distance = 0.1, knot_distance_power = 1, trace = TRUE, lead_time = 0,
 #' allow_quantile_crossing = FALSE, soft_threshold = -Inf, hard_threshold = -Inf)
 #' @export
-batch <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, initial_window = 30L, expanding_window = TRUE, loss_function = "quantile", loss_parameter = 1, lambda = as.numeric( c(-1 / 0)), forget = as.numeric( c(0)), forget_performance = 0, fixed_share = as.numeric( c(0)), ndiff = as.numeric( c(1.5)), deg = as.numeric( c(3)), knot_distance = as.numeric( c(0.025)), knot_distance_power = as.numeric( c(1)), trace = TRUE, lead_time = 0L, allow_quantile_crossing = FALSE, soft_threshold = as.numeric( c(-1 / 0)), hard_threshold = as.numeric( c(-1 / 0))) {
+batch <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, initial_window = 30L, expanding_window = TRUE, loss_function = "quantile", loss_parameter = 1, lambda = as.numeric( c(-1 / 0)), forget = as.numeric( c(0)), forget_performance = 0, fixed_share = as.numeric( c(0)), ndiff = as.numeric( c(1.5)), deg = as.numeric( c(3)), knot_distance = as.numeric( c(0.1)), knot_distance_power = as.numeric( c(1)), trace = TRUE, lead_time = 0L, allow_quantile_crossing = FALSE, soft_threshold = as.numeric( c(-1 / 0)), hard_threshold = as.numeric( c(-1 / 0))) {
     .Call(`_profoc_batch`, y, experts, tau, affine, positive, intercept, debias, initial_window, expanding_window, loss_function, loss_parameter, lambda, forget, forget_performance, fixed_share, ndiff, deg, knot_distance, knot_distance_power, trace, lead_time, allow_quantile_crossing, soft_threshold, hard_threshold)
 }
 

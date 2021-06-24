@@ -40,7 +40,7 @@ using namespace arma;
 //' debias = TRUE, initial_window = 30, expanding_window = TRUE,
 //' loss_function = "quantile", loss_parameter = 1, lambda = -Inf,
 //' forget = 0, forget_performance = 0, fixed_share = 0, ndiff = 1, deg = 3,
-//' knot_distance = 0.025, knot_distance_power = 1, trace = TRUE, lead_time = 0,
+//' knot_distance = 0.1, knot_distance_power = 1, trace = TRUE, lead_time = 0,
 //' allow_quantile_crossing = FALSE, soft_threshold = -Inf, hard_threshold = -Inf)
 //' @export
 // [[Rcpp::export]]
@@ -62,7 +62,7 @@ Rcpp::List batch(
     Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(0),
     Rcpp::NumericVector ndiff = Rcpp::NumericVector::create(1.5),
     Rcpp::NumericVector deg = Rcpp::NumericVector::create(3),
-    Rcpp::NumericVector knot_distance = Rcpp::NumericVector::create(0.025),
+    Rcpp::NumericVector knot_distance = Rcpp::NumericVector::create(0.1),
     Rcpp::NumericVector knot_distance_power = Rcpp::NumericVector::create(1),
     const bool trace = true,
     const int &lead_time = 0,
@@ -268,21 +268,6 @@ Rcpp::List batch(
 
         for (unsigned int x = 0; x < X; x++)
         {
-            cube experts_tmp_cube = experts.rows(start, t - lead_time);
-
-            // optimize_weights2(
-            //     y(span(start, t - lead_time), 0),
-            //     experts_tmp_cube,
-            //     affine,
-            //     positive,
-            //     intercept,
-            //     debias,
-            //     loss_function,
-            //     tau_vec,
-            //     param_grid(x, 1), // Forget
-            //     loss_parameter,
-            //     basis_mats(x),
-            //     beta(x));
 
             for (unsigned int p = 0; p < P; p++)
             {
@@ -295,24 +280,40 @@ Rcpp::List batch(
                                                  tau_vec(p),     // tau_vec
                                                  loss_parameter, // alpha
                                                  false);
-
-                // optim_weights()
-                mat experts_tmp = experts.tube(span(start, t - lead_time), span(p, p));
-
-                w_post(span(p), span::all, span(x)) = optimize_weights(
-                    y(span(start, t - lead_time), p),
-                    experts_tmp,
-                    affine,
-                    positive,
-                    intercept,
-                    debias,
-                    loss_function,
-                    tau_vec(p),
-                    param_grid(x, 1), // Forget
-                    loss_parameter);
-
-                R_CheckUserInterrupt();
             }
+
+            // optim_weights()
+            // mat experts_tmp = experts.tube(span(start, t - lead_time), span(p, p));
+
+            // w_post(span(p), span::all, span(x)) = optimize_weights(
+            //     y(span(start, t - lead_time), p),
+            //     experts_tmp,
+            //     affine,
+            //     positive,
+            //     intercept,
+            //     debias,
+            //     loss_function,
+            //     tau_vec(p),
+            //     param_grid(x, 1), // Forget
+            //     loss_parameter);
+
+            cube experts_tmp_cube = experts.rows(start, t - lead_time);
+
+            w_post.slice(x) = optimize_weights2(
+                y.rows(start, t - lead_time),
+                experts_tmp_cube,
+                affine,
+                positive,
+                intercept,
+                debias,
+                loss_function,
+                tau_vec,
+                param_grid(x, 1), // Forget
+                loss_parameter,
+                basis_mats(x),
+                beta(x));
+
+            R_CheckUserInterrupt();
 
             // Apply thresholds
 

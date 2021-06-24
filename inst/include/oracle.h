@@ -15,7 +15,7 @@ arma::vec optimize_weights(const arma::vec &truth,
                            const double &forget,
                            const double &loss_scaling);
 
-arma::vec optimize_weights2(const arma::vec &truth,
+arma::mat optimize_weights2(const arma::mat &truth,
                             const arma::cube &experts,
                             const bool &affine,
                             const bool &positive,
