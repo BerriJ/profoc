@@ -277,8 +277,7 @@ Rcpp::List online(
     R_reg(x).zeros(L, K);
     R(x).zeros(L, K);
 
-    // beta(x) = (w0 * pinv(basis).t()).t();
-    beta(x) = solve(basis, w0.t(), solve_opts::fast);
+    beta(x) = (w0 * pinv(basis).t()).t();
 
     w0field(x) = beta(x);
 
