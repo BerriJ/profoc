@@ -25,6 +25,7 @@ arma::vec optimize_weights2(const arma::vec &truth,
                             const arma::vec &tau_vec,
                             const double &forget,
                             const double &loss_scaling,
-                            const arma::sp_mat &basis);
+                            const arma::sp_mat &basis,
+                            const arma::mat &beta);
 
 #endif

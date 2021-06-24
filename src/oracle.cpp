@@ -305,7 +305,8 @@ vec optimize_weights2(const vec &truth,
                       const vec &tau_vec,
                       const double &forget,
                       const double &loss_scaling,
-                      const sp_mat &basis)
+                      const sp_mat &basis,
+                      const mat &beta)
 {
 
     const int P = experts.n_cols;
@@ -325,72 +326,78 @@ vec optimize_weights2(const vec &truth,
     opt_obj_data.experts_cube = std::move(experts);
 
     // Iinit weights
-    vec initvals(K, fill::ones);
-    initvals.subvec(debias * intercept, initvals.n_elem - 1) /= (K - debias * intercept);
+    // vec initvals(K, fill::ones);
+    // initvals.subvec(debias * intercept, initvals.n_elem - 1) /= (K - debias * intercept);
+
+    arma::cout << "ok" << arma::endl;
+    arma::cout << beta.n_cols << arma::endl;
+    arma::cout << beta.n_rows << arma::endl;
+
+    vec initvals = mat2vec(beta);
 
     bool success;
     optim::algo_settings_t settings;
     settings.rel_objfn_change_tol = 1E-07;
     constraint_data opt_constr_data;
 
-    if (affine && positive)
-    {
-        opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
-        settings.vals_bound = true;
-        settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
-        settings.lower_bounds.fill(0);
-        if (debias && intercept)
-        {
-            settings.lower_bounds(0) = -1E+06;
-        }
-        settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
-        settings.upper_bounds.fill(1E+06);
+    // if (affine && positive)
+    // {
+    //     opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
+    //     settings.vals_bound = true;
+    //     settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
+    //     settings.lower_bounds.fill(0);
+    //     if (debias && intercept)
+    //     {
+    //         settings.lower_bounds(0) = -1E+06;
+    //     }
+    //     settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
+    //     settings.upper_bounds.fill(1E+06);
 
-        // Just a hack so that the while condition is not fulfilled directly
-        initvals += 1E-04;
-        while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-06)
-        {
-            opt_obj_data.penalty_parameter *= 10;
-            success = optim::nm(initvals, objective, &opt_obj_data, settings);
-            if (opt_obj_data.penalty_parameter > 1E+10)
-            {
-                break;
-            }
-        }
-    }
-    else if (affine)
-    {
-        opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
+    //     // Just a hack so that the while condition is not fulfilled directly
+    //     initvals += 1E-04;
+    //     while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-06)
+    //     {
+    //         opt_obj_data.penalty_parameter *= 10;
+    //         success = optim::nm(initvals, objective, &opt_obj_data, settings);
+    //         if (opt_obj_data.penalty_parameter > 1E+10)
+    //         {
+    //             break;
+    //         }
+    //     }
+    // }
+    // else if (affine)
+    // {
+    //     opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
 
-        // Just a hack so that the while condition is not fulfilled directly
-        initvals += 1E-04;
-        while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-06)
-        {
-            opt_obj_data.penalty_parameter *= 10;
-            success = optim::nm(initvals, objective, &opt_obj_data, settings);
-            if (opt_obj_data.penalty_parameter > 1E+10)
-            {
-                break;
-            }
-        }
-    }
-    else if (positive)
-    {
-        settings.vals_bound = true;
-        settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
-        settings.lower_bounds.fill(0);
-        if (debias && intercept)
-        {
-            settings.lower_bounds(0) = -1E+06;
-        }
-        settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
-        settings.upper_bounds.fill(1E+06);
+    //     // Just a hack so that the while condition is not fulfilled directly
+    //     initvals += 1E-04;
+    //     while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-06)
+    //     {
+    //         opt_obj_data.penalty_parameter *= 10;
+    //         success = optim::nm(initvals, objective, &opt_obj_data, settings);
+    //         if (opt_obj_data.penalty_parameter > 1E+10)
+    //         {
+    //             break;
+    //         }
+    //     }
+    // }
+    // else if (positive)
+    // {
+    //     settings.vals_bound = true;
+    //     settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
+    //     settings.lower_bounds.fill(0);
+    //     if (debias && intercept)
+    //     {
+    //         settings.lower_bounds(0) = -1E+06;
+    //     }
+    //     settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
+    //     settings.upper_bounds.fill(1E+06);
 
-        success = optim::nm(initvals, objective, &opt_obj_data, settings);
-    }
-    else
+    //     success = optim::nm(initvals, objective, &opt_obj_data, settings);
+    // }
+    // else
     {
-        success = optim::nm(initvals, objective, &opt_obj_data, settings);
+        success = optim::nm(initvals, objective2, &opt_obj_data, settings);
     }
 
     if (!success)

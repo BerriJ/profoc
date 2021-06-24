@@ -19,6 +19,13 @@ double threshold_hard(double &x,
 double threshold_soft(double &x,
                       const double &threshold_val);
 
+// [[Rcpp::export]]
+arma::mat vec2mat(const arma::vec &x,
+                  const int &matrows,
+                  const int &matcols);
+
+arma::vec mat2vec(const arma::mat &x);
+
 template <typename T>
 int sgn(T val)
 {

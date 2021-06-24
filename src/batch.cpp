@@ -270,7 +270,6 @@ Rcpp::List batch(
         {
             cube experts_tmp_cube = experts.rows(start, t - lead_time);
 
-            // >> Insert optimization of betas
             // optimize_weights2(
             //     y(span(start, t - lead_time), 0),
             //     experts_tmp_cube,
@@ -282,7 +281,8 @@ Rcpp::List batch(
             //     tau_vec,
             //     param_grid(x, 1), // Forget
             //     loss_parameter,
-            //     basis_mats(x));
+            //     basis_mats(x),
+            //     beta(x));
 
             for (unsigned int p = 0; p < P; p++)
             {

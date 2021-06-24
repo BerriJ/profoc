@@ -95,9 +95,9 @@ double threshold_soft(double &x,
 }
 
 // [[Rcpp::export]]
-mat vec2mat(vec &x,
-            int &matrows,
-            int &matcols)
+mat vec2mat(const vec &x,
+            const int &matrows,
+            const int &matcols)
 {
 
     mat outmat(matrows, matcols);
@@ -114,7 +114,7 @@ mat vec2mat(vec &x,
 }
 
 // [[Rcpp::export]]
-vec mat2vec(mat &x)
+vec mat2vec(const mat &x)
 {
     vec outvec(x.n_rows * x.n_cols);
     int i = 0;
