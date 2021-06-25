@@ -29,8 +29,11 @@ using namespace arma;
 //' @template param_fixed_share
 //' @template param_ndiff
 //' @template param_deg
+//' @template param_basis_deg
 //' @template param_knot_distance
+//' @template param_basis_knot_distance
 //' @template param_knot_distance_power
+//' @template param_basis_knot_distance_power
 //' @template param_trace
 //' @template param_lead_time
 //' @template param_allow_quantile_crossing
@@ -40,7 +43,8 @@ using namespace arma;
 //' debias = TRUE, initial_window = 30, expanding_window = TRUE,
 //' loss_function = "quantile", loss_parameter = 1, lambda = -Inf,
 //' forget = 0, forget_performance = 0, fixed_share = 0, ndiff = 1, deg = 3,
-//' knot_distance = 0.1, knot_distance_power = 1, trace = TRUE, lead_time = 0,
+//' basis_deg = 3, knot_distance = 0.1, basis_knot_distance = 0.1,
+//' knot_distance_power = 1, basis_knot_distance_power = 1, trace = TRUE, lead_time = 0,
 //' allow_quantile_crossing = FALSE, soft_threshold = -Inf, hard_threshold = -Inf)
 //' @export
 // [[Rcpp::export]]

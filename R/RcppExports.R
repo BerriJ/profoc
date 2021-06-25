@@ -20,8 +20,11 @@
 #' @template param_fixed_share
 #' @template param_ndiff
 #' @template param_deg
+#' @template param_basis_deg
 #' @template param_knot_distance
+#' @template param_basis_knot_distance
 #' @template param_knot_distance_power
+#' @template param_basis_knot_distance_power
 #' @template param_trace
 #' @template param_lead_time
 #' @template param_allow_quantile_crossing
@@ -31,7 +34,8 @@
 #' debias = TRUE, initial_window = 30, expanding_window = TRUE,
 #' loss_function = "quantile", loss_parameter = 1, lambda = -Inf,
 #' forget = 0, forget_performance = 0, fixed_share = 0, ndiff = 1, deg = 3,
-#' knot_distance = 0.1, knot_distance_power = 1, trace = TRUE, lead_time = 0,
+#' basis_deg = 3, knot_distance = 0.1, basis_knot_distance = 0.1,
+#' knot_distance_power = 1, basis_knot_distance_power = 1, trace = TRUE, lead_time = 0,
 #' allow_quantile_crossing = FALSE, soft_threshold = -Inf, hard_threshold = -Inf)
 #' @export
 batch <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, initial_window = 30L, expanding_window = TRUE, loss_function = "quantile", loss_parameter = 1, lambda = as.numeric( c(-1 / 0)), forget = as.numeric( c(0)), forget_performance = 0, fixed_share = as.numeric( c(0)), ndiff = as.numeric( c(1.5)), deg = as.numeric( c(3)), basis_deg = as.numeric( c()), knot_distance = as.numeric( c(0.1)), basis_knot_distance = as.numeric( c()), knot_distance_power = as.numeric( c(1)), basis_knot_distance_power = as.numeric( c()), trace = TRUE, lead_time = 0L, allow_quantile_crossing = FALSE, soft_threshold = as.numeric( c(-1 / 0)), hard_threshold = as.numeric( c(-1 / 0))) {
@@ -95,8 +99,11 @@ mat2vec <- function(x) {
 #' @param gamma Scaling parameter for the learning rate.
 #' @template param_ndiff
 #' @template param_deg
+#' @template param_basis_deg
 #' @template param_knot_distance
+#' @template param_basis_knot_distance
 #' @template param_knot_distance_power
+#' @template param_basis_knot_distance_power
 #' @param gradient Determines if a linearized version of the loss is used.
 #' @param loss_array User specified loss array. If specified, the loss will not be calculated by profoc.
 #' @param regret_array User specified regret array. If specifiec, the regret will not be calculated by profoc.
@@ -112,7 +119,8 @@ mat2vec <- function(x) {
 #' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 #' lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
 #' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
-#' knot_distance = 0.1, knot_distance_power = 1,
+#' basis_deg = 3, knot_distance = 0.1, basis_knot_distance = 0.1,
+#' knot_distance_power = 1, basis_knot_distance_power = 1,
 #' gradient = TRUE, loss_array = NULL, regret_array = NULL,
 #' trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE,
 #' soft_threshold = -Inf, ex_post_soft_threshold = FALSE, hard_threshold = -Inf,

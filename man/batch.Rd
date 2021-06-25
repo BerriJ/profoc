@@ -8,7 +8,8 @@ batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
 debias = TRUE, initial_window = 30, expanding_window = TRUE,
 loss_function = "quantile", loss_parameter = 1, lambda = -Inf,
 forget = 0, forget_performance = 0, fixed_share = 0, ndiff = 1, deg = 3,
-knot_distance = 0.1, knot_distance_power = 1, trace = TRUE, lead_time = 0,
+basis_deg = 3, knot_distance = 0.1, basis_knot_distance = 0.1,
+knot_distance_power = 1, basis_knot_distance_power = 1, trace = TRUE, lead_time = 0,
 allow_quantile_crossing = FALSE, soft_threshold = -Inf, hard_threshold = -Inf)
 }
 \arguments{
@@ -57,9 +58,19 @@ Defaults to 0. 1 leads to uniform weights.}
 
 \item{deg}{Degree of the B-Spine basis functions.}
 
+\item{basis_deg}{Degree of the basis reducing the probability space. Defaults to
+deg if unspecified.}
+
 \item{knot_distance}{determines the distance of the knots. Defaults to 0.1 which corrsponds to the grid steps when knot_distance_power = 1 (the default).}
 
+\item{basis_knot_distance}{determines the distance of the knots in the probability
+basis. Defaults to the value of knot_distance.}
+
 \item{knot_distance_power}{Parameter which defines the symetrie of the b-spline basis. Defaults to 1 which corresponds to the equidistant case. Values less than 1 create more knots in the center while values above 1 concentrate more knots in the tails.}
+
+\item{basis_knot_distance_power}{Parameter which defines the symetrie of the
+basis reducing the probability space. Takes the value of of knot_distance_
+power if unspecified.}
 
 \item{trace}{If a progessbar shall be printed. Defaults to TRUE.}
 
