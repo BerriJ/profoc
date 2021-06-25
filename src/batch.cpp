@@ -28,11 +28,11 @@ using namespace arma;
 //' @template param_forget_performance
 //' @template param_fixed_share
 //' @template param_ndiff
-//' @template param_deg
+//' @template param_smooth_deg
 //' @template param_basis_deg
-//' @template param_knot_distance
+//' @template param_smooth_knot_distance
 //' @template param_basis_knot_distance
-//' @template param_knot_distance_power
+//' @template param_smooth_knot_distance_power
 //' @template param_basis_knot_distance_power
 //' @template param_trace
 //' @template param_lead_time
@@ -42,9 +42,9 @@ using namespace arma;
 //' @usage batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
 //' debias = TRUE, initial_window = 30, expanding_window = TRUE,
 //' loss_function = "quantile", loss_parameter = 1, lambda = -Inf,
-//' forget = 0, forget_performance = 0, fixed_share = 0, ndiff = 1, deg = 3,
-//' basis_deg = 3, knot_distance = 0.1, basis_knot_distance = 0.1,
-//' knot_distance_power = 1, basis_knot_distance_power = 1, trace = TRUE, lead_time = 0,
+//' forget = 0, forget_performance = 0, fixed_share = 0, ndiff = 1, smooth_deg = 3,
+//' basis_deg = 3, smooth_knot_distance = 0.1, basis_knot_distance = 0.1,
+//' smooth_knot_distance_power = 1, basis_knot_distance_power = 1, trace = TRUE, lead_time = 0,
 //' allow_quantile_crossing = FALSE, soft_threshold = -Inf, hard_threshold = -Inf)
 //' @export
 // [[Rcpp::export]]
@@ -60,17 +60,17 @@ Rcpp::List batch(
     const bool expanding_window = true,
     const std::string loss_function = "quantile",
     const double &loss_parameter = 1,
-    Rcpp::NumericVector lambda = Rcpp::NumericVector::create(-1 / 0),
+    Rcpp::NumericVector smooth_lambda = Rcpp::NumericVector::create(-1 / 0),
     Rcpp::NumericVector forget = Rcpp::NumericVector::create(0),
     const double &forget_performance = 0,
     Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(0),
-    Rcpp::NumericVector ndiff = Rcpp::NumericVector::create(1.5),
-    Rcpp::NumericVector deg = Rcpp::NumericVector::create(3),
-    Rcpp::NumericVector basis_deg = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector knot_distance = Rcpp::NumericVector::create(0.1),
-    Rcpp::NumericVector basis_knot_distance = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector knot_distance_power = Rcpp::NumericVector::create(1),
-    Rcpp::NumericVector basis_knot_distance_power = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector smooth_ndiff = Rcpp::NumericVector::create(1.5),
+    Rcpp::NumericVector smooth_deg = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector basis_deg = Rcpp::NumericVector::create(3),
+    Rcpp::NumericVector smooth_knot_distance = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector basis_knot_distance = Rcpp::NumericVector::create(0.1),
+    Rcpp::NumericVector smooth_knot_distance_power = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector basis_knot_distance_power = Rcpp::NumericVector::create(1),
     const bool trace = true,
     const int &lead_time = 0,
     bool allow_quantile_crossing = false,
@@ -124,37 +124,37 @@ Rcpp::List batch(
         tau_vec.fill(tau_vec(0));
     }
 
-    vec basis_deg_vec = basis_deg;
-    vec basis_knot_distance_vec = basis_knot_distance;
-    vec basis_knot_distance_power_vec = basis_knot_distance_power;
+    vec smooth_deg_vec = smooth_deg;
+    vec smooth_knot_distance_vec = smooth_knot_distance;
+    vec smooth_knot_distance_power_vec = smooth_knot_distance_power;
 
-    if (basis_deg_vec.size() == 0)
+    if (smooth_deg_vec.size() == 0)
     {
-        basis_deg_vec = deg;
+        smooth_deg_vec = basis_deg;
     }
 
-    if (basis_knot_distance_vec.size() == 0)
+    if (smooth_knot_distance_vec.size() == 0)
     {
-        basis_knot_distance_vec = knot_distance;
+        smooth_knot_distance_vec = basis_knot_distance;
     }
 
-    if (basis_knot_distance_power_vec.size() == 0)
+    if (smooth_knot_distance_power_vec.size() == 0)
     {
-        basis_knot_distance_power_vec = knot_distance_power;
+        smooth_knot_distance_power_vec = basis_knot_distance_power;
     }
 
     // Init parametergrid
-    mat param_grid = get_combinations(lambda, forget);                        // Index 0 & 1
-    param_grid = get_combinations(param_grid, fixed_share);                   // index 2
-    param_grid = get_combinations(param_grid, knot_distance);                 // Index 3
-    param_grid = get_combinations(param_grid, deg);                           // Index 4
-    param_grid = get_combinations(param_grid, ndiff);                         // index 5
-    param_grid = get_combinations(param_grid, knot_distance_power);           // Index 6
-    param_grid = get_combinations(param_grid, soft_threshold);                // Index 7
-    param_grid = get_combinations(param_grid, hard_threshold);                // Index 8
-    param_grid = get_combinations(param_grid, basis_deg_vec);                 // Index 9
-    param_grid = get_combinations(param_grid, basis_knot_distance_vec);       // Index 10
-    param_grid = get_combinations(param_grid, basis_knot_distance_power_vec); // Index 11
+    mat param_grid = get_combinations(smooth_lambda, forget);                  // Index 0 & 1
+    param_grid = get_combinations(param_grid, fixed_share);                    // index 2
+    param_grid = get_combinations(param_grid, smooth_knot_distance_vec);       // Index 3
+    param_grid = get_combinations(param_grid, smooth_deg_vec);                 // Index 4
+    param_grid = get_combinations(param_grid, smooth_ndiff);                   // index 5
+    param_grid = get_combinations(param_grid, smooth_knot_distance_power_vec); // Index 6
+    param_grid = get_combinations(param_grid, soft_threshold);                 // Index 7
+    param_grid = get_combinations(param_grid, hard_threshold);                 // Index 8
+    param_grid = get_combinations(param_grid, basis_deg);                      // Index 9
+    param_grid = get_combinations(param_grid, basis_knot_distance);            // Index 10
+    param_grid = get_combinations(param_grid, basis_knot_distance_power);      // Index 11
 
     const int X = param_grid.n_rows;
     mat chosen_params(T, param_grid.n_cols);

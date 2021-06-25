@@ -4,9 +4,6 @@ N <- 2
 P <- 99
 prob_grid <- 1:P / (P + 1)
 
-mean_y <- 0
-sd_y <- 5
-
 # Realized observations
 y <- rnorm(n = T)
 
@@ -20,7 +17,7 @@ for (t in 1:T) {
 model <- online(
     y = matrix(y),
     experts = experts,
-    knot_distance = 1,
+    basis_knot_distance = 1,
     trace = FALSE
 )
 

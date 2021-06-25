@@ -22,8 +22,8 @@ boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
-    lambda = 50,
-    ndiff = 2,
+    smooth_lambda = 50,
+    smooth_ndiff = 2,
     trace = FALSE
 )
 
@@ -31,8 +31,8 @@ boa_smooth_sobol <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
-    lambda = 50,
-    ndiff = 1.5,
+    smooth_lambda = 50,
+    smooth_ndiff = 1.5,
     trace = FALSE
 )
 

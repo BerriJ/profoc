@@ -23,7 +23,7 @@ boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
-    lambda = 2^40,
+    smooth_lambda = 2^40,
     trace = FALSE
 )
 

@@ -30,11 +30,11 @@ using namespace arma;
 //' @template param_fixed_share
 //' @param gamma Scaling parameter for the learning rate.
 //' @template param_ndiff
-//' @template param_deg
+//' @template param_smooth_deg
 //' @template param_basis_deg
-//' @template param_knot_distance
+//' @template param_smooth_knot_distance
 //' @template param_basis_knot_distance
-//' @template param_knot_distance_power
+//' @template param_smooth_knot_distance_power
 //' @template param_basis_knot_distance_power
 //' @param gradient Determines if a linearized version of the loss is used.
 //' @param loss_array User specified loss array. If specified, the loss will not be calculated by profoc.
@@ -50,9 +50,9 @@ using namespace arma;
 //' @usage online(y, experts, tau, intercept = FALSE, loss_function = "quantile",
 //' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 //' lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
-//' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
-//' basis_deg = 3, knot_distance = 0.1, basis_knot_distance = 0.1,
-//' knot_distance_power = 1, basis_knot_distance_power = 1,
+//' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, smooth_deg = 3,
+//' basis_deg = 3, smooth_knot_distance = 0.1, basis_knot_distance = 0.1,
+//' smooth_knot_distance_power = 1, basis_knot_distance_power = 1,
 //' gradient = TRUE, loss_array = NULL, regret_array = NULL,
 //' trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE,
 //' soft_threshold = -Inf, ex_post_soft_threshold = FALSE, hard_threshold = -Inf,
@@ -68,20 +68,20 @@ Rcpp::List online(
     const double &loss_parameter = 1,
     const bool &ex_post_smooth = false,
     const bool &ex_post_fs = false,
-    Rcpp::NumericVector lambda = Rcpp::NumericVector::create(-1 / 0),
+    Rcpp::NumericVector smooth_lambda = Rcpp::NumericVector::create(-1 / 0),
     const std::string method = "boa",
     const std::string method_var = "A",
     Rcpp::NumericVector forget_regret = Rcpp::NumericVector::create(0),
     const double &forget_performance = 0,
     Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(0),
     Rcpp::NumericVector gamma = Rcpp::NumericVector::create(1),
-    Rcpp::NumericVector ndiff = Rcpp::NumericVector::create(1.5),
-    Rcpp::NumericVector deg = Rcpp::NumericVector::create(3),
-    Rcpp::NumericVector basis_deg = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector knot_distance = Rcpp::NumericVector::create(0.1),
-    Rcpp::NumericVector basis_knot_distance = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector knot_distance_power = Rcpp::NumericVector::create(1),
-    Rcpp::NumericVector basis_knot_distance_power = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector smooth_ndiff = Rcpp::NumericVector::create(1.5),
+    Rcpp::NumericVector smooth_deg = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector basis_deg = Rcpp::NumericVector::create(3),
+    Rcpp::NumericVector smooth_knot_distance = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector basis_knot_distance = Rcpp::NumericVector::create(0.1),
+    Rcpp::NumericVector smooth_knot_distance_power = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector basis_knot_distance_power = Rcpp::NumericVector::create(1),
     const bool &gradient = true,
     Rcpp::NumericVector loss_array = Rcpp::NumericVector::create(),
     Rcpp::NumericVector regret_array = Rcpp::NumericVector::create(),
@@ -138,38 +138,38 @@ Rcpp::List online(
     tau_vec.fill(tau_vec(0));
   }
 
-  vec basis_deg_vec = basis_deg;
-  vec basis_knot_distance_vec = basis_knot_distance;
-  vec basis_knot_distance_power_vec = basis_knot_distance_power;
+  vec smooth_deg_vec = smooth_deg;
+  vec smooth_knot_distance_vec = smooth_knot_distance;
+  vec smooth_knot_distance_power_vec = smooth_knot_distance_power;
 
-  if (basis_deg_vec.size() == 0)
+  if (smooth_deg_vec.size() == 0)
   {
-    basis_deg_vec = deg;
+    smooth_deg_vec = basis_deg;
   }
 
-  if (basis_knot_distance_vec.size() == 0)
+  if (smooth_knot_distance_vec.size() == 0)
   {
-    basis_knot_distance_vec = knot_distance;
+    smooth_knot_distance_vec = basis_knot_distance;
   }
 
-  if (basis_knot_distance_power_vec.size() == 0)
+  if (smooth_knot_distance_power_vec.size() == 0)
   {
-    basis_knot_distance_power_vec = knot_distance_power;
+    smooth_knot_distance_power_vec = basis_knot_distance_power;
   }
 
   // Init parametergrid
-  mat param_grid = get_combinations(lambda, forget_regret);                 // Index 0 & 1
-  param_grid = get_combinations(param_grid, fixed_share);                   // index 2
-  param_grid = get_combinations(param_grid, gamma);                         // Index 3
-  param_grid = get_combinations(param_grid, knot_distance);                 // Index 4
-  param_grid = get_combinations(param_grid, deg);                           // Index 5
-  param_grid = get_combinations(param_grid, ndiff);                         // index 6
-  param_grid = get_combinations(param_grid, knot_distance_power);           // Index 7
-  param_grid = get_combinations(param_grid, soft_threshold);                // Index 8
-  param_grid = get_combinations(param_grid, hard_threshold);                // Index 9
-  param_grid = get_combinations(param_grid, basis_deg_vec);                 // Index 10
-  param_grid = get_combinations(param_grid, basis_knot_distance_vec);       // Index 11
-  param_grid = get_combinations(param_grid, basis_knot_distance_power_vec); // Index 12
+  mat param_grid = get_combinations(smooth_lambda, forget_regret);           // Index 0 & 1
+  param_grid = get_combinations(param_grid, fixed_share);                    // index 2
+  param_grid = get_combinations(param_grid, gamma);                          // Index 3
+  param_grid = get_combinations(param_grid, smooth_knot_distance_vec);       // Index 4
+  param_grid = get_combinations(param_grid, smooth_deg_vec);                 // Index 5
+  param_grid = get_combinations(param_grid, smooth_ndiff);                   // index 6
+  param_grid = get_combinations(param_grid, smooth_knot_distance_power_vec); // Index 7
+  param_grid = get_combinations(param_grid, soft_threshold);                 // Index 8
+  param_grid = get_combinations(param_grid, hard_threshold);                 // Index 9
+  param_grid = get_combinations(param_grid, basis_deg);                      // Index 10
+  param_grid = get_combinations(param_grid, basis_knot_distance);            // Index 11
+  param_grid = get_combinations(param_grid, basis_knot_distance_power);      // Index 12
 
   const int X = param_grid.n_rows;
   mat chosen_params(T, param_grid.n_cols);

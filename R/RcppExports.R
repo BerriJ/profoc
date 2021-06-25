@@ -19,11 +19,11 @@
 #' @template param_forget_performance
 #' @template param_fixed_share
 #' @template param_ndiff
-#' @template param_deg
+#' @template param_smooth_deg
 #' @template param_basis_deg
-#' @template param_knot_distance
+#' @template param_smooth_knot_distance
 #' @template param_basis_knot_distance
-#' @template param_knot_distance_power
+#' @template param_smooth_knot_distance_power
 #' @template param_basis_knot_distance_power
 #' @template param_trace
 #' @template param_lead_time
@@ -33,13 +33,13 @@
 #' @usage batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
 #' debias = TRUE, initial_window = 30, expanding_window = TRUE,
 #' loss_function = "quantile", loss_parameter = 1, lambda = -Inf,
-#' forget = 0, forget_performance = 0, fixed_share = 0, ndiff = 1, deg = 3,
-#' basis_deg = 3, knot_distance = 0.1, basis_knot_distance = 0.1,
-#' knot_distance_power = 1, basis_knot_distance_power = 1, trace = TRUE, lead_time = 0,
+#' forget = 0, forget_performance = 0, fixed_share = 0, ndiff = 1, smooth_deg = 3,
+#' basis_deg = 3, smooth_knot_distance = 0.1, basis_knot_distance = 0.1,
+#' smooth_knot_distance_power = 1, basis_knot_distance_power = 1, trace = TRUE, lead_time = 0,
 #' allow_quantile_crossing = FALSE, soft_threshold = -Inf, hard_threshold = -Inf)
 #' @export
-batch <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, initial_window = 30L, expanding_window = TRUE, loss_function = "quantile", loss_parameter = 1, lambda = as.numeric( c(-1 / 0)), forget = as.numeric( c(0)), forget_performance = 0, fixed_share = as.numeric( c(0)), ndiff = as.numeric( c(1.5)), deg = as.numeric( c(3)), basis_deg = as.numeric( c()), knot_distance = as.numeric( c(0.1)), basis_knot_distance = as.numeric( c()), knot_distance_power = as.numeric( c(1)), basis_knot_distance_power = as.numeric( c()), trace = TRUE, lead_time = 0L, allow_quantile_crossing = FALSE, soft_threshold = as.numeric( c(-1 / 0)), hard_threshold = as.numeric( c(-1 / 0))) {
-    .Call(`_profoc_batch`, y, experts, tau, affine, positive, intercept, debias, initial_window, expanding_window, loss_function, loss_parameter, lambda, forget, forget_performance, fixed_share, ndiff, deg, basis_deg, knot_distance, basis_knot_distance, knot_distance_power, basis_knot_distance_power, trace, lead_time, allow_quantile_crossing, soft_threshold, hard_threshold)
+batch <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, initial_window = 30L, expanding_window = TRUE, loss_function = "quantile", loss_parameter = 1, smooth_lambda = as.numeric( c(-1 / 0)), forget = as.numeric( c(0)), forget_performance = 0, fixed_share = as.numeric( c(0)), smooth_ndiff = as.numeric( c(1.5)), smooth_deg = as.numeric( c()), basis_deg = as.numeric( c(3)), smooth_knot_distance = as.numeric( c()), basis_knot_distance = as.numeric( c(0.1)), smooth_knot_distance_power = as.numeric( c()), basis_knot_distance_power = as.numeric( c(1)), trace = TRUE, lead_time = 0L, allow_quantile_crossing = FALSE, soft_threshold = as.numeric( c(-1 / 0)), hard_threshold = as.numeric( c(-1 / 0))) {
+    .Call(`_profoc_batch`, y, experts, tau, affine, positive, intercept, debias, initial_window, expanding_window, loss_function, loss_parameter, smooth_lambda, forget, forget_performance, fixed_share, smooth_ndiff, smooth_deg, basis_deg, smooth_knot_distance, basis_knot_distance, smooth_knot_distance_power, basis_knot_distance_power, trace, lead_time, allow_quantile_crossing, soft_threshold, hard_threshold)
 }
 
 loss <- function(y, x, pred = 0, method = "quantile", tau = 0.5, a = 1, gradient = TRUE) {
@@ -98,11 +98,11 @@ mat2vec <- function(x) {
 #' @template param_fixed_share
 #' @param gamma Scaling parameter for the learning rate.
 #' @template param_ndiff
-#' @template param_deg
+#' @template param_smooth_deg
 #' @template param_basis_deg
-#' @template param_knot_distance
+#' @template param_smooth_knot_distance
 #' @template param_basis_knot_distance
-#' @template param_knot_distance_power
+#' @template param_smooth_knot_distance_power
 #' @template param_basis_knot_distance_power
 #' @param gradient Determines if a linearized version of the loss is used.
 #' @param loss_array User specified loss array. If specified, the loss will not be calculated by profoc.
@@ -118,16 +118,16 @@ mat2vec <- function(x) {
 #' @usage online(y, experts, tau, intercept = FALSE, loss_function = "quantile",
 #' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 #' lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
-#' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
-#' basis_deg = 3, knot_distance = 0.1, basis_knot_distance = 0.1,
-#' knot_distance_power = 1, basis_knot_distance_power = 1,
+#' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, smooth_deg = 3,
+#' basis_deg = 3, smooth_knot_distance = 0.1, basis_knot_distance = 0.1,
+#' smooth_knot_distance_power = 1, basis_knot_distance_power = 1,
 #' gradient = TRUE, loss_array = NULL, regret_array = NULL,
 #' trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE,
 #' soft_threshold = -Inf, ex_post_soft_threshold = FALSE, hard_threshold = -Inf,
 #' ex_post_hard_threshold = FALSE)
 #' @export
-online <- function(y, experts, tau = as.numeric( c()), intercept = FALSE, loss_function = "quantile", loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, lambda = as.numeric( c(-1 / 0)), method = "boa", method_var = "A", forget_regret = as.numeric( c(0)), forget_performance = 0, fixed_share = as.numeric( c(0)), gamma = as.numeric( c(1)), ndiff = as.numeric( c(1.5)), deg = as.numeric( c(3)), basis_deg = as.numeric( c()), knot_distance = as.numeric( c(0.1)), basis_knot_distance = as.numeric( c()), knot_distance_power = as.numeric( c(1)), basis_knot_distance_power = as.numeric( c()), gradient = TRUE, loss_array = as.numeric( c()), regret_array = as.numeric( c()), trace = TRUE, init_weights = NULL, lead_time = 0L, allow_quantile_crossing = FALSE, soft_threshold = as.numeric( c(-1 / 0)), ex_post_soft_threshold = FALSE, hard_threshold = as.numeric( c(-1 / 0)), ex_post_hard_threshold = FALSE) {
-    .Call(`_profoc_online`, y, experts, tau, intercept, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, lambda, method, method_var, forget_regret, forget_performance, fixed_share, gamma, ndiff, deg, basis_deg, knot_distance, basis_knot_distance, knot_distance_power, basis_knot_distance_power, gradient, loss_array, regret_array, trace, init_weights, lead_time, allow_quantile_crossing, soft_threshold, ex_post_soft_threshold, hard_threshold, ex_post_hard_threshold)
+online <- function(y, experts, tau = as.numeric( c()), intercept = FALSE, loss_function = "quantile", loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE, smooth_lambda = as.numeric( c(-1 / 0)), method = "boa", method_var = "A", forget_regret = as.numeric( c(0)), forget_performance = 0, fixed_share = as.numeric( c(0)), gamma = as.numeric( c(1)), smooth_ndiff = as.numeric( c(1.5)), smooth_deg = as.numeric( c()), basis_deg = as.numeric( c(3)), smooth_knot_distance = as.numeric( c()), basis_knot_distance = as.numeric( c(0.1)), smooth_knot_distance_power = as.numeric( c()), basis_knot_distance_power = as.numeric( c(1)), gradient = TRUE, loss_array = as.numeric( c()), regret_array = as.numeric( c()), trace = TRUE, init_weights = NULL, lead_time = 0L, allow_quantile_crossing = FALSE, soft_threshold = as.numeric( c(-1 / 0)), ex_post_soft_threshold = FALSE, hard_threshold = as.numeric( c(-1 / 0)), ex_post_hard_threshold = FALSE) {
+    .Call(`_profoc_online`, y, experts, tau, intercept, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, smooth_lambda, method, method_var, forget_regret, forget_performance, fixed_share, gamma, smooth_ndiff, smooth_deg, basis_deg, smooth_knot_distance, basis_knot_distance, smooth_knot_distance_power, basis_knot_distance_power, gradient, loss_array, regret_array, trace, init_weights, lead_time, allow_quantile_crossing, soft_threshold, ex_post_soft_threshold, hard_threshold, ex_post_hard_threshold)
 }
 
 optimize_weights <- function(truth, experts, affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, loss_function = "quantile", tau = 0.5, forget = 0, loss_scaling = 1) {

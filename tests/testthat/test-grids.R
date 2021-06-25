@@ -23,15 +23,15 @@ boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
-    lambda = c(10, 1000),
-    ndiff = c(1, 2),
-    deg = c(2, 3),
-    knot_distance = c(0.001, 0.01, 0.1),
-    knot_distance_power = c(0.5, 1, 2),
+    smooth_lambda = c(10, 1000),
+    smooth_ndiff = c(1, 2),
+    smooth_deg = c(2, 3),
+    smooth_knot_distance = c(0.001, 0.01, 0.1),
+    smooth_knot_distance_power = c(0.5, 1, 2),
     basis_deg = 1,
     basis_knot_distance = 0.01,
     basis_knot_distance_power = 1,
-    trace = TRUE
+    trace = FALSE
 )
 
 # We expect weights to sum to 1 despite the smoothing:
@@ -45,8 +45,8 @@ boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
-    lambda = c(10),
-    ndiff = seq(from = 1, to = 2, by = 0.2),
+    smooth_lambda = c(10),
+    smooth_ndiff = seq(from = 1, to = 2, by = 0.2),
     trace = FALSE
 )
 
