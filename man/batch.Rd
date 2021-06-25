@@ -7,9 +7,9 @@
 batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
 debias = TRUE, initial_window = 30, expanding_window = TRUE,
 loss_function = "quantile", loss_parameter = 1, lambda = -Inf,
-forget = 0, forget_performance = 0, fixed_share = 0, ndiff = 1, deg = 3,
-basis_deg = 3, knot_distance = 0.1, basis_knot_distance = 0.1,
-knot_distance_power = 1, basis_knot_distance_power = 1, trace = TRUE, lead_time = 0,
+forget = 0, forget_performance = 0, fixed_share = 0, ndiff = 1, smooth_deg = 3,
+basis_deg = 3, smooth_knot_distance = 0.1, basis_knot_distance = 0.1,
+smooth_knot_distance_power = 1, basis_knot_distance_power = 1, trace = TRUE, lead_time = 0,
 allow_quantile_crossing = FALSE, soft_threshold = -Inf, hard_threshold = -Inf)
 }
 \arguments{
@@ -43,7 +43,7 @@ If FALSE, the intercept is treated as an expert.}
 
 \item{loss_parameter}{Optional parameter scaling the power of the loss function.}
 
-\item{lambda}{Penalization parameter used in the smoothing Step.
+\item{smooth_lambda}{Penalization parameter used in the smoothing Step.
 -Inf causes the smoothing step to be skipped (default).}
 
 \item{forget}{Adds an exponential forgetting to the optimization. Past observations will get less influence in the optimization. Defaults to 0 which corresponds to no forgetting.}
@@ -54,23 +54,31 @@ forgotten in every iteration of the algorithm when choosing the parameter combin
 \item{fixed_share}{Amount of fixed share to be added to the weights.
 Defaults to 0. 1 leads to uniform weights.}
 
-\item{ndiff}{Degree of the differencing operator in the smoothing equation. 1.5 (default) leads to shrikage towards a constant. Can also be 2 or any value in between. If a value in between is used, a weighted sum of the first and second differentiation matrix is calculated.}
+\item{smooth_ndiff}{Degree of the differencing operator in the smoothing equation.
+1.5 (default) leads to shrikage towards a constant. Can also be 2 or any value
+in between. If a value in between is used, a weighted sum of the first and second
+differentiation matrix is calculated.}
 
-\item{deg}{Degree of the B-Spine basis functions.}
+\item{smooth_deg}{Degree of the B-Spine basis functions.
+Defaults to the value of basis_deg.}
 
-\item{basis_deg}{Degree of the basis reducing the probability space. Defaults to
-deg if unspecified.}
+\item{basis_deg}{Degree of the basis reducing the probability space.
+Defaults to 3.}
 
-\item{knot_distance}{determines the distance of the knots. Defaults to 0.1 which corrsponds to the grid steps when knot_distance_power = 1 (the default).}
+\item{smooth_knot_distance}{determines the distance of the knots. Defaults to
+the value of basis_knot_distance.
+Corrsponds to the grid steps when knot_distance_power = 1 (the default).}
 
 \item{basis_knot_distance}{determines the distance of the knots in the probability
-basis. Defaults to the value of knot_distance.}
+basis. Defaults to the value of 0.1.}
 
-\item{knot_distance_power}{Parameter which defines the symetrie of the b-spline basis. Defaults to 1 which corresponds to the equidistant case. Values less than 1 create more knots in the center while values above 1 concentrate more knots in the tails.}
+\item{smooth_knot_distance_power}{Parameter which defines the symetrie of
+the b-spline basis. Takes the value of of basis_knot_distance_power if unspecified.}
 
 \item{basis_knot_distance_power}{Parameter which defines the symetrie of the
-basis reducing the probability space. Takes the value of of knot_distance_
-power if unspecified.}
+basis reducing the probability space. Defaults to 1 which corresponds to the
+equidistant case. Values less than 1 create more knots in the center while
+values above 1 concentrate more knots in the tails.}
 
 \item{trace}{If a progessbar shall be printed. Defaults to TRUE.}
 

@@ -14,11 +14,11 @@
 #' @param expanding_window Defines wether an expanding window or a rolling window shall be used for batch optimization. Defaults to TRUE.
 #' @template param_loss_function
 #' @template param_loss_parameter
-#' @template param_lambda
+#' @template param_smooth_lambda
 #' @template param_forget
 #' @template param_forget_performance
 #' @template param_fixed_share
-#' @template param_ndiff
+#' @template param_smooth_ndiff
 #' @template param_smooth_deg
 #' @template param_basis_deg
 #' @template param_smooth_knot_distance
@@ -88,7 +88,7 @@ mat2vec <- function(x) {
 #' @template param_loss_parameter
 #' @template param_ex_post_smooth
 #' @template param_ex_post_fs
-#' @template param_lambda
+#' @template param_smooth_lambda
 #' @template param_method
 #' @param method_var Allows to calculate slight variations of the BOA
 #' algorithm
@@ -97,7 +97,7 @@ mat2vec <- function(x) {
 #' @template param_forget_performance
 #' @template param_fixed_share
 #' @param gamma Scaling parameter for the learning rate.
-#' @template param_ndiff
+#' @template param_smooth_ndiff
 #' @template param_smooth_deg
 #' @template param_basis_deg
 #' @template param_smooth_knot_distance

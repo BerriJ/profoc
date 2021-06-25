@@ -7,9 +7,9 @@
 online(y, experts, tau, intercept = FALSE, loss_function = "quantile",
 loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
-forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, deg = 3,
-basis_deg = 3, knot_distance = 0.1, basis_knot_distance = 0.1,
-knot_distance_power = 1, basis_knot_distance_power = 1,
+forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, smooth_deg = 3,
+basis_deg = 3, smooth_knot_distance = 0.1, basis_knot_distance = 0.1,
+smooth_knot_distance_power = 1, basis_knot_distance_power = 1,
 gradient = TRUE, loss_array = NULL, regret_array = NULL,
 trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE,
 soft_threshold = -Inf, ex_post_soft_threshold = FALSE, hard_threshold = -Inf,
@@ -41,7 +41,7 @@ also by the algorithm.}
 \item{ex_post_fs}{Analogous to ex_post_smooth: shall a fixed-share
 be added during (FALSE) or after online-learning (TRUE).}
 
-\item{lambda}{Penalization parameter used in the smoothing Step.
+\item{smooth_lambda}{Penalization parameter used in the smoothing Step.
 -Inf causes the smoothing step to be skipped (default).}
 
 \item{method}{One of "boa", "ml_poly" or "ewa".}
@@ -60,23 +60,31 @@ Defaults to 0. 1 leads to uniform weights.}
 
 \item{gamma}{Scaling parameter for the learning rate.}
 
-\item{ndiff}{Degree of the differencing operator in the smoothing equation. 1.5 (default) leads to shrikage towards a constant. Can also be 2 or any value in between. If a value in between is used, a weighted sum of the first and second differentiation matrix is calculated.}
+\item{smooth_ndiff}{Degree of the differencing operator in the smoothing equation.
+1.5 (default) leads to shrikage towards a constant. Can also be 2 or any value
+in between. If a value in between is used, a weighted sum of the first and second
+differentiation matrix is calculated.}
 
-\item{deg}{Degree of the B-Spine basis functions.}
+\item{smooth_deg}{Degree of the B-Spine basis functions.
+Defaults to the value of basis_deg.}
 
-\item{basis_deg}{Degree of the basis reducing the probability space. Defaults to
-deg if unspecified.}
+\item{basis_deg}{Degree of the basis reducing the probability space.
+Defaults to 3.}
 
-\item{knot_distance}{determines the distance of the knots. Defaults to 0.1 which corrsponds to the grid steps when knot_distance_power = 1 (the default).}
+\item{smooth_knot_distance}{determines the distance of the knots. Defaults to
+the value of basis_knot_distance.
+Corrsponds to the grid steps when knot_distance_power = 1 (the default).}
 
 \item{basis_knot_distance}{determines the distance of the knots in the probability
-basis. Defaults to the value of knot_distance.}
+basis. Defaults to the value of 0.1.}
 
-\item{knot_distance_power}{Parameter which defines the symetrie of the b-spline basis. Defaults to 1 which corresponds to the equidistant case. Values less than 1 create more knots in the center while values above 1 concentrate more knots in the tails.}
+\item{smooth_knot_distance_power}{Parameter which defines the symetrie of
+the b-spline basis. Takes the value of of basis_knot_distance_power if unspecified.}
 
 \item{basis_knot_distance_power}{Parameter which defines the symetrie of the
-basis reducing the probability space. Takes the value of of knot_distance_
-power if unspecified.}
+basis reducing the probability space. Defaults to 1 which corresponds to the
+equidistant case. Values less than 1 create more knots in the center while
+values above 1 concentrate more knots in the tails.}
 
 \item{gradient}{Determines if a linearized version of the loss is used.}
 
