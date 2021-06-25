@@ -52,17 +52,28 @@ mat make_hat_matrix(const vec &x, const double &kstep, const double &lambda, con
     mat P1(m + deg + 1, m + deg + 1);
     mat P2(m + deg + 1, m + deg + 1);
     mat P(m + deg + 1, m + deg + 1);
+    mat H;
 
-    mat D1 = make_difference_matrix(knots, 1, deg);
-    P1 = D1.t() * D1;
+    if (kstep <= 0.5)
+    {
 
-    mat D2 = make_difference_matrix(knots, 2, deg);
-    P2 = D2.t() * D2;
+        mat D1 = make_difference_matrix(knots, 1, deg);
+        P1 = D1.t() * D1;
 
-    P = pow(2 - bdiff, 2) * P1 + pow(bdiff - 1, 2) * P2;
+        mat D2 = make_difference_matrix(knots, 2, deg);
+        P2 = D2.t() * D2;
 
+        P = pow(2 - bdiff, 2) * P1 + pow(bdiff - 1, 2) * P2;
+
+        H = B * arma::inv(B.t() * B + lambda * P) * B.t();
+    }
+    else
+    {
+        mat identity(x.n_elem, x.n_elem, fill::eye);
+        H = identity;
+    }
     // Return hat matrix
-    return B * arma::inv(B.t() * B + lambda * P) * B.t();
+    return H;
 }
 
 // [[Rcpp::export]]
