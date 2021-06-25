@@ -28,7 +28,10 @@ boa_smooth <- online(
     deg = c(2, 3),
     knot_distance = c(0.001, 0.01, 0.1),
     knot_distance_power = c(0.5, 1, 2),
-    trace = FALSE
+    basis_deg = 1,
+    basis_knot_distance = 0.01,
+    basis_knot_distance_power = 1,
+    trace = TRUE
 )
 
 # We expect weights to sum to 1 despite the smoothing:

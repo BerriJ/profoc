@@ -57,8 +57,8 @@ results <- batch(
     lead_time = lead,
     expanding_window = FALSE,
     trace = FALSE,
-    knot_distance = 0.01,
-    deg = 1
+    basis_knot_distance = 0.01,
+    basis_deg = 1
 )
 
 # ts.plot(results$weights[, , 1], col = rainbow(ncol(results$weights)))
