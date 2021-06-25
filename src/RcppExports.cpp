@@ -41,6 +41,40 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// batch_basis
+Rcpp::List batch_basis(mat& y, cube& experts, Rcpp::NumericVector tau, const bool& affine, const bool& positive, const bool& intercept, const bool& debias, int initial_window, const bool expanding_window, const std::string loss_function, const double& loss_parameter, Rcpp::NumericVector lambda, Rcpp::NumericVector forget, const double& forget_performance, Rcpp::NumericVector fixed_share, Rcpp::NumericVector ndiff, Rcpp::NumericVector deg, Rcpp::NumericVector knot_distance, Rcpp::NumericVector knot_distance_power, const bool trace, const int& lead_time, bool allow_quantile_crossing, Rcpp::NumericVector soft_threshold, Rcpp::NumericVector hard_threshold);
+RcppExport SEXP _profoc_batch_basis(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP affineSEXP, SEXP positiveSEXP, SEXP interceptSEXP, SEXP debiasSEXP, SEXP initial_windowSEXP, SEXP expanding_windowSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP lambdaSEXP, SEXP forgetSEXP, SEXP forget_performanceSEXP, SEXP fixed_shareSEXP, SEXP ndiffSEXP, SEXP degSEXP, SEXP knot_distanceSEXP, SEXP knot_distance_powerSEXP, SEXP traceSEXP, SEXP lead_timeSEXP, SEXP allow_quantile_crossingSEXP, SEXP soft_thresholdSEXP, SEXP hard_thresholdSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< mat& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< cube& >::type experts(expertsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type affine(affineSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type positive(positiveSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type intercept(interceptSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type debias(debiasSEXP);
+    Rcpp::traits::input_parameter< int >::type initial_window(initial_windowSEXP);
+    Rcpp::traits::input_parameter< const bool >::type expanding_window(expanding_windowSEXP);
+    Rcpp::traits::input_parameter< const std::string >::type loss_function(loss_functionSEXP);
+    Rcpp::traits::input_parameter< const double& >::type loss_parameter(loss_parameterSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type forget(forgetSEXP);
+    Rcpp::traits::input_parameter< const double& >::type forget_performance(forget_performanceSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type fixed_share(fixed_shareSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type ndiff(ndiffSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type deg(degSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type knot_distance(knot_distanceSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type knot_distance_power(knot_distance_powerSEXP);
+    Rcpp::traits::input_parameter< const bool >::type trace(traceSEXP);
+    Rcpp::traits::input_parameter< const int& >::type lead_time(lead_timeSEXP);
+    Rcpp::traits::input_parameter< bool >::type allow_quantile_crossing(allow_quantile_crossingSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type soft_threshold(soft_thresholdSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type hard_threshold(hard_thresholdSEXP);
+    rcpp_result_gen = Rcpp::wrap(batch_basis(y, experts, tau, affine, positive, intercept, debias, initial_window, expanding_window, loss_function, loss_parameter, lambda, forget, forget_performance, fixed_share, ndiff, deg, knot_distance, knot_distance_power, trace, lead_time, allow_quantile_crossing, soft_threshold, hard_threshold));
+    return rcpp_result_gen;
+END_RCPP
+}
 // loss
 double loss(const double& y, const double& x, const double& pred, const std::string method, const double& tau, const double& a, const bool& gradient);
 RcppExport SEXP _profoc_loss(SEXP ySEXP, SEXP xSEXP, SEXP predSEXP, SEXP methodSEXP, SEXP tauSEXP, SEXP aSEXP, SEXP gradientSEXP) {
@@ -352,6 +386,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_profoc_batch", (DL_FUNC) &_profoc_batch, 24},
+    {"_profoc_batch_basis", (DL_FUNC) &_profoc_batch_basis, 24},
     {"_profoc_loss", (DL_FUNC) &_profoc_loss, 7},
     {"_profoc_loss_grad_wrt_w", (DL_FUNC) &_profoc_loss_grad_wrt_w, 7},
     {"_profoc_pmin_arma", (DL_FUNC) &_profoc_pmin_arma, 2},
