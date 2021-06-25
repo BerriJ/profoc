@@ -157,8 +157,6 @@ Rcpp::List batch_basis(
     field<mat> hat_mats(param_grid.n_rows);
     vec spline_basis_x = regspace(1, P) / (P + 1);
 
-    arma::cout << "ok" << arma::endl;
-
     // Only if smoothing is possible (tau_vec.size > 1)
     if (P > 1)
     {

@@ -143,13 +143,17 @@ double objective2(const vec &vals_inp, vec *grad_out, void *opt_data)
         }
     }
 
+    vec constraint_penalty_vec(beta.n_rows);
+
+    for (unsigned int b = 0; b < beta.n_rows; b++)
+    {
+        vec betavec = beta.row(b).t();
+        constraint_penalty_vec(b) = penalty_parameter * fabs(sum(betavec.subvec(debias * intercept, betavec.n_elem - 1)) - 1);
+    }
+
     obj_val = accu(loss_mat);
 
-    // double constraint_penalty;
-
-    // constraint_penalty = penalty_parameter * fabs(sum(vals_inp.subvec(debias * intercept, vals_inp.n_elem - 1)) - 1);
-
-    // obj_val += constraint_penalty;
+    obj_val += sum(constraint_penalty_vec);
 
     return obj_val;
 }
@@ -329,62 +333,79 @@ mat optimize_weights2(const mat &truth,
     settings.rel_objfn_change_tol = 1E-07;
     constraint_data opt_constr_data;
 
-    // if (affine && positive)
-    // {
-    //     opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
-    //     settings.vals_bound = true;
-    //     settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
-    //     settings.lower_bounds.fill(0);
-    //     if (debias && intercept)
-    //     {
-    //         settings.lower_bounds(0) = -1E+06;
-    //     }
-    //     settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
-    //     settings.upper_bounds.fill(1E+06);
+    if (affine && positive)
+    {
+        // Positive
+        mat lower_mat(beta.n_rows, beta.n_cols, fill::zeros);
+        if (debias && intercept)
+            lower_mat.col(0) = -1E+06;
+        settings.vals_bound = true;
+        settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K * beta.n_rows);
+        settings.lower_bounds = mat2vec(lower_mat);
+        settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K * beta.n_rows);
+        settings.upper_bounds.fill(1E+06);
 
-    //     // Just a hack so that the while condition is not fulfilled directly
-    //     initvals += 1E-04;
-    //     while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-06)
-    //     {
-    //         opt_obj_data.penalty_parameter *= 10;
-    //         success = optim::nm(initvals, objective, &opt_obj_data, settings);
-    //         if (opt_obj_data.penalty_parameter > 1E+10)
-    //         {
-    //             break;
-    //         }
-    //     }
-    // }
-    // else if (affine)
-    // {
-    //     opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
+        // Affine
+        opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
+        double betasum = K - debias * intercept;
+        betasum += 1E-04;
 
-    //     // Just a hack so that the while condition is not fulfilled directly
-    //     initvals += 1E-04;
-    //     while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-06)
-    //     {
-    //         opt_obj_data.penalty_parameter *= 10;
-    //         success = optim::nm(initvals, objective, &opt_obj_data, settings);
-    //         if (opt_obj_data.penalty_parameter > 1E+10)
-    //         {
-    //             break;
-    //         }
-    //     }
-    // }
-    // else if (positive)
-    // {
-    //     settings.vals_bound = true;
-    //     settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
-    //     settings.lower_bounds.fill(0);
-    //     if (debias && intercept)
-    //     {
-    //         settings.lower_bounds(0) = -1E+06;
-    //     }
-    //     settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
-    //     settings.upper_bounds.fill(1E+06);
+        while (betasum - (K - debias * intercept) >= 1E-06)
+        {
+            opt_obj_data.penalty_parameter *= 10;
 
-    //     success = optim::nm(initvals, objective, &opt_obj_data, settings);
-    // }
-    // else
+            success = optim::nm(initvals, objective2, &opt_obj_data, settings);
+            beta_new = vec2mat(initvals, basis.n_cols, K);
+
+            betasum = accu(beta_new.cols(debias * intercept, beta_new.n_cols - 1));
+
+            if (opt_obj_data.penalty_parameter > 1E+10)
+            {
+                break;
+            }
+        }
+    }
+    else if (affine)
+    {
+        opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
+
+        double betasum = K - debias * intercept;
+        betasum += 1E-04;
+
+        while (betasum - (K - debias * intercept) >= 1E-06)
+        {
+            opt_obj_data.penalty_parameter *= 10;
+            success = optim::nm(initvals, objective2, &opt_obj_data, settings);
+
+            beta_new = vec2mat(initvals, basis.n_cols, K);
+
+            betasum = accu(beta_new.cols(debias * intercept, beta_new.n_cols - 1));
+
+            if (opt_obj_data.penalty_parameter > 1E+10)
+            {
+                break;
+            }
+        }
+    }
+    else if (positive)
+    {
+
+        mat lower_mat(beta.n_rows, beta.n_cols, fill::zeros);
+        if (debias && intercept)
+            lower_mat.col(0) = -1E+06;
+
+        settings.vals_bound = true;
+        settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K * beta.n_rows);
+        settings.lower_bounds = mat2vec(lower_mat);
+
+        settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K * beta.n_rows);
+        settings.upper_bounds.fill(1E+06);
+
+        success = optim::nm(initvals, objective2, &opt_obj_data, settings);
+
+        beta_new = vec2mat(initvals, basis.n_cols, K);
+    }
+    else
     {
         success = optim::nm(initvals, objective2, &opt_obj_data, settings);
         beta_new = vec2mat(initvals, basis.n_cols, K);
