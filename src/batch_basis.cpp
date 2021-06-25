@@ -157,6 +157,8 @@ Rcpp::List batch_basis(
     field<mat> hat_mats(param_grid.n_rows);
     vec spline_basis_x = regspace(1, P) / (P + 1);
 
+    arma::cout << "ok" << arma::endl;
+
     // Only if smoothing is possible (tau_vec.size > 1)
     if (P > 1)
     {
@@ -284,7 +286,7 @@ Rcpp::List batch_basis(
 
             cube experts_tmp_cube = experts.rows(start, t - lead_time);
 
-            w_post.slice(x) = optimize_weights2(
+            beta(x) = optimize_weights2(
                 y.rows(start, t - lead_time),
                 experts_tmp_cube,
                 affine,
@@ -297,6 +299,8 @@ Rcpp::List batch_basis(
                 loss_parameter,
                 basis_mats(x),
                 beta(x));
+
+            w_post.slice(x) = basis_mats(x) * beta(x);
 
             R_CheckUserInterrupt();
 

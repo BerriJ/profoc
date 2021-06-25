@@ -324,6 +324,7 @@ mat optimize_weights2(const mat &truth,
 
     bool success;
     mat weights;
+    mat beta_new;
     optim::algo_settings_t settings;
     settings.rel_objfn_change_tol = 1E-07;
     constraint_data opt_constr_data;
@@ -386,9 +387,9 @@ mat optimize_weights2(const mat &truth,
     // else
     {
         success = optim::nm(initvals, objective2, &opt_obj_data, settings);
-        mat beta = vec2mat(initvals, basis.n_cols, K);
+        beta_new = vec2mat(initvals, basis.n_cols, K);
 
-        weights = basis * beta;
+        // weights = basis * beta;
     }
 
     if (!success)
@@ -396,7 +397,7 @@ mat optimize_weights2(const mat &truth,
         Rcpp::warning("Warning: Convergence was not succesfull.");
     }
 
-    return weights;
+    return beta_new;
 }
 
 //' @template function_oracle
