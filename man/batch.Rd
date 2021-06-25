@@ -2,13 +2,13 @@
 % Please edit documentation in R/RcppExports.R
 \name{batch}
 \alias{batch}
-\title{Batch Function Old}
+\title{Probabilistic Forecast Combination - Batch}
 \usage{
 batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
 debias = TRUE, initial_window = 30, expanding_window = TRUE,
 loss_function = "quantile", loss_parameter = 1, lambda = -Inf,
 forget = 0, forget_performance = 0, fixed_share = 0, ndiff = 1, deg = 3,
-knot_distance = 0.025, knot_distance_power = 1, trace = TRUE, lead_time = 0,
+knot_distance = 0.1, knot_distance_power = 1, trace = TRUE, lead_time = 0,
 allow_quantile_crossing = FALSE, soft_threshold = -Inf, hard_threshold = -Inf)
 }
 \arguments{
@@ -77,6 +77,13 @@ Defaults to -inf which means that no threshold will be applied.}
 to the weights: w = w*(abs(w)>t) where t is the threshold_hard parameter.
 Defaults to -inf which means that no threshold will be applied.}
 }
+\value{
+Returns weights and corresponding predictions.
+It is possible to calculate the best convex combination
+of weights by setting affine and positive to TRUE.
+}
 \description{
-Batch Function Old
+Returns predictions and weights calculated by sequential numeric
+optimization. The optimization is done stepwise, allways
+calculating a one-step-ahead forecast.
 }

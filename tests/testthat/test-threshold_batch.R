@@ -30,7 +30,9 @@ results_unconstrained <- batch(
     matrix(y),
     experts,
     prob_grid,
-    trace = FALSE
+    trace = FALSE,
+    knot_distance = 0.01,
+    deg = 1
 )
 
 results_unconstrained_hard <- batch(
@@ -38,7 +40,9 @@ results_unconstrained_hard <- batch(
     experts,
     prob_grid,
     hard_threshold = threshold_val,
-    trace = FALSE
+    trace = FALSE,
+    knot_distance = 0.01,
+    deg = 1
 )
 
 results_unconstrained_soft <- batch(
@@ -46,7 +50,9 @@ results_unconstrained_soft <- batch(
     experts,
     prob_grid,
     soft_threshold = threshold_val,
-    trace = FALSE
+    trace = FALSE,
+    knot_distance = 0.01,
+    deg = 1
 )
 
 # ts.plot(results_unconstrained$weights[, 1, ],
@@ -75,7 +81,9 @@ results_convex <- batch(
     prob_grid,
     positive = TRUE,
     affine = TRUE,
-    trace = FALSE
+    trace = FALSE,
+    knot_distance = 0.01,
+    deg = 1
 )
 
 results_convex_hard <- batch(
@@ -85,7 +93,9 @@ results_convex_hard <- batch(
     hard_threshold = threshold_val,
     positive = TRUE,
     affine = TRUE,
-    trace = FALSE
+    trace = FALSE,
+    knot_distance = 0.01,
+    deg = 1
 )
 
 results_convex_soft <- batch(
@@ -95,7 +105,9 @@ results_convex_soft <- batch(
     soft_threshold = threshold_val,
     positive = TRUE,
     affine = TRUE,
-    trace = FALSE
+    trace = FALSE,
+    knot_distance = 0.01,
+    deg = 1
 )
 
 # ts.plot(results_convex$weights[, 1, ],
@@ -125,7 +137,9 @@ results_convex_intercept <- batch(
     positive = TRUE,
     affine = TRUE,
     intercept = TRUE,
-    trace = FALSE
+    trace = FALSE,
+    knot_distance = 0.01,
+    deg = 1
 )
 
 results_convex_intercept_hard <- batch(
@@ -136,7 +150,9 @@ results_convex_intercept_hard <- batch(
     positive = TRUE,
     affine = TRUE,
     intercept = TRUE,
-    trace = FALSE
+    trace = FALSE,
+    knot_distance = 0.01,
+    deg = 1
 )
 
 results_convex_intercept_soft <- batch(
@@ -147,7 +163,9 @@ results_convex_intercept_soft <- batch(
     positive = TRUE,
     affine = TRUE,
     intercept = TRUE,
-    trace = FALSE
+    trace = FALSE,
+    knot_distance = 0.01,
+    deg = 1
 )
 
 # ts.plot(results_convex_intercept$weights[, 1, ],

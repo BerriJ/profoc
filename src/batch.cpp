@@ -10,7 +10,7 @@
 
 using namespace arma;
 
-//' Batch Function Old
+//' @template function_batch
 //'
 //' @template param_y
 //' @template param_experts
@@ -40,7 +40,7 @@ using namespace arma;
 //' debias = TRUE, initial_window = 30, expanding_window = TRUE,
 //' loss_function = "quantile", loss_parameter = 1, lambda = -Inf,
 //' forget = 0, forget_performance = 0, fixed_share = 0, ndiff = 1, deg = 3,
-//' knot_distance = 0.025, knot_distance_power = 1, trace = TRUE, lead_time = 0,
+//' knot_distance = 0.1, knot_distance_power = 1, trace = TRUE, lead_time = 0,
 //' allow_quantile_crossing = FALSE, soft_threshold = -Inf, hard_threshold = -Inf)
 //' @export
 // [[Rcpp::export]]
@@ -62,7 +62,7 @@ Rcpp::List batch(
     Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(0),
     Rcpp::NumericVector ndiff = Rcpp::NumericVector::create(1.5),
     Rcpp::NumericVector deg = Rcpp::NumericVector::create(3),
-    Rcpp::NumericVector knot_distance = Rcpp::NumericVector::create(0.025),
+    Rcpp::NumericVector knot_distance = Rcpp::NumericVector::create(0.1),
     Rcpp::NumericVector knot_distance_power = Rcpp::NumericVector::create(1),
     const bool trace = true,
     const int &lead_time = 0,
@@ -189,6 +189,39 @@ Rcpp::List batch(
         }
     }
 
+    field<sp_mat> basis_mats(X);
+    field<mat> beta(X);
+
+    // Init hat matrix field
+    for (unsigned int x = 0; x < X; x++)
+    {
+        mat basis;
+
+        // In second step: skip if recalc is not necessary:
+        if (x > 0 &&
+            param_grid(x, 4) == param_grid(x - 1, 3) &&
+            param_grid(x, 5) == param_grid(x - 1, 4) &&
+            param_grid(x, 7) == param_grid(x - 1, 6))
+        {
+            basis_mats(x) = basis_mats(x - 1);
+            basis = basis_mats(x);
+        }
+        else
+        {
+
+            basis = make_basis_matrix(spline_basis_x,
+                                      param_grid(x, 3),  // kstep
+                                      param_grid(x, 4),  // degree
+                                      param_grid(x, 6)); // uneven grid
+
+            basis_mats(x) = sp_mat(basis);
+        }
+
+        beta(x) = (w_post.slice(x).t() * pinv(basis).t()).t();
+
+        R_CheckUserInterrupt();
+    }
+
     // Used for rolling window
     int start = 0;
 
@@ -233,8 +266,11 @@ Rcpp::List batch(
         predictions_final.row(t) =
             vectorise(predictions_post(span(t), span::all, span(opt_index(t)))).t();
 
+        cube experts_tmp_cube = experts.rows(start, t - lead_time);
+
         for (unsigned int x = 0; x < X; x++)
         {
+
             for (unsigned int p = 0; p < P; p++)
             {
 
@@ -247,20 +283,44 @@ Rcpp::List batch(
                                                  loss_parameter, // alpha
                                                  false);
 
-                // optim_weights()
-                mat experts_tmp = experts.tube(span(start, t - lead_time), span(p, p));
+                if (basis_mats(x).is_diagmat())
+                {
+                    // optim_weights()
+                    mat experts_tmp = experts_tmp_cube.col(p);
 
-                w_post(span(p), span::all, span(x)) = optimize_weights(
-                    y(span(start, t - lead_time), p),
-                    experts_tmp,
+                    w_post(span(p), span::all, span(x)) = optimize_weights(
+                        y(span(start, t - lead_time), p),
+                        experts_tmp,
+                        affine,
+                        positive,
+                        intercept,
+                        debias,
+                        loss_function,
+                        tau_vec(p),
+                        param_grid(x, 1), // Forget
+                        loss_parameter);
+
+                    R_CheckUserInterrupt();
+                }
+            }
+
+            if (!basis_mats(x).is_diagmat())
+            {
+                beta(x) = optimize_weights2(
+                    y.rows(start, t - lead_time),
+                    experts_tmp_cube,
                     affine,
                     positive,
                     intercept,
                     debias,
                     loss_function,
-                    tau_vec(p),
+                    tau_vec,
                     param_grid(x, 1), // Forget
-                    loss_parameter);
+                    loss_parameter,
+                    basis_mats(x),
+                    beta(x));
+
+                w_post.slice(x) = basis_mats(x) * beta(x);
 
                 R_CheckUserInterrupt();
             }
