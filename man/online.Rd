@@ -6,8 +6,8 @@
 \usage{
 online(y, experts, tau, intercept = FALSE, loss_function = "quantile",
 loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
-lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
-forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, smooth_deg = 3,
+smooth_lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
+forget_performance = 0, fixed_share = 0, gamma = 1, smooth_ndiff = 1, smooth_deg = 3,
 basis_deg = 3, smooth_knot_distance = 0.1, basis_knot_distance = 0.1,
 smooth_knot_distance_power = 1, basis_knot_distance_power = 1,
 gradient = TRUE, loss_array = NULL, regret_array = NULL,

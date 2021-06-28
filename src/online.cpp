@@ -49,8 +49,8 @@ using namespace arma;
 //' @template param_ex_post_hard_threshold
 //' @usage online(y, experts, tau, intercept = FALSE, loss_function = "quantile",
 //' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
-//' lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
-//' forget_performance = 0, fixed_share = 0, gamma = 1, ndiff = 1, smooth_deg = 3,
+//' smooth_lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
+//' forget_performance = 0, fixed_share = 0, gamma = 1, smooth_ndiff = 1, smooth_deg = 3,
 //' basis_deg = 3, smooth_knot_distance = 0.1, basis_knot_distance = 0.1,
 //' smooth_knot_distance_power = 1, basis_knot_distance_power = 1,
 //' gradient = TRUE, loss_array = NULL, regret_array = NULL,
@@ -142,18 +142,24 @@ Rcpp::List online(
   vec smooth_knot_distance_vec = smooth_knot_distance;
   vec smooth_knot_distance_power_vec = smooth_knot_distance_power;
 
+  bool deg_inheritance = false;
   if (smooth_deg_vec.size() == 0)
   {
+    deg_inheritance = true;
     smooth_deg_vec = basis_deg;
   }
 
+  bool knot_distance_inheritance = false;
   if (smooth_knot_distance_vec.size() == 0)
   {
+    knot_distance_inheritance = true;
     smooth_knot_distance_vec = basis_knot_distance;
   }
 
+  bool knot_distance_power_inheritance = false;
   if (smooth_knot_distance_power_vec.size() == 0)
   {
+    knot_distance_power_inheritance = true;
     smooth_knot_distance_power_vec = basis_knot_distance_power;
   }
 
@@ -167,9 +173,32 @@ Rcpp::List online(
   param_grid = get_combinations(param_grid, smooth_knot_distance_power_vec); // Index 7
   param_grid = get_combinations(param_grid, soft_threshold);                 // Index 8
   param_grid = get_combinations(param_grid, hard_threshold);                 // Index 9
-  param_grid = get_combinations(param_grid, basis_deg);                      // Index 10
-  param_grid = get_combinations(param_grid, basis_knot_distance);            // Index 11
-  param_grid = get_combinations(param_grid, basis_knot_distance_power);      // Index 12
+
+  if (!deg_inheritance)
+  {
+    param_grid = get_combinations(param_grid, basis_deg); // Index 10
+  }
+  else
+  {
+    param_grid = join_rows(param_grid, param_grid.col(5)); // Index 10
+  }
+
+  if (!knot_distance_inheritance)
+  {
+    param_grid = get_combinations(param_grid, basis_knot_distance); // Index 11
+  }
+  else
+  {
+    param_grid = join_rows(param_grid, param_grid.col(4)); // Index 11
+  }
+  if (!knot_distance_power_inheritance)
+  {
+    param_grid = get_combinations(param_grid, basis_knot_distance_power); // Index 12
+  }
+  else
+  {
+    param_grid = join_rows(param_grid, param_grid.col(7)); // Index 12
+  }
 
   const int X = param_grid.n_rows;
   mat chosen_params(T, param_grid.n_cols);
@@ -672,14 +701,14 @@ Rcpp::List online(
   }
 
   Rcpp::DataFrame chosen_parameters = Rcpp::DataFrame::create(
-      Rcpp::Named("lambda") = chosen_params.col(0),
+      Rcpp::Named("smooth_lambda") = chosen_params.col(0),
       Rcpp::Named("forget_regret") = chosen_params.col(1),
       Rcpp::Named("fixed_share") = chosen_params.col(2),
       Rcpp::Named("gamma") = chosen_params.col(3),
-      Rcpp::Named("knot_distance") = chosen_params.col(4),
-      Rcpp::Named("deg") = chosen_params.col(5),
-      Rcpp::Named("diff") = chosen_params.col(6),
-      Rcpp::Named("knot_distance_power") = chosen_params.col(7),
+      Rcpp::Named("smooth_knot_distance") = chosen_params.col(4),
+      Rcpp::Named("smooth_deg") = chosen_params.col(5),
+      Rcpp::Named("smooth_diff") = chosen_params.col(6),
+      Rcpp::Named("smooth_knot_distance_power") = chosen_params.col(7),
       Rcpp::Named("threshold_soft") = chosen_params.col(8),
       Rcpp::Named("threshold_hard") = chosen_params.col(9),
       Rcpp::Named("bais_deg") = chosen_params.col(10),
@@ -687,14 +716,14 @@ Rcpp::List online(
       Rcpp::Named("basis_knot_distance_power") = chosen_params.col(12));
 
   Rcpp::DataFrame parametergrid = Rcpp::DataFrame::create(
-      Rcpp::Named("lambda") = param_grid.col(0),
+      Rcpp::Named("smooth_lambda") = param_grid.col(0),
       Rcpp::Named("forget_regret") = param_grid.col(1),
       Rcpp::Named("fixed_share") = param_grid.col(2),
       Rcpp::Named("gamma") = param_grid.col(3),
-      Rcpp::Named("knot_distance") = param_grid.col(4),
-      Rcpp::Named("deg") = param_grid.col(5),
-      Rcpp::Named("diff") = param_grid.col(6),
-      Rcpp::Named("knot_distance_power") = param_grid.col(7),
+      Rcpp::Named("smooth_knot_distance") = param_grid.col(4),
+      Rcpp::Named("smooth_deg") = param_grid.col(5),
+      Rcpp::Named("smooth_diff") = param_grid.col(6),
+      Rcpp::Named("smooth_knot_distance_power") = param_grid.col(7),
       Rcpp::Named("threshold_soft") = param_grid.col(8),
       Rcpp::Named("threshold_hard") = param_grid.col(9),
       Rcpp::Named("basis_deg") = param_grid.col(10),
