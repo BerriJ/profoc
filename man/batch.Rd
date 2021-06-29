@@ -7,8 +7,8 @@
 batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
 debias = TRUE, initial_window = 30, expanding_window = TRUE,
 loss_function = "quantile", loss_parameter = 1, smooth_lambda = -Inf,
-forget = 0, forget_performance = 0, fixed_share = 0, smooth_ndiff = 1, smooth_deg = 3,
-basis_deg = 3, smooth_knot_distance = 0.1, basis_knot_distance = 0.1,
+forget = 0, forget_performance = 0, fixed_share = 0, smooth_ndiff = 1, smooth_deg = 1,
+basis_deg = 1, smooth_knot_distance = 0.01, basis_knot_distance = 0.01,
 smooth_knot_distance_power = 1, basis_knot_distance_power = 1, trace = TRUE,
 lead_time = 0, allow_quantile_crossing = FALSE, soft_threshold = -Inf,
 hard_threshold = -Inf, max_parameter_combinations = 100)
