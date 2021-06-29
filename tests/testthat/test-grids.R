@@ -45,7 +45,8 @@ boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
-    smooth_lambda = c(10),
+    basis_knot_distance = 0.1,
+    smooth_lambda = c(1),
     smooth_ndiff = seq(from = 1, to = 2, by = 0.2),
     trace = FALSE
 )

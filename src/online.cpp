@@ -79,7 +79,7 @@ Rcpp::List online(
     Rcpp::NumericVector smooth_deg = Rcpp::NumericVector::create(),
     Rcpp::NumericVector basis_deg = Rcpp::NumericVector::create(3),
     Rcpp::NumericVector smooth_knot_distance = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector basis_knot_distance = Rcpp::NumericVector::create(0.1),
+    Rcpp::NumericVector basis_knot_distance = Rcpp::NumericVector::create(),
     Rcpp::NumericVector smooth_knot_distance_power = Rcpp::NumericVector::create(),
     Rcpp::NumericVector basis_knot_distance_power = Rcpp::NumericVector::create(1),
     const bool &gradient = true,
@@ -138,6 +138,18 @@ Rcpp::List online(
     tau_vec.fill(tau_vec(0));
   }
 
+  vec basis_knot_distance_vec = basis_knot_distance;
+  if (basis_knot_distance.size() == 0)
+  {
+    vec tmp(6, fill::zeros);
+    tmp.subvec(0, 4) = arma::linspace(log2(1 / (double(P) + 1)) - 1, -1, 5);
+    for (double &e : tmp)
+    {
+      e = pow(2, e);
+    }
+    basis_knot_distance_vec = tmp;
+  }
+
   vec smooth_deg_vec = smooth_deg;
   vec smooth_knot_distance_vec = smooth_knot_distance;
   vec smooth_knot_distance_power_vec = smooth_knot_distance_power;
@@ -153,7 +165,7 @@ Rcpp::List online(
   if (smooth_knot_distance_vec.size() == 0)
   {
     knot_distance_inheritance = true;
-    smooth_knot_distance_vec = basis_knot_distance;
+    smooth_knot_distance_vec = basis_knot_distance_vec;
   }
 
   bool knot_distance_power_inheritance = false;
@@ -185,7 +197,7 @@ Rcpp::List online(
 
   if (!knot_distance_inheritance)
   {
-    param_grid = get_combinations(param_grid, basis_knot_distance); // Index 11
+    param_grid = get_combinations(param_grid, basis_knot_distance_vec); // Index 11
   }
   else
   {

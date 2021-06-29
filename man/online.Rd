@@ -76,7 +76,10 @@ the value of basis_knot_distance.
 Corrsponds to the grid steps when knot_distance_power = 1 (the default).}
 
 \item{basis_knot_distance}{determines the distance of the knots in the probability
-basis. Defaults to the value of 0.1.}
+basis. Defaults to the follwing sequence:
+c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1).
+The best knot_distance is selected in each step according
+to the past performance.}
 
 \item{smooth_knot_distance_power}{Parameter which defines the symetrie of
 the b-spline basis. Takes the value of of basis_knot_distance_power if unspecified.}
