@@ -11,7 +11,7 @@ forget = 0, forget_performance = 0, fixed_share = 0, smooth_ndiff = 1, smooth_de
 basis_deg = 3, smooth_knot_distance = 0.1, basis_knot_distance = 0.1,
 smooth_knot_distance_power = 1, basis_knot_distance_power = 1, trace = TRUE,
 lead_time = 0, allow_quantile_crossing = FALSE, soft_threshold = -Inf,
-hard_threshold = -Inf)
+hard_threshold = -Inf, max_parameter_combinations = 100)
 }
 \arguments{
 \item{y}{A numeric matrix of realizations. In probabilistic
@@ -96,6 +96,11 @@ Defaults to -inf which means that no threshold will be applied.}
 \item{hard_threshold}{If specified the following hard thresholding will be applied
 to the weights: w = w*(abs(w)>t) where t is the threshold_hard parameter.
 Defaults to -inf which means that no threshold will be applied.}
+
+\item{max_parameter_combinations}{Integer specifying the maximum
+number of parameter combinations that should be considered. If
+the number of possible combinations exceeeds this threshold,
+the maximum allowed number is randomly sampled. Defaults to 100.}
 }
 \value{
 Returns weights and corresponding predictions.

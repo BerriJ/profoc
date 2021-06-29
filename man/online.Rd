@@ -13,7 +13,7 @@ smooth_knot_distance_power = 1, basis_knot_distance_power = 1,
 gradient = TRUE, loss_array = NULL, regret_array = NULL,
 trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE,
 soft_threshold = -Inf, ex_post_soft_threshold = FALSE, hard_threshold = -Inf,
-ex_post_hard_threshold = FALSE)
+ex_post_hard_threshold = FALSE, max_parameter_combinations = 100)
 }
 \arguments{
 \item{y}{A numeric matrix of realizations. In probabilistic
@@ -118,6 +118,11 @@ Defaults to -inf which means that no threshold will be applied.}
 
 \item{ex_post_hard_threshold}{Analogous to ex_post_smooth: shall the hard
 thresholding be applied during (the default, FALSE) or after online-learning (TRUE).}
+
+\item{max_parameter_combinations}{Integer specifying the maximum
+number of parameter combinations that should be considered. If
+the number of possible combinations exceeeds this threshold,
+the maximum allowed number is randomly sampled. Defaults to 100.}
 }
 \value{
 online can tune various parameters automatically based on

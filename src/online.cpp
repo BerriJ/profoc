@@ -47,6 +47,7 @@ using namespace arma;
 //' @template param_ex_post_soft_threshold
 //' @template param_hard_threshold
 //' @template param_ex_post_hard_threshold
+//' @template param_max_parameter_combinations
 //' @usage online(y, experts, tau, intercept = FALSE, loss_function = "quantile",
 //' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
 //' smooth_lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
@@ -56,7 +57,7 @@ using namespace arma;
 //' gradient = TRUE, loss_array = NULL, regret_array = NULL,
 //' trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE,
 //' soft_threshold = -Inf, ex_post_soft_threshold = FALSE, hard_threshold = -Inf,
-//' ex_post_hard_threshold = FALSE)
+//' ex_post_hard_threshold = FALSE, max_parameter_combinations = 100)
 //' @export
 // [[Rcpp::export]]
 Rcpp::List online(
@@ -92,7 +93,8 @@ Rcpp::List online(
     Rcpp::NumericVector soft_threshold = Rcpp::NumericVector::create(-1 / 0),
     bool ex_post_soft_threshold = false,
     Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create(-1 / 0),
-    bool ex_post_hard_threshold = false)
+    bool ex_post_hard_threshold = false,
+    const int max_parameter_combinations = 100)
 {
 
   if (intercept)
@@ -210,6 +212,14 @@ Rcpp::List online(
   else
   {
     param_grid = join_rows(param_grid, param_grid.col(7)); // Index 12
+  }
+
+  if (param_grid.n_rows > max_parameter_combinations)
+  {
+    Rcpp::warning("Warning: Too many parameter combinations possible. %m combinations were randomly sampled. Results may depend on sampling.", max_parameter_combinations);
+    uvec tmp_index = randperm(param_grid.n_rows, max_parameter_combinations);
+    tmp_index = sort(tmp_index);
+    param_grid = param_grid.rows(tmp_index);
   }
 
   const int X = param_grid.n_rows;

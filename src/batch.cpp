@@ -39,6 +39,7 @@ using namespace arma;
 //' @template param_allow_quantile_crossing
 //' @template param_soft_threshold
 //' @template param_hard_threshold
+//' @template param_max_parameter_combinations
 //' @usage batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
 //' debias = TRUE, initial_window = 30, expanding_window = TRUE,
 //' loss_function = "quantile", loss_parameter = 1, smooth_lambda = -Inf,
@@ -46,7 +47,7 @@ using namespace arma;
 //' basis_deg = 3, smooth_knot_distance = 0.1, basis_knot_distance = 0.1,
 //' smooth_knot_distance_power = 1, basis_knot_distance_power = 1, trace = TRUE,
 //' lead_time = 0, allow_quantile_crossing = FALSE, soft_threshold = -Inf,
-//' hard_threshold = -Inf)
+//' hard_threshold = -Inf, max_parameter_combinations = 100)
 //' @export
 // [[Rcpp::export]]
 Rcpp::List batch(
@@ -76,7 +77,8 @@ Rcpp::List batch(
     const int &lead_time = 0,
     bool allow_quantile_crossing = false,
     Rcpp::NumericVector soft_threshold = Rcpp::NumericVector::create(-1 / 0),
-    Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create(-1 / 0))
+    Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create(-1 / 0),
+    const int max_parameter_combinations = 100)
 {
 
     if (intercept)
@@ -185,6 +187,14 @@ Rcpp::List batch(
     else
     {
         param_grid = join_rows(param_grid, param_grid.col(6)); // Index 11
+    }
+
+    if (param_grid.n_rows > max_parameter_combinations)
+    {
+        Rcpp::warning("Warning: Too many parameter combinations possible. %m combinations were randomly sampled. Results may depend on sampling.", max_parameter_combinations);
+        uvec tmp_index = randperm(param_grid.n_rows, max_parameter_combinations);
+        tmp_index = sort(tmp_index);
+        param_grid = param_grid.rows(tmp_index);
     }
 
     const int X = param_grid.n_rows;
