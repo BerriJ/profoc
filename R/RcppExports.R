@@ -20,9 +20,9 @@
 #' @template param_fixed_share
 #' @template param_smooth_ndiff
 #' @template param_smooth_deg
-#' @template param_basis_deg
+#' @template param_basis_deg_batch
 #' @template param_smooth_knot_distance
-#' @template param_basis_knot_distance
+#' @template param_basis_knot_distance_batch
 #' @template param_smooth_knot_distance_power
 #' @template param_basis_knot_distance_power
 #' @template param_trace
@@ -39,7 +39,7 @@
 #' lead_time = 0, allow_quantile_crossing = FALSE, soft_threshold = -Inf,
 #' hard_threshold = -Inf)
 #' @export
-batch <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, initial_window = 30L, expanding_window = TRUE, loss_function = "quantile", loss_parameter = 1, smooth_lambda = as.numeric( c(-1 / 0)), forget = as.numeric( c(0)), forget_performance = 0, fixed_share = as.numeric( c(0)), smooth_ndiff = as.numeric( c(1.5)), smooth_deg = as.numeric( c()), basis_deg = as.numeric( c(3)), smooth_knot_distance = as.numeric( c()), basis_knot_distance = as.numeric( c(0.1)), smooth_knot_distance_power = as.numeric( c()), basis_knot_distance_power = as.numeric( c(1)), trace = TRUE, lead_time = 0L, allow_quantile_crossing = FALSE, soft_threshold = as.numeric( c(-1 / 0)), hard_threshold = as.numeric( c(-1 / 0))) {
+batch <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, initial_window = 30L, expanding_window = TRUE, loss_function = "quantile", loss_parameter = 1, smooth_lambda = as.numeric( c(-1 / 0)), forget = as.numeric( c(0)), forget_performance = 0, fixed_share = as.numeric( c(0)), smooth_ndiff = as.numeric( c(1.5)), smooth_deg = as.numeric( c()), basis_deg = as.numeric( c(1)), smooth_knot_distance = as.numeric( c()), basis_knot_distance = as.numeric( c()), smooth_knot_distance_power = as.numeric( c()), basis_knot_distance_power = as.numeric( c(1)), trace = TRUE, lead_time = 0L, allow_quantile_crossing = FALSE, soft_threshold = as.numeric( c(-1 / 0)), hard_threshold = as.numeric( c(-1 / 0))) {
     .Call(`_profoc_batch`, y, experts, tau, affine, positive, intercept, debias, initial_window, expanding_window, loss_function, loss_parameter, smooth_lambda, forget, forget_performance, fixed_share, smooth_ndiff, smooth_deg, basis_deg, smooth_knot_distance, basis_knot_distance, smooth_knot_distance_power, basis_knot_distance_power, trace, lead_time, allow_quantile_crossing, soft_threshold, hard_threshold)
 }
 
@@ -100,9 +100,9 @@ mat2vec <- function(x) {
 #' @param gamma Scaling parameter for the learning rate.
 #' @template param_smooth_ndiff
 #' @template param_smooth_deg
-#' @template param_basis_deg
+#' @template param_basis_deg_online
 #' @template param_smooth_knot_distance
-#' @template param_basis_knot_distance
+#' @template param_basis_knot_distance_online
 #' @template param_smooth_knot_distance_power
 #' @template param_basis_knot_distance_power
 #' @param gradient Determines if a linearized version of the loss is used.

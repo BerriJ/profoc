@@ -29,9 +29,9 @@ using namespace arma;
 //' @template param_fixed_share
 //' @template param_smooth_ndiff
 //' @template param_smooth_deg
-//' @template param_basis_deg
+//' @template param_basis_deg_batch
 //' @template param_smooth_knot_distance
-//' @template param_basis_knot_distance
+//' @template param_basis_knot_distance_batch
 //' @template param_smooth_knot_distance_power
 //' @template param_basis_knot_distance_power
 //' @template param_trace
@@ -67,9 +67,9 @@ Rcpp::List batch(
     Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(0),
     Rcpp::NumericVector smooth_ndiff = Rcpp::NumericVector::create(1.5),
     Rcpp::NumericVector smooth_deg = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector basis_deg = Rcpp::NumericVector::create(3),
+    Rcpp::NumericVector basis_deg = Rcpp::NumericVector::create(1),
     Rcpp::NumericVector smooth_knot_distance = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector basis_knot_distance = Rcpp::NumericVector::create(0.1),
+    Rcpp::NumericVector basis_knot_distance = Rcpp::NumericVector::create(),
     Rcpp::NumericVector smooth_knot_distance_power = Rcpp::NumericVector::create(),
     Rcpp::NumericVector basis_knot_distance_power = Rcpp::NumericVector::create(1),
     const bool trace = true,
@@ -125,6 +125,8 @@ Rcpp::List batch(
         tau_vec.fill(tau_vec(0));
     }
 
+    vec basis_knot_distance_vec = set_default(basis_knot_distance, 1 / (double(P) + 1));
+
     vec smooth_deg_vec = smooth_deg;
     vec smooth_knot_distance_vec = smooth_knot_distance;
     vec smooth_knot_distance_power_vec = smooth_knot_distance_power;
@@ -140,7 +142,7 @@ Rcpp::List batch(
     if (smooth_knot_distance_vec.size() == 0)
     {
         knot_distance_inheritance = true;
-        smooth_knot_distance_vec = basis_knot_distance;
+        smooth_knot_distance_vec = basis_knot_distance_vec;
     }
 
     bool knot_distance_power_inheritance = false;
@@ -170,7 +172,7 @@ Rcpp::List batch(
 
     if (!knot_distance_inheritance)
     {
-        param_grid = get_combinations(param_grid, basis_knot_distance); // Index 10
+        param_grid = get_combinations(param_grid, basis_knot_distance_vec); // Index 10
     }
     else
     {

@@ -31,9 +31,9 @@ using namespace arma;
 //' @param gamma Scaling parameter for the learning rate.
 //' @template param_smooth_ndiff
 //' @template param_smooth_deg
-//' @template param_basis_deg
+//' @template param_basis_deg_online
 //' @template param_smooth_knot_distance
-//' @template param_basis_knot_distance
+//' @template param_basis_knot_distance_online
 //' @template param_smooth_knot_distance_power
 //' @template param_basis_knot_distance_power
 //' @param gradient Determines if a linearized version of the loss is used.
