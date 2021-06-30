@@ -1,5 +1,8 @@
 skip_if(debug_mode)
+
 suppressPackageStartupMessages(library(gamlss.dist))
+
+set.seed(1)
 
 # Experts
 N <- 2

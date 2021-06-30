@@ -1,5 +1,7 @@
 skip_if(debug_mode)
 
+set.seed(1)
+
 T <- 1000
 N <- 2
 P <- 99
