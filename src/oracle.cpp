@@ -290,7 +290,7 @@ vec optimize_weights(const vec &truth,
 }
 
 // [[Rcpp::export]]
-mat optimize_weights2(const mat &truth,
+mat optimize_betas(const mat &truth,
                       const cube &experts,
                       const bool &affine,
                       const bool &positive,

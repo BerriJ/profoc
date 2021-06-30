@@ -139,8 +139,8 @@ optimize_weights <- function(truth, experts, affine = FALSE, positive = FALSE, i
     .Call(`_profoc_optimize_weights`, truth, experts, affine, positive, intercept, debias, loss_function, tau, forget, loss_scaling)
 }
 
-optimize_weights2 <- function(truth, experts, affine, positive, intercept, debias, loss_function, tau_vec, forget, loss_scaling, basis, beta) {
-    .Call(`_profoc_optimize_weights2`, truth, experts, affine, positive, intercept, debias, loss_function, tau_vec, forget, loss_scaling, basis, beta)
+optimize_betas <- function(truth, experts, affine, positive, intercept, debias, loss_function, tau_vec, forget, loss_scaling, basis, beta) {
+    .Call(`_profoc_optimize_betas`, truth, experts, affine, positive, intercept, debias, loss_function, tau_vec, forget, loss_scaling, basis, beta)
 }
 
 #' @template function_oracle

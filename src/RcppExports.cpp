@@ -228,9 +228,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// optimize_weights2
-mat optimize_weights2(const mat& truth, const cube& experts, const bool& affine, const bool& positive, const bool& intercept, const bool& debias, const std::string& loss_function, const vec& tau_vec, const double& forget, const double& loss_scaling, const sp_mat& basis, const mat& beta);
-RcppExport SEXP _profoc_optimize_weights2(SEXP truthSEXP, SEXP expertsSEXP, SEXP affineSEXP, SEXP positiveSEXP, SEXP interceptSEXP, SEXP debiasSEXP, SEXP loss_functionSEXP, SEXP tau_vecSEXP, SEXP forgetSEXP, SEXP loss_scalingSEXP, SEXP basisSEXP, SEXP betaSEXP) {
+// optimize_betas
+mat optimize_betas(const mat& truth, const cube& experts, const bool& affine, const bool& positive, const bool& intercept, const bool& debias, const std::string& loss_function, const vec& tau_vec, const double& forget, const double& loss_scaling, const sp_mat& basis, const mat& beta);
+RcppExport SEXP _profoc_optimize_betas(SEXP truthSEXP, SEXP expertsSEXP, SEXP affineSEXP, SEXP positiveSEXP, SEXP interceptSEXP, SEXP debiasSEXP, SEXP loss_functionSEXP, SEXP tau_vecSEXP, SEXP forgetSEXP, SEXP loss_scalingSEXP, SEXP basisSEXP, SEXP betaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -246,7 +246,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type loss_scaling(loss_scalingSEXP);
     Rcpp::traits::input_parameter< const sp_mat& >::type basis(basisSEXP);
     Rcpp::traits::input_parameter< const mat& >::type beta(betaSEXP);
-    rcpp_result_gen = Rcpp::wrap(optimize_weights2(truth, experts, affine, positive, intercept, debias, loss_function, tau_vec, forget, loss_scaling, basis, beta));
+    rcpp_result_gen = Rcpp::wrap(optimize_betas(truth, experts, affine, positive, intercept, debias, loss_function, tau_vec, forget, loss_scaling, basis, beta));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -371,7 +371,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_mat2vec", (DL_FUNC) &_profoc_mat2vec, 1},
     {"_profoc_online", (DL_FUNC) &_profoc_online, 34},
     {"_profoc_optimize_weights", (DL_FUNC) &_profoc_optimize_weights, 10},
-    {"_profoc_optimize_weights2", (DL_FUNC) &_profoc_optimize_weights2, 12},
+    {"_profoc_optimize_betas", (DL_FUNC) &_profoc_optimize_betas, 12},
     {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 10},
     {"_profoc_make_knots", (DL_FUNC) &_profoc_make_knots, 3},
     {"_profoc_make_difference_matrix", (DL_FUNC) &_profoc_make_difference_matrix, 3},

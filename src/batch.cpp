@@ -377,7 +377,7 @@ Rcpp::List batch(
 
             if (!basis_mats_sparse(x).is_diagmat())
             {
-                beta(x) = optimize_weights2(
+                beta(x) = optimize_betas(
                     y.rows(start, t - lead_time),
                     experts_tmp_cube,
                     affine,
