@@ -291,17 +291,17 @@ vec optimize_weights(const vec &truth,
 
 // [[Rcpp::export]]
 mat optimize_betas(const mat &truth,
-                      const cube &experts,
-                      const bool &affine,
-                      const bool &positive,
-                      const bool &intercept,
-                      const bool &debias,
-                      const std::string &loss_function,
-                      const vec &tau_vec,
-                      const double &forget,
-                      const double &loss_scaling,
-                      const sp_mat &basis,
-                      const mat &beta)
+                   const cube &experts,
+                   const bool &affine,
+                   const bool &positive,
+                   const bool &intercept,
+                   const bool &debias,
+                   const std::string &loss_function,
+                   const vec &tau_vec,
+                   const double &forget,
+                   const double &loss_scaling,
+                   const sp_mat &basis,
+                   const mat &beta)
 {
 
     const int P = experts.n_cols;
@@ -487,7 +487,6 @@ Rcpp::List oracle(arma::mat &y,
 
     for (int p = 0; p < P; p++)
     {
-
         weights.row(p) = optimize_weights(y.col(p),
                                           experts.col(p),
                                           affine,
@@ -525,10 +524,13 @@ Rcpp::List oracle(arma::mat &y,
             }
         }
     }
-
-    return Rcpp::List::create(
+    Rcpp::List out = Rcpp::List::create(
         Rcpp::Named("predictions") = predictions,
         Rcpp::Named("weights") = weights,
         Rcpp::Named("oracles_loss") = oracles_loss,
         Rcpp::Named("experts_loss") = loss_exp);
+
+    out.attr("class") = "profoc_oracle";
+
+    return out;
 }

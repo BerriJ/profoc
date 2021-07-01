@@ -529,7 +529,7 @@ Rcpp::List batch(
         Rcpp::Named("basis_knot_distance") = param_grid.col(10),
         Rcpp::Named("basis_knot_distance_power") = param_grid.col(11));
 
-    return Rcpp::List::create(
+    Rcpp::List out = Rcpp::List::create(
         Rcpp::Named("predictions") = predictions_final,
         Rcpp::Named("weights") = weights,
         Rcpp::Named("forecaster_loss") = loss_for,
@@ -539,4 +539,8 @@ Rcpp::List batch(
         Rcpp::Named("parametergrid") = parametergrid,
         Rcpp::Named("opt_index") = opt_index,
         Rcpp::Named("basis_matrices") = basis_mats);
+
+    out.attr("class") = "profoc_batch";
+
+    return out;
 }
