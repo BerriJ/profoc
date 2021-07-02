@@ -755,6 +755,11 @@ Rcpp::List online(
       Rcpp::Named("basis_knot_distance") = param_grid.col(11),
       Rcpp::Named("basis_knot_distance_power") = param_grid.col(12));
 
+  Rcpp::List model_spec = Rcpp::List::create(
+      Rcpp::Named("allow_quantile_crossing") = allow_quantile_crossing,
+      Rcpp::Named("parametergrid") = parametergrid,
+      Rcpp::Named("basis_matrices") = basis_mats);
+
   Rcpp::List out = Rcpp::List::create(
       Rcpp::Named("predictions") = predictions_final,
       Rcpp::Named("weights") = weights,
@@ -762,11 +767,44 @@ Rcpp::List online(
       Rcpp::Named("experts_loss") = loss_exp,
       Rcpp::Named("past_perf_wrt_params") = past_performance,
       Rcpp::Named("chosen_parameters") = chosen_parameters,
-      Rcpp::Named("parametergrid") = parametergrid,
       Rcpp::Named("opt_index") = opt_index,
-      Rcpp::Named("basis_matrices") = basis_mats);
+      Rcpp::Named("specification") = model_spec);
 
-  out.attr("class") = "profoc_online";
+  out.attr("class") = "online";
 
   return out;
+}
+
+// [[Rcpp::export]]
+Rcpp::List predict_online(
+    Rcpp::List &object,
+    cube &new_experts)
+{
+
+  Rcpp::List specification = object["specification"];
+  bool allow_quantile_crossing = specification["allow_quantile_crossing"];
+
+  mat predictions = object["predictions"];
+  cube weights = object["weights"];
+
+  mat predictions_new(new_experts.n_rows, new_experts.n_cols);
+
+  for (unsigned int t = 0; t < new_experts.n_rows; t++)
+  {
+    mat w_temp = weights.row(weights.n_rows - 1);
+    mat experts_temp = new_experts.row(t);
+    predictions_new.row(t) = sum(w_temp % experts_temp, 1).t();
+  }
+
+  // Sort predictions if quantile_crossing is prohibited
+  if (!allow_quantile_crossing)
+  {
+    predictions_new = arma::sort(predictions_new, "ascend", 1);
+  }
+
+  mat predictions_joined = join_vert(predictions, predictions_new);
+
+  object["predictions"] = predictions_joined;
+
+  return object;
 }

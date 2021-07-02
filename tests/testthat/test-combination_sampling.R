@@ -30,4 +30,4 @@ expect_warning(boa <- online(
     trace = FALSE
 ), "Warning: Too many parameter combinations possible. 10 combinations were randomly sampled. Results may depend on sampling.")
 
-expect_true(nrow(boa$parametergrid) == 10)
+expect_true(nrow(boa$specification$parametergrid) == 10)

@@ -135,6 +135,10 @@ online <- function(y, experts, tau = as.numeric( c()), intercept = FALSE, loss_f
     .Call(`_profoc_online`, y, experts, tau, intercept, loss_function, loss_parameter, ex_post_smooth, ex_post_fs, smooth_lambda, method, method_var, forget_regret, forget_performance, fixed_share, gamma, smooth_ndiff, smooth_deg, basis_deg, smooth_knot_distance, basis_knot_distance, smooth_knot_distance_power, basis_knot_distance_power, gradient, loss_array, regret_array, trace, init_weights, lead_time, allow_quantile_crossing, soft_threshold, ex_post_soft_threshold, hard_threshold, ex_post_hard_threshold, max_parameter_combinations)
 }
 
+predict_online <- function(object, new_experts) {
+    .Call(`_profoc_predict_online`, object, new_experts)
+}
+
 optimize_weights <- function(truth, experts, affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, loss_function = "quantile", tau = 0.5, forget = 0, loss_scaling = 1) {
     .Call(`_profoc_optimize_weights`, truth, experts, affine, positive, intercept, debias, loss_function, tau, forget, loss_scaling)
 }
