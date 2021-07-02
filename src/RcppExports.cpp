@@ -327,7 +327,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // make_basis_matrix
-mat make_basis_matrix(const vec& x, const double& kstep, const int deg, const double& a);
+sp_mat make_basis_matrix(const vec& x, const double& kstep, const int deg, const double& a);
 RcppExport SEXP _profoc_make_basis_matrix(SEXP xSEXP, SEXP kstepSEXP, SEXP degSEXP, SEXP aSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

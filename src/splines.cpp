@@ -77,7 +77,7 @@ mat make_hat_matrix(const vec &x, const double &kstep, const double &lambda, con
 }
 
 // [[Rcpp::export]]
-mat make_basis_matrix(const vec &x, const double &kstep, const int deg, const double &a)
+sp_mat make_basis_matrix(const vec &x, const double &kstep, const int deg, const double &a)
 {
     mat B;
 
@@ -102,7 +102,9 @@ mat make_basis_matrix(const vec &x, const double &kstep, const int deg, const do
         B = B_;
     }
 
-    return B;
+    sp_mat out(B);
+
+    return out;
 }
 
 // [[Rcpp::export]]

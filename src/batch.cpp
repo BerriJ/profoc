@@ -264,7 +264,6 @@ Rcpp::List batch(
     // Init hat matrix field
     for (unsigned int x = 0; x < X; x++)
     {
-        mat basis;
 
         // In second step: skip if recalc is not necessary:
         if (x > 0 &&
@@ -273,19 +272,16 @@ Rcpp::List batch(
             param_grid(x, 1) == param_grid(x - 1, 1))
         {
             basis_mats(x) = basis_mats(x - 1);
-            basis = basis_mats(x);
         }
         else
         {
-            basis = make_basis_matrix(spline_basis_x,
-                                      param_grid(x, 0),  // kstep
-                                      param_grid(x, 2),  // degree
-                                      param_grid(x, 1)); // uneven grid
-
-            basis_mats(x) = sp_mat(basis);
+            basis_mats(x) = make_basis_matrix(spline_basis_x,
+                                              param_grid(x, 0),  // kstep
+                                              param_grid(x, 2),  // degree
+                                              param_grid(x, 1)); // uneven grid
         }
 
-        beta(x) = (w_post.slice(x).t() * pinv(basis).t()).t();
+        beta(x) = (w_post.slice(x).t() * pinv(mat(basis_mats(x))).t()).t();
 
         R_CheckUserInterrupt();
     }

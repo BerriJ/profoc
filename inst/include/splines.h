@@ -16,7 +16,7 @@ arma::mat make_hat_matrix(const arma::vec &x,
                           const int deg,
                           const double &a);
 
-arma::mat make_basis_matrix(const arma::vec &x,
+arma::sp_mat make_basis_matrix(const arma::vec &x,
                             const double &kstep,
                             const int deg,
                             const double &a);
