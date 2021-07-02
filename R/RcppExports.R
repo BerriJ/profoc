@@ -96,8 +96,8 @@ diff_cpp <- function(x, lag, differences) {
     .Call(`_profoc_diff_cpp`, x, lag, differences)
 }
 
-get_combinations <- function(x, y) {
-    .Call(`_profoc_get_combinations`, x, y)
+get_combinations <- function(x, y, append_only, append_col) {
+    .Call(`_profoc_get_combinations`, x, y, append_only, append_col)
 }
 
 set_default <- function(input, value) {

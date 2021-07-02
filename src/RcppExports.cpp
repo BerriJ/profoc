@@ -117,14 +117,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // get_combinations
-mat get_combinations(const mat& x, const vec& y);
-RcppExport SEXP _profoc_get_combinations(SEXP xSEXP, SEXP ySEXP) {
+mat get_combinations(const mat& x, const vec& y, const bool& append_only, const int& append_col);
+RcppExport SEXP _profoc_get_combinations(SEXP xSEXP, SEXP ySEXP, SEXP append_onlySEXP, SEXP append_colSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const mat& >::type x(xSEXP);
     Rcpp::traits::input_parameter< const vec& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(get_combinations(x, y));
+    Rcpp::traits::input_parameter< const bool& >::type append_only(append_onlySEXP);
+    Rcpp::traits::input_parameter< const int& >::type append_col(append_colSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_combinations(x, y, append_only, append_col));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -377,7 +379,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_pmin_arma", (DL_FUNC) &_profoc_pmin_arma, 2},
     {"_profoc_pmax_arma", (DL_FUNC) &_profoc_pmax_arma, 2},
     {"_profoc_diff_cpp", (DL_FUNC) &_profoc_diff_cpp, 3},
-    {"_profoc_get_combinations", (DL_FUNC) &_profoc_get_combinations, 2},
+    {"_profoc_get_combinations", (DL_FUNC) &_profoc_get_combinations, 4},
     {"_profoc_set_default", (DL_FUNC) &_profoc_set_default, 2},
     {"_profoc_vec2mat", (DL_FUNC) &_profoc_vec2mat, 3},
     {"_profoc_mat2vec", (DL_FUNC) &_profoc_mat2vec, 1},

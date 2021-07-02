@@ -205,41 +205,19 @@ Rcpp::List online(
 
   // Init parametergrid
   mat param_grid =
-      get_combinations(basis_knot_distance_vec,              // Index 0
-                       basis_knot_distance_power);           // Index 1
-  param_grid = get_combinations(param_grid, basis_deg);      // index 2
-  param_grid = get_combinations(param_grid, forget_regret);  // index 3
-  param_grid = get_combinations(param_grid, soft_threshold); // index 4
-  param_grid = get_combinations(param_grid, hard_threshold); // index 5
-  param_grid = get_combinations(param_grid, fixed_share);    // index 6
-  param_grid = get_combinations(param_grid, smooth_lambda);  // index 7
-  // TODO exten get_combinations: inheritance feature
-  if (!knot_distance_inheritance)
-  {
-    param_grid = get_combinations(param_grid, smooth_knot_distance); // Index 8
-  }
-  else
-  {
-    param_grid = arma::join_rows(param_grid, param_grid.col(0)); // Index 8
-  }
-  if (!knot_distance_power_inheritance)
-  {
-    param_grid = get_combinations(param_grid, smooth_knot_distance_power); // Index 9
-  }
-  else
-  {
-    param_grid = arma::join_rows(param_grid, param_grid.col(1)); // Index 9
-  }
-  if (!deg_inheritance)
-  {
-    param_grid = get_combinations(param_grid, smooth_deg); // Index 10
-  }
-  else
-  {
-    param_grid = arma::join_rows(param_grid, param_grid.col(2)); // Index 10
-  }
-  param_grid = get_combinations(param_grid, smooth_ndiff); // Index 11
-  param_grid = get_combinations(param_grid, gamma);        // Index 12
+      get_combinations(basis_knot_distance_vec,                                                              // Index 0
+                       basis_knot_distance_power);                                                           // Index 1
+  param_grid = get_combinations(param_grid, basis_deg);                                                      // index 2
+  param_grid = get_combinations(param_grid, forget_regret);                                                  // index 3
+  param_grid = get_combinations(param_grid, soft_threshold);                                                 // index 4
+  param_grid = get_combinations(param_grid, hard_threshold);                                                 // index 5
+  param_grid = get_combinations(param_grid, fixed_share);                                                    // index 6
+  param_grid = get_combinations(param_grid, smooth_lambda);                                                  // index 7
+  param_grid = get_combinations(param_grid, smooth_knot_distance, knot_distance_inheritance, 0);             // Index 8
+  param_grid = get_combinations(param_grid, smooth_knot_distance_power, knot_distance_power_inheritance, 1); // Index 9
+  param_grid = get_combinations(param_grid, smooth_deg, deg_inheritance, 2);                                 // Index 10
+  param_grid = get_combinations(param_grid, smooth_ndiff);                                                   // Index 11
+  param_grid = get_combinations(param_grid, gamma);                                                          // Index 12
 
   if (param_grid.n_rows > parametergrid_max_combinations)
   {

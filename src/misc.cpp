@@ -48,20 +48,29 @@ vec diff_cpp(vec x, unsigned int lag, unsigned int differences)
 
 // Like expand.grid but takes a matrix as first argument
 // [[Rcpp::export]]
-mat get_combinations(const mat &x, const vec &y)
+mat get_combinations(const mat &x, const vec &y, const bool &append_only, const int &append_col)
 {
-    int i = 0;
-    mat grid(x.n_rows * y.size(), x.n_cols + 1);
-
-    for (unsigned int y_ = 0; y_ < y.size(); y_++)
+    mat grid;
+    if (!append_only)
     {
+        grid.set_size(x.n_rows * y.size(), x.n_cols + 1);
+        int i = 0;
         for (unsigned int x_ = 0; x_ < x.n_rows; x_++)
         {
-            grid(i, span(0, x.n_cols - 1)) = x.row(x_);
-            grid(i, x.n_cols) = y(y_);
-            i += 1;
+            for (unsigned int y_ = 0; y_ < y.size(); y_++)
+            {
+                grid(i, span(0, x.n_cols - 1)) = x.row(x_);
+                grid(i, x.n_cols) = y(y_);
+                i += 1;
+            }
         }
     }
+    else
+    {
+        grid.set_size(x.n_rows, x.n_cols + 1);
+        grid = arma::join_rows(x, x.col(append_col));
+    }
+
     return (grid);
 }
 

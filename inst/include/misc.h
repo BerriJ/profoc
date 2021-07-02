@@ -9,7 +9,10 @@ arma::mat pmin_arma(const arma::mat &x, const double &bound);
 
 arma::vec diff_cpp(arma::vec x, unsigned int lag, unsigned int differences);
 
-arma::mat get_combinations(const arma::mat &x, const arma::vec &y);
+arma::mat get_combinations(const arma::mat &x,
+                           const arma::vec &y,
+                           const bool &append_only = false,
+                           const int &append_col = -1);
 
 arma::vec set_default(const arma::vec &input, const double &value);
 
