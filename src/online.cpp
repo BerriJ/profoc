@@ -15,51 +15,88 @@ using namespace arma;
 //' @template param_y
 //' @template param_experts
 //' @template param_tau
+//'
 //' @template param_intercept
+//' @template param_lead_time
+//'
 //' @template param_loss_function
 //' @template param_loss_parameter
-//' @template param_ex_post_smooth
-//' @template param_ex_post_fs
-//' @template param_smooth_lambda
+//' @param loss_gradient Determines if a linearized version of the loss is used.
+//'
 //' @template param_method
 //' @param method_var Allows to calculate slight variations of the BOA
 //' algorithm
+//'
+//' @template param_basis_knot_distance_online
+//' @template param_basis_knot_distance_power
+//' @template param_basis_deg_online
+//'
 //' @param forget_regret Share of past regret not to be considered, resp. to be
 //' forgotten in every iteration of the algorithm. Defaults to 0.
-//' @template param_forget_performance
+//'
+//' @template param_soft_threshold
+//' @template param_soft_threshold_ex_post
+//' @template param_hard_threshold
+//' @template param_hard_threshold_ex_post
+//'
 //' @template param_fixed_share
-//' @param gamma Scaling parameter for the learning rate.
-//' @template param_smooth_ndiff
-//' @template param_smooth_deg
-//' @template param_basis_deg_online
+//' @template param_fixed_share_ex_post
+//'
+//' @template param_smooth_lambda
 //' @template param_smooth_knot_distance
-//' @template param_basis_knot_distance_online
 //' @template param_smooth_knot_distance_power
-//' @template param_basis_knot_distance_power
-//' @param gradient Determines if a linearized version of the loss is used.
+//' @template param_smooth_deg
+//' @template param_smooth_ndiff
+//' @template param_smooth_ex_post
+//'
+//' @param gamma Scaling parameter for the learning rate.
+//'
+//' @template param_parametergrid_max_combinations
+//' @template param_forget_past_performance
+//'
+//' @template param_allow_quantile_crossing
+//'
+//' @param init_weights Matrix of dimension Kx1 or KxP used as starting weights. Kx1 represents the constant solution with equal weights over all P whereas specifiying a KxP matrix allows different starting weights for each P.
 //' @param loss_array User specified loss array. If specified, the loss will not be calculated by profoc.
 //' @param regret_array User specified regret array. If specifiec, the regret will not be calculated by profoc.
 //' @template param_trace
-//' @param init_weights Matrix of dimension Kx1 or KxP used as starting weights. Kx1 represents the constant solution with equal weights over all P whereas specifiying a KxP matrix allows different starting weights for each P.
-//' @template param_lead_time
-//' @template param_allow_quantile_crossing
-//' @template param_soft_threshold
-//' @template param_ex_post_soft_threshold
-//' @template param_hard_threshold
-//' @template param_ex_post_hard_threshold
-//' @template param_max_parameter_combinations
-//' @usage online(y, experts, tau, intercept = FALSE, loss_function = "quantile",
-//' loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
-//' smooth_lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
-//' forget_performance = 0, fixed_share = 0, gamma = 1, smooth_ndiff = 1, smooth_deg = 3,
-//' basis_deg = 3,
-//' smooth_knot_distance = c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1),
+//'
+//' @usage online(
+//' y,
+//' experts,
+//' tau,
+//' intercept = FALSE,
+//' lead_time = 0,
+//' loss_function = "quantile",
+//' loss_parameter = 1,
+//' loss_gradient = TRUE,
+//' method = "boa",
+//' method_var = "A",
 //' basis_knot_distance = c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1),
-//' smooth_knot_distance_power = 1, basis_knot_distance_power = 1,
-//' gradient = TRUE, loss_array = NULL, regret_array = NULL,
-//' trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE,
-//' soft_threshold = -Inf, ex_post_soft_threshold = FALSE, hard_threshold = -Inf,
-//' ex_post_hard_threshold = FALSE, max_parameter_combinations = 100)
+//' basis_knot_distance_power = 1,
+//' basis_deg = 3,
+//' forget_regret = 0,
+//' soft_threshold = -Inf,
+//' soft_threshold_ex_post = FALSE,
+//' hard_threshold = -Inf,
+//' hard_threshold_ex_post = FALSE,
+//' fixed_share = 0,
+//' fixed_share_ex_post = FALSE,
+//' smooth_lambda = -Inf,
+//' smooth_knot_distance = c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1),
+//' smooth_knot_distance_power = 1,
+//' smooth_deg = 3,
+//' smooth_ndiff = 1,
+//' smooth_ex_post = FALSE,
+//' gamma = 1,
+//' parametergrid_max_combinations = 100
+//' forget_past_performance = 0,
+//' allow_quantile_crossing = FALSE,
+//' init_weights = NULL,
+//' loss_array = NULL,
+//' regret_array = NULL,
+//' trace = TRUE,
+//' )
 //' @export
 // [[Rcpp::export]]
 Rcpp::List online(
@@ -67,36 +104,36 @@ Rcpp::List online(
     cube &experts,
     Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
     const bool &intercept = false,
+    const int &lead_time = 0,
     const std::string loss_function = "quantile",
     const double &loss_parameter = 1,
-    const bool &ex_post_smooth = false,
-    const bool &ex_post_fs = false,
-    Rcpp::NumericVector smooth_lambda = Rcpp::NumericVector::create(-1 / 0),
+    const bool &loss_gradient = true,
     const std::string method = "boa",
     const std::string method_var = "A",
-    Rcpp::NumericVector forget_regret = Rcpp::NumericVector::create(0),
-    const double &forget_performance = 0,
-    Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(0),
-    Rcpp::NumericVector gamma = Rcpp::NumericVector::create(1),
-    Rcpp::NumericVector smooth_ndiff = Rcpp::NumericVector::create(1.5),
-    Rcpp::NumericVector smooth_deg = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector basis_deg = Rcpp::NumericVector::create(3),
-    Rcpp::NumericVector smooth_knot_distance = Rcpp::NumericVector::create(),
     Rcpp::NumericVector basis_knot_distance = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector smooth_knot_distance_power = Rcpp::NumericVector::create(),
     Rcpp::NumericVector basis_knot_distance_power = Rcpp::NumericVector::create(1),
-    const bool &gradient = true,
+    Rcpp::NumericVector basis_deg = Rcpp::NumericVector::create(3),
+    Rcpp::NumericVector forget_regret = Rcpp::NumericVector::create(0),
+    Rcpp::NumericVector soft_threshold = Rcpp::NumericVector::create(-1 / 0),
+    bool soft_threshold_ex_post = false,
+    Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create(-1 / 0),
+    bool hard_threshold_ex_post = false,
+    Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(0),
+    const bool &fixed_share_ex_post = false,
+    Rcpp::NumericVector smooth_lambda = Rcpp::NumericVector::create(-1 / 0),
+    Rcpp::NumericVector smooth_knot_distance = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector smooth_knot_distance_power = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector smooth_deg = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector smooth_ndiff = Rcpp::NumericVector::create(1.5),
+    const bool &smooth_ex_post = false,
+    Rcpp::NumericVector gamma = Rcpp::NumericVector::create(1),
+    const int parametergrid_max_combinations = 100,
+    const double &forget_past_performance = 0,
+    bool allow_quantile_crossing = false,
+    Rcpp::Nullable<Rcpp::NumericMatrix> init_weights = R_NilValue,
     Rcpp::NumericVector loss_array = Rcpp::NumericVector::create(),
     Rcpp::NumericVector regret_array = Rcpp::NumericVector::create(),
-    const bool trace = true,
-    Rcpp::Nullable<Rcpp::NumericMatrix> init_weights = R_NilValue,
-    const int &lead_time = 0,
-    bool allow_quantile_crossing = false,
-    Rcpp::NumericVector soft_threshold = Rcpp::NumericVector::create(-1 / 0),
-    bool ex_post_soft_threshold = false,
-    Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create(-1 / 0),
-    bool ex_post_hard_threshold = false,
-    const int max_parameter_combinations = 100)
+    const bool trace = true)
 {
 
   if (intercept)
@@ -216,10 +253,10 @@ Rcpp::List online(
     param_grid = join_rows(param_grid, param_grid.col(7)); // Index 12
   }
 
-  if (param_grid.n_rows > max_parameter_combinations)
+  if (param_grid.n_rows > parametergrid_max_combinations)
   {
-    Rcpp::warning("Warning: Too many parameter combinations possible. %m combinations were randomly sampled. Results may depend on sampling.", max_parameter_combinations);
-    uvec tmp_index = randperm(param_grid.n_rows, max_parameter_combinations);
+    Rcpp::warning("Warning: Too many parameter combinations possible. %m combinations were randomly sampled. Results may depend on sampling.", parametergrid_max_combinations);
+    uvec tmp_index = randperm(param_grid.n_rows, parametergrid_max_combinations);
     tmp_index = sort(tmp_index);
     param_grid = param_grid.rows(tmp_index);
   }
@@ -455,7 +492,7 @@ Rcpp::List online(
         // Evaluate the ex-post predictive performance
         past_performance(t, p, x) = loss(y(t, p),
                                          predictions_post(t - lead_time, p, x),
-                                         9999,           // where evaluate gradient
+                                         9999,           // where evaluate loss_gradient
                                          loss_function,  // method
                                          tau_vec(p),     // tau_vec
                                          loss_parameter, // alpha
@@ -465,11 +502,11 @@ Rcpp::List online(
         {
           lexp(p, k) = loss(y(t, p),
                             experts(t, p, k),
-                            predictions_ante(t - lead_time, p, x), // where evaluate gradient
+                            predictions_ante(t - lead_time, p, x), // where evaluate loss_gradient
                             loss_function,                         // method
                             tau_vec(p),                            // tau_vec
                             loss_parameter,                        // alpha
-                            gradient);
+                            loss_gradient);
         }
 
         if (loss_array.size() != 0)
@@ -479,11 +516,11 @@ Rcpp::List online(
 
         lpred(p) = loss(y(t, p),
                         predictions_ante(t - lead_time, p, x),
-                        predictions_ante(t - lead_time, p, x), // where to evaluate gradient
+                        predictions_ante(t - lead_time, p, x), // where to evaluate loss_gradient
                         loss_function,                         // method
                         tau_vec(p),                            // tau_vec
                         loss_parameter,                        // alpha
-                        gradient);
+                        loss_gradient);
 
         Q.row(p) = lpred(p) - lexp.row(p);
       }
@@ -588,7 +625,7 @@ Rcpp::List online(
 
       // Apply thresholds
 
-      if (!ex_post_soft_threshold)
+      if (!soft_threshold_ex_post)
       {
         for (double &e : w_temp.slice(x))
         {
@@ -601,7 +638,7 @@ Rcpp::List online(
         threshold_soft(e, param_grid(x, 8));
       }
 
-      if (!ex_post_hard_threshold)
+      if (!hard_threshold_ex_post)
       {
         for (double &e : w_temp.slice(x))
         {
@@ -619,7 +656,7 @@ Rcpp::List online(
       {
         for (unsigned int k = 0; k < K; k++)
         {
-          if (!ex_post_smooth)
+          if (!smooth_ex_post)
           {
             w_temp(span::all, span(k), span(x)) =
                 hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
@@ -633,7 +670,7 @@ Rcpp::List online(
       {
         //Add fixed_share
 
-        if (!ex_post_fs)
+        if (!fixed_share_ex_post)
         {
           w_temp(span(p), span::all, span(x)) =
               (1 - param_grid(x, 2)) * w_temp(span(p), span::all, span(x)) +
@@ -665,7 +702,7 @@ Rcpp::List online(
     }
 
     // Sum past_performance in each slice
-    cum_performance = (1 - forget_performance) * cum_performance + tmp_performance;
+    cum_performance = (1 - forget_past_performance) * cum_performance + tmp_performance;
     opt_index(t + 1) = cum_performance.index_min();
     chosen_params.row(t) = param_grid.row(opt_index(t + 1));
   }
@@ -700,19 +737,19 @@ Rcpp::List online(
         loss_exp(t, p, k) =
             loss(y(t, p),
                  experts(t, p, k),
-                 9999,           // where to evaluate the gradient
+                 9999,           // where to evaluate the loss_gradient
                  loss_function,  // method
                  tau_vec(p),     // tau_vec
                  loss_parameter, // alpha
-                 false);         // gradient
+                 false);         // loss_gradient
       }
       loss_for(t, p) = loss(y(t, p),
                             predictions_final(t, p),
-                            9999,           // where to evaluate the gradient
+                            9999,           // where to evaluate the loss_gradient
                             loss_function,  // method
                             tau_vec(p),     // tau_vec
                             loss_parameter, // alpha
-                            false);         // gradient;
+                            false);         // loss_gradient;
     }
   }
 
@@ -756,18 +793,18 @@ Rcpp::List online(
       Rcpp::Named("basis_knot_distance_power") = param_grid.col(12));
 
   Rcpp::List model_spec = Rcpp::List::create(
-      Rcpp::Named("allow_quantile_crossing") = allow_quantile_crossing,
-      Rcpp::Named("parametergrid") = parametergrid,
-      Rcpp::Named("basis_matrices") = basis_mats);
+      Rcpp::Named("allow_quantile_crossing") = allow_quantile_crossing);
 
   Rcpp::List out = Rcpp::List::create(
       Rcpp::Named("predictions") = predictions_final,
       Rcpp::Named("weights") = weights,
       Rcpp::Named("forecaster_loss") = loss_for,
       Rcpp::Named("experts_loss") = loss_exp,
-      Rcpp::Named("past_perf_wrt_params") = past_performance,
+      Rcpp::Named("past_performance") = past_performance,
       Rcpp::Named("chosen_parameters") = chosen_parameters,
       Rcpp::Named("opt_index") = opt_index,
+      Rcpp::Named("parametergrid") = parametergrid,
+      Rcpp::Named("basis_matrices") = basis_mats,
       Rcpp::Named("specification") = model_spec);
 
   out.attr("class") = "online";

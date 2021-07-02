@@ -87,8 +87,8 @@ results_soft_hard_all_post <- online(
     prob_grid,
     hard_threshold = threshold_val,
     soft_threshold = threshold_val,
-    ex_post_hard_threshold = TRUE,
-    ex_post_soft_threshold = TRUE,
+    hard_threshold_ex_post = TRUE,
+    soft_threshold_ex_post = TRUE,
     trace = FALSE
 )
 
@@ -114,7 +114,7 @@ results_soft_hard_hard_post <- online(
     prob_grid,
     hard_threshold = threshold_val,
     soft_threshold = threshold_val,
-    ex_post_hard_threshold = TRUE,
+    hard_threshold_ex_post = TRUE,
     trace = FALSE
 )
 
@@ -124,7 +124,7 @@ results_soft_hard_soft_post <- online(
     prob_grid,
     hard_threshold = threshold_val,
     soft_threshold = threshold_val,
-    ex_post_soft_threshold = TRUE,
+    soft_threshold_ex_post = TRUE,
     trace = FALSE
 )
 
@@ -149,7 +149,7 @@ results_hard_post <- online(
     experts,
     prob_grid,
     hard_threshold = threshold_val,
-    ex_post_hard_threshold = TRUE,
+    hard_threshold_ex_post = TRUE,
     trace = FALSE
 )
 
@@ -158,7 +158,7 @@ results_soft_post <- online(
     experts,
     prob_grid,
     soft_threshold = threshold_val,
-    ex_post_soft_threshold = TRUE,
+    soft_threshold_ex_post = TRUE,
     trace = FALSE
 )
 

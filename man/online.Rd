@@ -5,18 +5,42 @@
 \alias{predict.online}
 \title{Probabilistic Forecast Combination - Online}
 \usage{
-online(y, experts, tau, intercept = FALSE, loss_function = "quantile",
-loss_parameter = 1, ex_post_smooth = FALSE, ex_post_fs = FALSE,
-smooth_lambda = -Inf, method = "boa", method_var = "A", forget_regret = 0,
-forget_performance = 0, fixed_share = 0, gamma = 1, smooth_ndiff = 1, smooth_deg = 3,
-basis_deg = 3,
-smooth_knot_distance = c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1),
+online(
+y,
+experts,
+tau,
+intercept = FALSE,
+lead_time = 0,
+loss_function = "quantile",
+loss_parameter = 1,
+loss_gradient = TRUE,
+method = "boa",
+method_var = "A",
 basis_knot_distance = c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1),
-smooth_knot_distance_power = 1, basis_knot_distance_power = 1,
-gradient = TRUE, loss_array = NULL, regret_array = NULL,
-trace = TRUE, init_weights = NULL, lead_time = 0, allow_quantile_crossing = FALSE,
-soft_threshold = -Inf, ex_post_soft_threshold = FALSE, hard_threshold = -Inf,
-ex_post_hard_threshold = FALSE, max_parameter_combinations = 100)
+basis_knot_distance_power = 1,
+basis_deg = 3,
+forget_regret = 0,
+soft_threshold = -Inf,
+soft_threshold_ex_post = FALSE,
+hard_threshold = -Inf,
+hard_threshold_ex_post = FALSE,
+fixed_share = 0,
+fixed_share_ex_post = FALSE,
+smooth_lambda = -Inf,
+smooth_knot_distance = c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1),
+smooth_knot_distance_power = 1,
+smooth_deg = 3,
+smooth_ndiff = 1,
+smooth_ex_post = FALSE,
+gamma = 1,
+parametergrid_max_combinations = 100
+forget_past_performance = 0,
+allow_quantile_crossing = FALSE,
+init_weights = NULL,
+loss_array = NULL,
+regret_array = NULL,
+trace = TRUE,
+)
 
 \method{predict}{online}(object, new_experts, ...)
 }
@@ -34,51 +58,20 @@ column of the y matrix.}
 
 \item{intercept}{Determines if an intercept is added, defaults to FALSE. In this case a new expert is added as expert 1 allways predicting 1.}
 
+\item{lead_time}{offset for expert forecasts. Defaults to 0, which means that
+experts forecast t+1 at t. Setting this to h means experts predictions refer
+to t+1+h at time t. The weight updates delay accordingly.}
+
 \item{loss_function}{Either "quantile", "expectile" or "percentage".}
 
 \item{loss_parameter}{Optional parameter scaling the power of the loss function.}
 
-\item{ex_post_smooth}{Determines if smoothing is during or after
-online-learning. If true, contemporary weights are not affected
-but output weights are. If false (default) smoothed weights are
-also by the algorithm.}
-
-\item{ex_post_fs}{Analogous to ex_post_smooth: shall a fixed-share
-be added during (FALSE) or after online-learning (TRUE).}
-
-\item{smooth_lambda}{Penalization parameter used in the smoothing Step.
--Inf causes the smoothing step to be skipped (default).}
+\item{loss_gradient}{Determines if a linearized version of the loss is used.}
 
 \item{method}{One of "boa", "ml_poly" or "ewa".}
 
 \item{method_var}{Allows to calculate slight variations of the BOA
 algorithm}
-
-\item{forget_regret}{Share of past regret not to be considered, resp. to be
-forgotten in every iteration of the algorithm. Defaults to 0.}
-
-\item{forget_performance}{Share of past performance not to be considered, resp. to be
-forgotten in every iteration of the algorithm when choosing the parameter combination. Defaults to 0.}
-
-\item{fixed_share}{Amount of fixed share to be added to the weights.
-Defaults to 0. 1 leads to uniform weights.}
-
-\item{gamma}{Scaling parameter for the learning rate.}
-
-\item{smooth_ndiff}{Degree of the differencing operator in the smoothing equation.
-1.5 (default) leads to shrikage towards a constant. Can also be 2 or any value
-in between. If a value in between is used, a weighted sum of the first and second
-differentiation matrix is calculated.}
-
-\item{smooth_deg}{Degree of the B-Spine basis functions.
-Defaults to the value of basis_deg.}
-
-\item{basis_deg}{Degree of the basis reducing the probability space.
-Defaults to 3.}
-
-\item{smooth_knot_distance}{determines the distance of the knots. Defaults to
-the value of basis_knot_distance.
-Corrsponds to the grid steps when knot_distance_power = 1 (the default).}
 
 \item{basis_knot_distance}{determines the distance of the knots in the probability
 basis. Defaults to the follwing sequence:
@@ -86,48 +79,79 @@ c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1).
 The best knot_distance is selected in each step according
 to the past performance.}
 
-\item{smooth_knot_distance_power}{Parameter which defines the symetrie of
-the b-spline basis. Takes the value of of basis_knot_distance_power if unspecified.}
-
 \item{basis_knot_distance_power}{Parameter which defines the symetrie of the
 basis reducing the probability space. Defaults to 1 which corresponds to the
 equidistant case. Values less than 1 create more knots in the center while
 values above 1 concentrate more knots in the tails.}
 
-\item{gradient}{Determines if a linearized version of the loss is used.}
+\item{basis_deg}{Degree of the basis reducing the probability space.
+Defaults to 3.}
 
-\item{loss_array}{User specified loss array. If specified, the loss will not be calculated by profoc.}
-
-\item{regret_array}{User specified regret array. If specifiec, the regret will not be calculated by profoc.}
-
-\item{trace}{If a progessbar shall be printed. Defaults to TRUE.}
-
-\item{init_weights}{Matrix of dimension Kx1 or KxP used as starting weights. Kx1 represents the constant solution with equal weights over all P whereas specifiying a KxP matrix allows different starting weights for each P.}
-
-\item{lead_time}{offset for expert forecasts. Defaults to 0, which means that
-experts forecast t+1 at t. Setting this to h means experts predictions refer
-to t+1+h at time t. The weight updates delay accordingly.}
-
-\item{allow_quantile_crossing}{Shall quantile crossing be allowed? Defaults to false which means that predictions are sorted in ascending order.}
+\item{forget_regret}{Share of past regret not to be considered, resp. to be
+forgotten in every iteration of the algorithm. Defaults to 0.}
 
 \item{soft_threshold}{If specified the following soft threshold will be applied
 to the weights: w = sgn(w)*max(abs(w)-t,0) where t is the soft_threshold parameter.
 Defaults to -inf which means that no threshold will be applied.}
 
-\item{ex_post_soft_threshold}{Analogous to ex_post_smooth: shall the soft
+\item{soft_threshold_ex_post}{Analogous to ex_post_smooth: shall the soft
 thresholding be applied during (the default, FALSE) or after online-learning (TRUE).}
 
 \item{hard_threshold}{If specified the following hard thresholding will be applied
 to the weights: w = w*(abs(w)>t) where t is the threshold_hard parameter.
 Defaults to -inf which means that no threshold will be applied.}
 
-\item{ex_post_hard_threshold}{Analogous to ex_post_smooth: shall the hard
+\item{hard_threshold_ex_post}{Analogous to smooth_ex_post: shall the hard
 thresholding be applied during (the default, FALSE) or after online-learning (TRUE).}
 
-\item{max_parameter_combinations}{Integer specifying the maximum
+\item{fixed_share}{Amount of fixed share to be added to the weights.
+Defaults to 0. 1 leads to uniform weights.}
+
+\item{fixed_share_ex_post}{Analogous to smooth_ex_post: shall a fixed-share
+be added during (FALSE) or after online-learning (TRUE).}
+
+\item{smooth_lambda}{Penalization parameter used in the smoothing Step.
+-Inf causes the smoothing step to be skipped (default).}
+
+\item{smooth_knot_distance}{determines the distance of the knots. Defaults to
+the value of basis_knot_distance.
+Corrsponds to the grid steps when knot_distance_power = 1 (the default).}
+
+\item{smooth_knot_distance_power}{Parameter which defines the symetrie of
+the b-spline basis. Takes the value of of basis_knot_distance_power if unspecified.}
+
+\item{smooth_deg}{Degree of the B-Spine basis functions.
+Defaults to the value of basis_deg.}
+
+\item{smooth_ndiff}{Degree of the differencing operator in the smoothing equation.
+1.5 (default) leads to shrikage towards a constant. Can also be 2 or any value
+in between. If a value in between is used, a weighted sum of the first and second
+differentiation matrix is calculated.}
+
+\item{smooth_ex_post}{Determines if smoothing is during or after
+online-learning. If true, contemporary weights are not affected
+but output weights are. If false (default) smoothed weights are
+also by the algorithm.}
+
+\item{gamma}{Scaling parameter for the learning rate.}
+
+\item{parametergrid_max_combinations}{Integer specifying the maximum
 number of parameter combinations that should be considered. If
 the number of possible combinations exceeeds this threshold,
 the maximum allowed number is randomly sampled. Defaults to 100.}
+
+\item{forget_past_performance}{Share of past performance not to be considered, resp. to be
+forgotten in every iteration of the algorithm when choosing the parameter combination. Defaults to 0.}
+
+\item{allow_quantile_crossing}{Shall quantile crossing be allowed? Defaults to false which means that predictions are sorted in ascending order.}
+
+\item{init_weights}{Matrix of dimension Kx1 or KxP used as starting weights. Kx1 represents the constant solution with equal weights over all P whereas specifiying a KxP matrix allows different starting weights for each P.}
+
+\item{loss_array}{User specified loss array. If specified, the loss will not be calculated by profoc.}
+
+\item{regret_array}{User specified regret array. If specifiec, the regret will not be calculated by profoc.}
+
+\item{trace}{If a progessbar shall be printed. Defaults to TRUE.}
 
 \item{object}{Object of class inheriting from 'online'}
 

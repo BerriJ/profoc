@@ -40,7 +40,7 @@ boa_smooth <- online(
 expect_true(all(round(apply(boa_smooth$weights, 1:2, sum), 12) == 1))
 
 expect_true(
-    all(!duplicated(apply(boa_smooth$past_perf_wrt_params, 3, mean)))
+    all(!duplicated(apply(boa_smooth$past_performance, 3, mean)))
 )
 
 boa_smooth <- online(
@@ -54,5 +54,5 @@ boa_smooth <- online(
 )
 
 expect_true(
-    all(!duplicated(apply(boa_smooth$past_perf_wrt_params, 3, mean)))
+    all(!duplicated(apply(boa_smooth$past_performance, 3, mean)))
 )

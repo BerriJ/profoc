@@ -33,7 +33,6 @@ boa_mean <- online(
     tau = prob_grid,
     experts = experts,
     loss_function = "expectile",
-    gradient = TRUE,
     trace = FALSE
 )
 

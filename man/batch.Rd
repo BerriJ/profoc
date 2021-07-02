@@ -4,14 +4,34 @@
 \alias{batch}
 \title{Probabilistic Forecast Combination - Batch}
 \usage{
-batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
-debias = TRUE, initial_window = 30, expanding_window = TRUE,
-loss_function = "quantile", loss_parameter = 1, smooth_lambda = -Inf,
-forget = 0, forget_performance = 0, fixed_share = 0, smooth_ndiff = 1, smooth_deg = 1,
-basis_deg = 1, smooth_knot_distance = 0.01, basis_knot_distance = 0.01,
-smooth_knot_distance_power = 1, basis_knot_distance_power = 1, trace = TRUE,
-lead_time = 0, allow_quantile_crossing = FALSE, soft_threshold = -Inf,
-hard_threshold = -Inf, max_parameter_combinations = 100)
+batch(y,
+experts,
+tau,
+affine = FALSE,
+positive = FALSE,
+intercept = FALSE,
+debias = TRUE,
+initial_window = 30,
+expanding_window = TRUE,
+loss_function = "quantile",
+loss_parameter = 1,
+smooth_lambda = -Inf,
+forget = 0,
+forget_past_performance = 0,
+fixed_share = 0,
+smooth_ndiff = 1,
+smooth_deg = 1,
+basis_deg = 1,
+smooth_knot_distance = 0.01,
+basis_knot_distance = 0.01,
+smooth_knot_distance_power = 1,
+basis_knot_distance_power = 1,
+trace = TRUE,
+lead_time = 0,
+allow_quantile_crossing = FALSE,
+soft_threshold = -Inf,
+hard_threshold = -Inf,
+parametergrid_max_combinations = 100)
 }
 \arguments{
 \item{y}{A numeric matrix of realizations. In probabilistic
@@ -36,6 +56,10 @@ If TRUE (the default), the intercept weight is unconstrained.
 Only affects the results if affine and or positive is set to TRUE.
 If FALSE, the intercept is treated as an expert.}
 
+\item{lead_time}{offset for expert forecasts. Defaults to 0, which means that
+experts forecast t+1 at t. Setting this to h means experts predictions refer
+to t+1+h at time t. The weight updates delay accordingly.}
+
 \item{initial_window}{Defines the size of the initial estimaton window.}
 
 \item{expanding_window}{Defines wether an expanding window or a rolling window shall be used for batch optimization. Defaults to TRUE.}
@@ -44,50 +68,18 @@ If FALSE, the intercept is treated as an expert.}
 
 \item{loss_parameter}{Optional parameter scaling the power of the loss function.}
 
-\item{smooth_lambda}{Penalization parameter used in the smoothing Step.
--Inf causes the smoothing step to be skipped (default).}
-
-\item{forget}{Adds an exponential forgetting to the optimization. Past observations will get less influence in the optimization. Defaults to 0 which corresponds to no forgetting.}
-
-\item{forget_performance}{Share of past performance not to be considered, resp. to be
-forgotten in every iteration of the algorithm when choosing the parameter combination. Defaults to 0.}
-
-\item{fixed_share}{Amount of fixed share to be added to the weights.
-Defaults to 0. 1 leads to uniform weights.}
-
-\item{smooth_ndiff}{Degree of the differencing operator in the smoothing equation.
-1.5 (default) leads to shrikage towards a constant. Can also be 2 or any value
-in between. If a value in between is used, a weighted sum of the first and second
-differentiation matrix is calculated.}
-
-\item{smooth_deg}{Degree of the B-Spine basis functions.
-Defaults to the value of basis_deg.}
-
-\item{basis_deg}{Degree of the basis reducing the probability space.
-Defaults to 1.}
-
-\item{smooth_knot_distance}{determines the distance of the knots. Defaults to
-the value of basis_knot_distance.
-Corrsponds to the grid steps when knot_distance_power = 1 (the default).}
-
 \item{basis_knot_distance}{determines the distance of the knots in the probability
 basis. Defaults to 1/(length(tau)+1).}
-
-\item{smooth_knot_distance_power}{Parameter which defines the symetrie of
-the b-spline basis. Takes the value of of basis_knot_distance_power if unspecified.}
 
 \item{basis_knot_distance_power}{Parameter which defines the symetrie of the
 basis reducing the probability space. Defaults to 1 which corresponds to the
 equidistant case. Values less than 1 create more knots in the center while
 values above 1 concentrate more knots in the tails.}
 
-\item{trace}{If a progessbar shall be printed. Defaults to TRUE.}
+\item{basis_deg}{Degree of the basis reducing the probability space.
+Defaults to 1.}
 
-\item{lead_time}{offset for expert forecasts. Defaults to 0, which means that
-experts forecast t+1 at t. Setting this to h means experts predictions refer
-to t+1+h at time t. The weight updates delay accordingly.}
-
-\item{allow_quantile_crossing}{Shall quantile crossing be allowed? Defaults to false which means that predictions are sorted in ascending order.}
+\item{forget}{Adds an exponential forgetting to the optimization. Past observations will get less influence in the optimization. Defaults to 0 which corresponds to no forgetting.}
 
 \item{soft_threshold}{If specified the following soft threshold will be applied
 to the weights: w = sgn(w)*max(abs(w)-t,0) where t is the soft_threshold parameter.
@@ -97,10 +89,38 @@ Defaults to -inf which means that no threshold will be applied.}
 to the weights: w = w*(abs(w)>t) where t is the threshold_hard parameter.
 Defaults to -inf which means that no threshold will be applied.}
 
-\item{max_parameter_combinations}{Integer specifying the maximum
+\item{fixed_share}{Amount of fixed share to be added to the weights.
+Defaults to 0. 1 leads to uniform weights.}
+
+\item{smooth_lambda}{Penalization parameter used in the smoothing Step.
+-Inf causes the smoothing step to be skipped (default).}
+
+\item{smooth_knot_distance}{determines the distance of the knots. Defaults to
+the value of basis_knot_distance.
+Corrsponds to the grid steps when knot_distance_power = 1 (the default).}
+
+\item{smooth_knot_distance_power}{Parameter which defines the symetrie of
+the b-spline basis. Takes the value of of basis_knot_distance_power if unspecified.}
+
+\item{smooth_deg}{Degree of the B-Spine basis functions.
+Defaults to the value of basis_deg.}
+
+\item{smooth_ndiff}{Degree of the differencing operator in the smoothing equation.
+1.5 (default) leads to shrikage towards a constant. Can also be 2 or any value
+in between. If a value in between is used, a weighted sum of the first and second
+differentiation matrix is calculated.}
+
+\item{parametergrid_max_combinations}{Integer specifying the maximum
 number of parameter combinations that should be considered. If
 the number of possible combinations exceeeds this threshold,
 the maximum allowed number is randomly sampled. Defaults to 100.}
+
+\item{forget_past_performance}{Share of past performance not to be considered, resp. to be
+forgotten in every iteration of the algorithm when choosing the parameter combination. Defaults to 0.}
+
+\item{allow_quantile_crossing}{Shall quantile crossing be allowed? Defaults to false which means that predictions are sorted in ascending order.}
+
+\item{trace}{If a progessbar shall be printed. Defaults to TRUE.}
 }
 \value{
 Returns weights and corresponding predictions.

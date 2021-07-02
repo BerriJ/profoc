@@ -34,7 +34,7 @@ boa_smooth_post <- online(
     tau = prob_grid,
     experts = experts,
     smooth_lambda = c(10, 1000),
-    ex_post_smooth = TRUE,
+    smooth_ex_post = TRUE,
     trace = FALSE
 )
 
@@ -56,7 +56,7 @@ boa_fs_post <- online(
     tau = prob_grid,
     experts = experts,
     fixed_share = 0.2,
-    ex_post_fs = TRUE,
+    fixed_share_ex_post = TRUE,
     trace = FALSE
 )
 

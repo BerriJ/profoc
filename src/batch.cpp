@@ -19,35 +19,66 @@ using namespace arma;
 //' @template param_positive
 //' @template param_intercept
 //' @template param_debias
+//' @template param_lead_time
+//'
 //' @param initial_window Defines the size of the initial estimaton window.
 //' @param expanding_window Defines wether an expanding window or a rolling window shall be used for batch optimization. Defaults to TRUE.
+//'
 //' @template param_loss_function
 //' @template param_loss_parameter
-//' @template param_smooth_lambda
-//' @template param_forget
-//' @template param_forget_performance
-//' @template param_fixed_share
-//' @template param_smooth_ndiff
-//' @template param_smooth_deg
-//' @template param_basis_deg_batch
-//' @template param_smooth_knot_distance
+//'
 //' @template param_basis_knot_distance_batch
-//' @template param_smooth_knot_distance_power
 //' @template param_basis_knot_distance_power
-//' @template param_trace
-//' @template param_lead_time
-//' @template param_allow_quantile_crossing
+//' @template param_basis_deg_batch
+//'
+//' @template param_forget
+//'
 //' @template param_soft_threshold
 //' @template param_hard_threshold
-//' @template param_max_parameter_combinations
-//' @usage batch(y, experts, tau, affine = FALSE, positive = FALSE, intercept = FALSE,
-//' debias = TRUE, initial_window = 30, expanding_window = TRUE,
-//' loss_function = "quantile", loss_parameter = 1, smooth_lambda = -Inf,
-//' forget = 0, forget_performance = 0, fixed_share = 0, smooth_ndiff = 1, smooth_deg = 1,
-//' basis_deg = 1, smooth_knot_distance = 0.01, basis_knot_distance = 0.01,
-//' smooth_knot_distance_power = 1, basis_knot_distance_power = 1, trace = TRUE,
-//' lead_time = 0, allow_quantile_crossing = FALSE, soft_threshold = -Inf,
-//' hard_threshold = -Inf, max_parameter_combinations = 100)
+//'
+//' @template param_fixed_share
+//'
+//' @template param_smooth_lambda
+//' @template param_smooth_knot_distance
+//' @template param_smooth_knot_distance_power
+//' @template param_smooth_deg
+//' @template param_smooth_ndiff
+//'
+//' @template param_parametergrid_max_combinations
+//' @template param_forget_past_performance
+//'
+//' @template param_allow_quantile_crossing
+//'
+//' @template param_trace
+//'
+//' @usage batch(y,
+//' experts,
+//' tau,
+//' affine = FALSE,
+//' positive = FALSE,
+//' intercept = FALSE,
+//' debias = TRUE,
+//' initial_window = 30,
+//' expanding_window = TRUE,
+//' loss_function = "quantile",
+//' loss_parameter = 1,
+//' smooth_lambda = -Inf,
+//' forget = 0,
+//' forget_past_performance = 0,
+//' fixed_share = 0,
+//' smooth_ndiff = 1,
+//' smooth_deg = 1,
+//' basis_deg = 1,
+//' smooth_knot_distance = 0.01,
+//' basis_knot_distance = 0.01,
+//' smooth_knot_distance_power = 1,
+//' basis_knot_distance_power = 1,
+//' trace = TRUE,
+//' lead_time = 0,
+//' allow_quantile_crossing = FALSE,
+//' soft_threshold = -Inf,
+//' hard_threshold = -Inf,
+//' parametergrid_max_combinations = 100)
 //' @export
 // [[Rcpp::export]]
 Rcpp::List batch(
@@ -58,27 +89,28 @@ Rcpp::List batch(
     const bool &positive = false,
     const bool &intercept = false,
     const bool &debias = true,
+    const int &lead_time = 0,
     int initial_window = 30,
     const bool expanding_window = true,
     const std::string loss_function = "quantile",
     const double &loss_parameter = 1,
-    Rcpp::NumericVector smooth_lambda = Rcpp::NumericVector::create(-1 / 0),
-    Rcpp::NumericVector forget = Rcpp::NumericVector::create(0),
-    const double &forget_performance = 0,
-    Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(0),
-    Rcpp::NumericVector smooth_ndiff = Rcpp::NumericVector::create(1.5),
-    Rcpp::NumericVector smooth_deg = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector basis_deg = Rcpp::NumericVector::create(1),
-    Rcpp::NumericVector smooth_knot_distance = Rcpp::NumericVector::create(),
     Rcpp::NumericVector basis_knot_distance = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector smooth_knot_distance_power = Rcpp::NumericVector::create(),
     Rcpp::NumericVector basis_knot_distance_power = Rcpp::NumericVector::create(1),
-    const bool trace = true,
-    const int &lead_time = 0,
-    bool allow_quantile_crossing = false,
+    Rcpp::NumericVector basis_deg = Rcpp::NumericVector::create(1),
+    Rcpp::NumericVector forget = Rcpp::NumericVector::create(0),
     Rcpp::NumericVector soft_threshold = Rcpp::NumericVector::create(-1 / 0),
     Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create(-1 / 0),
-    const int max_parameter_combinations = 100)
+    Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(0),
+
+    Rcpp::NumericVector smooth_lambda = Rcpp::NumericVector::create(-1 / 0),
+    Rcpp::NumericVector smooth_knot_distance = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector smooth_knot_distance_power = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector smooth_deg = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector smooth_ndiff = Rcpp::NumericVector::create(1.5),
+    const int parametergrid_max_combinations = 100,
+    const double &forget_past_performance = 0,
+    bool allow_quantile_crossing = false,
+    const bool trace = true)
 {
 
     if (intercept)
@@ -189,10 +221,10 @@ Rcpp::List batch(
         param_grid = join_rows(param_grid, param_grid.col(6)); // Index 11
     }
 
-    if (param_grid.n_rows > max_parameter_combinations)
+    if (param_grid.n_rows > parametergrid_max_combinations)
     {
-        Rcpp::warning("Warning: Too many parameter combinations possible. %m combinations were randomly sampled. Results may depend on sampling.", max_parameter_combinations);
-        uvec tmp_index = randperm(param_grid.n_rows, max_parameter_combinations);
+        Rcpp::warning("Warning: Too many parameter combinations possible. %m combinations were randomly sampled. Results may depend on sampling.", parametergrid_max_combinations);
+        uvec tmp_index = randperm(param_grid.n_rows, parametergrid_max_combinations);
         tmp_index = sort(tmp_index);
         param_grid = param_grid.rows(tmp_index);
     }
@@ -444,7 +476,7 @@ Rcpp::List batch(
         }
 
         // Sum past_performance in each slice
-        cum_performance = (1 - forget_performance) * cum_performance + tmp_performance;
+        cum_performance = (1 - forget_past_performance) * cum_performance + tmp_performance;
         opt_index(t + 1) = cum_performance.index_min();
         chosen_params.row(t) = param_grid.row(opt_index(t + 1));
     }
@@ -534,7 +566,7 @@ Rcpp::List batch(
         Rcpp::Named("weights") = weights,
         Rcpp::Named("forecaster_loss") = loss_for,
         Rcpp::Named("experts_loss") = loss_exp,
-        Rcpp::Named("past_perf_wrt_params") = past_performance,
+        Rcpp::Named("past_performance") = past_performance,
         Rcpp::Named("chosen_parameters") = opt_params_df,
         Rcpp::Named("parametergrid") = parametergrid,
         Rcpp::Named("opt_index") = opt_index,
