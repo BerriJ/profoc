@@ -303,8 +303,7 @@ Rcpp::List online(
 
   // Learning parameters
   field<mat> hat_mats(X);
-  field<sp_mat> basis_mats_sparse(X);
-  field<arma::mat> basis_mats(X);
+  field<sp_mat> basis_mats(X);
   field<mat> V(X);
   field<mat> E(X);
   field<mat> k(X);
@@ -332,21 +331,21 @@ Rcpp::List online(
         param_grid(x, 0) == param_grid(x - 1, 0) &&
         param_grid(x, 1) == param_grid(x - 1, 1))
     {
-      basis_mats_sparse(x) = basis_mats_sparse(x - 1);
-      basis_mats(x) = basis_mats_sparse(x);
+      basis_mats(x) = basis_mats(x - 1);
+      basis = basis_mats(x);
     }
     else
     {
 
-      basis_mats(x) = make_basis_matrix(spline_basis_x,
-                                        param_grid(x, 0),  // kstep
-                                        param_grid(x, 2),  // degree
-                                        param_grid(x, 1)); // uneven grid
+      basis = make_basis_matrix(spline_basis_x,
+                                param_grid(x, 0),  // kstep
+                                param_grid(x, 2),  // degree
+                                param_grid(x, 1)); // uneven grid
 
-      basis_mats_sparse(x) = sp_mat(basis_mats(x));
+      basis_mats(x) = sp_mat(basis);
     }
 
-    int L = basis_mats_sparse(x).n_cols;
+    int L = basis_mats(x).n_cols;
     V(x).zeros(L, K);
     E(x).zeros(L, K);
     k(x).zeros(L, K);
@@ -362,7 +361,7 @@ Rcpp::List online(
     R_reg(x).zeros(L, K);
     R(x).zeros(L, K);
 
-    beta(x) = (w0 * pinv(basis_mats(x)).t()).t();
+    beta(x) = (w0 * pinv(basis).t()).t();
 
     w0field(x) = beta(x);
 
@@ -495,7 +494,7 @@ Rcpp::List online(
 
       if (regret_array.size() == 0)
       {
-        Q_regret = Q.t() * basis_mats_sparse(x);
+        Q_regret = Q.t() * basis_mats(x);
       }
       else
       {
@@ -585,7 +584,7 @@ Rcpp::List online(
         }
       }
 
-      w_temp.slice(x) = basis_mats_sparse(x) * beta(x);
+      w_temp.slice(x) = basis_mats(x) * beta(x);
 
       w_post.slice(x) = w_temp.slice(x);
 
@@ -761,7 +760,7 @@ Rcpp::List online(
       Rcpp::Named("chosen_parameters") = chosen_parameters,
       Rcpp::Named("opt_index") = opt_index,
       Rcpp::Named("parametergrid") = parametergrid,
-      Rcpp::Named("basis_matrices") = basis_mats_sparse,
+      Rcpp::Named("basis_matrices") = basis_mats,
       Rcpp::Named("specification") = model_spec);
 
   out.attr("class") = "online";

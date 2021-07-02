@@ -258,8 +258,7 @@ Rcpp::List batch(
         }
     }
 
-    field<sp_mat> basis_mats_sparse(X);
-    field<arma::mat> basis_mats(X);
+    field<sp_mat> basis_mats(X);
     field<mat> beta(X);
 
     // Init hat matrix field
@@ -273,21 +272,20 @@ Rcpp::List batch(
             param_grid(x, 0) == param_grid(x - 1, 0) &&
             param_grid(x, 1) == param_grid(x - 1, 1))
         {
-            basis_mats_sparse(x) = basis_mats_sparse(x - 1);
-            basis_mats(x) = basis_mats_sparse(x);
+            basis_mats(x) = basis_mats(x - 1);
+            basis = basis_mats(x);
         }
         else
         {
+            basis = make_basis_matrix(spline_basis_x,
+                                      param_grid(x, 0),  // kstep
+                                      param_grid(x, 2),  // degree
+                                      param_grid(x, 1)); // uneven grid
 
-            basis_mats(x) = make_basis_matrix(spline_basis_x,
-                                              param_grid(x, 0),  // kstep
-                                              param_grid(x, 2),  // degree
-                                              param_grid(x, 1)); // uneven grid
-
-            basis_mats_sparse(x) = sp_mat(basis_mats(x));
+            basis_mats(x) = sp_mat(basis);
         }
 
-        beta(x) = (w_post.slice(x).t() * pinv(basis_mats(x)).t()).t();
+        beta(x) = (w_post.slice(x).t() * pinv(basis).t()).t();
 
         R_CheckUserInterrupt();
     }
@@ -353,7 +351,7 @@ Rcpp::List batch(
                                                  loss_parameter, // alpha
                                                  false);
 
-                if (basis_mats_sparse(x).is_diagmat())
+                if (basis_mats(x).is_diagmat())
                 {
                     // optim_weights()
                     mat experts_tmp = experts_tmp_cube.col(p);
@@ -374,7 +372,7 @@ Rcpp::List batch(
                 }
             }
 
-            if (!basis_mats_sparse(x).is_diagmat())
+            if (!basis_mats(x).is_diagmat())
             {
                 beta(x) = optimize_betas(
                     y.rows(start, t - lead_time),
@@ -387,10 +385,10 @@ Rcpp::List batch(
                     tau_vec,
                     param_grid(x, 3), // Forget
                     loss_parameter,
-                    basis_mats_sparse(x),
+                    basis_mats(x),
                     beta(x));
 
-                w_post.slice(x) = basis_mats_sparse(x) * beta(x);
+                w_post.slice(x) = basis_mats(x) * beta(x);
 
                 R_CheckUserInterrupt();
             }
@@ -529,7 +527,7 @@ Rcpp::List batch(
         Rcpp::Named("chosen_parameters") = chosen_parameters,
         Rcpp::Named("parametergrid") = parametergrid,
         Rcpp::Named("opt_index") = opt_index,
-        Rcpp::Named("basis_matrices") = basis_mats_sparse);
+        Rcpp::Named("basis_matrices") = basis_mats);
 
     out.attr("class") = "profoc_batch";
 
