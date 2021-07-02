@@ -7,7 +7,7 @@ set.seed(1)
 # Experts
 N <- 2
 # Observations
-T <- 100000
+T <- 10000
 # Size of probability grid
 P <- 1
 prob_grid <- 1:P / (P + 1)
