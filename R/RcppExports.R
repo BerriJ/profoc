@@ -49,27 +49,28 @@
 #' positive = FALSE,
 #' intercept = FALSE,
 #' debias = TRUE,
+#' lead_time = 0,
 #' initial_window = 30,
 #' expanding_window = TRUE,
 #' loss_function = "quantile",
 #' loss_parameter = 1,
-#' smooth_lambda = -Inf,
-#' forget = 0,
-#' forget_past_performance = 0,
-#' fixed_share = 0,
-#' smooth_ndiff = 1,
-#' smooth_deg = 1,
-#' basis_deg = 1,
-#' smooth_knot_distance = 0.01,
 #' basis_knot_distance = 0.01,
-#' smooth_knot_distance_power = 1,
 #' basis_knot_distance_power = 1,
-#' trace = TRUE,
-#' lead_time = 0,
-#' allow_quantile_crossing = FALSE,
+#' basis_deg = 1,
+#' forget = 0,
 #' soft_threshold = -Inf,
 #' hard_threshold = -Inf,
-#' parametergrid_max_combinations = 100)
+#' fixed_share = 0,
+#' smooth_lambda = -Inf,
+#' smooth_knot_distance = 0.01,
+#' smooth_knot_distance_power = 1,
+#' smooth_deg = 1,
+#' smooth_ndiff = 1,
+#' parametergrid_max_combinations = 100,
+#' forget_past_performance = 0,
+#' allow_quantile_crossing = FALSE,
+#' trace = TRUE
+#' )
 #' @export
 batch <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, lead_time = 0L, initial_window = 30L, expanding_window = TRUE, loss_function = "quantile", loss_parameter = 1, basis_knot_distance = as.numeric( c()), basis_knot_distance_power = as.numeric( c(1)), basis_deg = as.numeric( c(1)), forget = as.numeric( c(0)), soft_threshold = as.numeric( c(-1 / 0)), hard_threshold = as.numeric( c(-1 / 0)), fixed_share = as.numeric( c(0)), smooth_lambda = as.numeric( c(-1 / 0)), smooth_knot_distance = as.numeric( c()), smooth_knot_distance_power = as.numeric( c()), smooth_deg = as.numeric( c()), smooth_ndiff = as.numeric( c(1.5)), parametergrid_max_combinations = 100L, forget_past_performance = 0, allow_quantile_crossing = FALSE, trace = TRUE) {
     .Call(`_profoc_batch`, y, experts, tau, affine, positive, intercept, debias, lead_time, initial_window, expanding_window, loss_function, loss_parameter, basis_knot_distance, basis_knot_distance_power, basis_deg, forget, soft_threshold, hard_threshold, fixed_share, smooth_lambda, smooth_knot_distance, smooth_knot_distance_power, smooth_deg, smooth_ndiff, parametergrid_max_combinations, forget_past_performance, allow_quantile_crossing, trace)
@@ -190,13 +191,13 @@ mat2vec <- function(x) {
 #' smooth_ndiff = 1,
 #' smooth_ex_post = FALSE,
 #' gamma = 1,
-#' parametergrid_max_combinations = 100
+#' parametergrid_max_combinations = 100,
 #' forget_past_performance = 0,
 #' allow_quantile_crossing = FALSE,
 #' init_weights = NULL,
 #' loss_array = NULL,
 #' regret_array = NULL,
-#' trace = TRUE,
+#' trace = TRUE
 #' )
 #' @export
 online <- function(y, experts, tau = as.numeric( c()), intercept = FALSE, lead_time = 0L, loss_function = "quantile", loss_parameter = 1, loss_gradient = TRUE, method = "boa", method_var = "A", basis_knot_distance = as.numeric( c()), basis_knot_distance_power = as.numeric( c(1)), basis_deg = as.numeric( c(3)), forget_regret = as.numeric( c(0)), soft_threshold = as.numeric( c(-1 / 0)), soft_threshold_ex_post = FALSE, hard_threshold = as.numeric( c(-1 / 0)), hard_threshold_ex_post = FALSE, fixed_share = as.numeric( c(0)), fixed_share_ex_post = FALSE, smooth_lambda = as.numeric( c(-1 / 0)), smooth_knot_distance = as.numeric( c()), smooth_knot_distance_power = as.numeric( c()), smooth_deg = as.numeric( c()), smooth_ndiff = as.numeric( c(1.5)), smooth_ex_post = FALSE, gamma = as.numeric( c(1)), parametergrid_max_combinations = 100L, forget_past_performance = 0, allow_quantile_crossing = FALSE, init_weights = NULL, loss_array = as.numeric( c()), regret_array = as.numeric( c()), trace = TRUE) {

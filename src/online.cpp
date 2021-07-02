@@ -89,13 +89,13 @@ using namespace arma;
 //' smooth_ndiff = 1,
 //' smooth_ex_post = FALSE,
 //' gamma = 1,
-//' parametergrid_max_combinations = 100
+//' parametergrid_max_combinations = 100,
 //' forget_past_performance = 0,
 //' allow_quantile_crossing = FALSE,
 //' init_weights = NULL,
 //' loss_array = NULL,
 //' regret_array = NULL,
-//' trace = TRUE,
+//' trace = TRUE
 //' )
 //' @export
 // [[Rcpp::export]]
