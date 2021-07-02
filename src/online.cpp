@@ -191,67 +191,55 @@ Rcpp::List online(
     basis_knot_distance_vec = tmp;
   }
 
-  vec smooth_deg_vec = smooth_deg;
-  vec smooth_knot_distance_vec = smooth_knot_distance;
-  vec smooth_knot_distance_power_vec = smooth_knot_distance_power;
-
   bool deg_inheritance = false;
-  if (smooth_deg_vec.size() == 0)
-  {
+  if (smooth_deg.size() == 0)
     deg_inheritance = true;
-    smooth_deg_vec = basis_deg;
-  }
 
   bool knot_distance_inheritance = false;
-  if (smooth_knot_distance_vec.size() == 0)
-  {
+  if (smooth_knot_distance.size() == 0)
     knot_distance_inheritance = true;
-    smooth_knot_distance_vec = basis_knot_distance_vec;
-  }
 
   bool knot_distance_power_inheritance = false;
-  if (smooth_knot_distance_power_vec.size() == 0)
-  {
+  if (smooth_knot_distance_power.size() == 0)
     knot_distance_power_inheritance = true;
-    smooth_knot_distance_power_vec = basis_knot_distance_power;
-  }
 
   // Init parametergrid
-  mat param_grid = get_combinations(smooth_lambda, forget_regret);           // Index 0 & 1
-  param_grid = get_combinations(param_grid, fixed_share);                    // index 2
-  param_grid = get_combinations(param_grid, gamma);                          // Index 3
-  param_grid = get_combinations(param_grid, smooth_knot_distance_vec);       // Index 4
-  param_grid = get_combinations(param_grid, smooth_deg_vec);                 // Index 5
-  param_grid = get_combinations(param_grid, smooth_ndiff);                   // index 6
-  param_grid = get_combinations(param_grid, smooth_knot_distance_power_vec); // Index 7
-  param_grid = get_combinations(param_grid, soft_threshold);                 // Index 8
-  param_grid = get_combinations(param_grid, hard_threshold);                 // Index 9
-
-  if (!deg_inheritance)
-  {
-    param_grid = get_combinations(param_grid, basis_deg); // Index 10
-  }
-  else
-  {
-    param_grid = join_rows(param_grid, param_grid.col(5)); // Index 10
-  }
-
+  mat param_grid =
+      get_combinations(basis_knot_distance_vec,              // Index 0
+                       basis_knot_distance_power);           // Index 1
+  param_grid = get_combinations(param_grid, basis_deg);      // index 2
+  param_grid = get_combinations(param_grid, forget_regret);  // index 3
+  param_grid = get_combinations(param_grid, soft_threshold); // index 4
+  param_grid = get_combinations(param_grid, hard_threshold); // index 5
+  param_grid = get_combinations(param_grid, fixed_share);    // index 6
+  param_grid = get_combinations(param_grid, smooth_lambda);  // index 7
+  // TODO exten get_combinations: inheritance feature
   if (!knot_distance_inheritance)
   {
-    param_grid = get_combinations(param_grid, basis_knot_distance_vec); // Index 11
+    param_grid = get_combinations(param_grid, smooth_knot_distance); // Index 8
   }
   else
   {
-    param_grid = join_rows(param_grid, param_grid.col(4)); // Index 11
+    param_grid = arma::join_rows(param_grid, param_grid.col(0)); // Index 8
   }
   if (!knot_distance_power_inheritance)
   {
-    param_grid = get_combinations(param_grid, basis_knot_distance_power); // Index 12
+    param_grid = get_combinations(param_grid, smooth_knot_distance_power); // Index 9
   }
   else
   {
-    param_grid = join_rows(param_grid, param_grid.col(7)); // Index 12
+    param_grid = arma::join_rows(param_grid, param_grid.col(1)); // Index 9
   }
+  if (!deg_inheritance)
+  {
+    param_grid = get_combinations(param_grid, smooth_deg); // Index 10
+  }
+  else
+  {
+    param_grid = arma::join_rows(param_grid, param_grid.col(2)); // Index 10
+  }
+  param_grid = get_combinations(param_grid, smooth_ndiff); // Index 11
+  param_grid = get_combinations(param_grid, gamma);        // Index 12
 
   if (param_grid.n_rows > parametergrid_max_combinations)
   {
@@ -362,9 +350,9 @@ Rcpp::List online(
 
     // In second step: skip if recalc is not necessary:
     if (x > 0 &&
-        param_grid(x, 10) == param_grid(x - 1, 10) &&
-        param_grid(x, 11) == param_grid(x - 1, 11) &&
-        param_grid(x, 12) == param_grid(x - 1, 12))
+        param_grid(x, 2) == param_grid(x - 1, 2) &&
+        param_grid(x, 0) == param_grid(x - 1, 0) &&
+        param_grid(x, 1) == param_grid(x - 1, 1))
     {
       basis_mats_sparse(x) = basis_mats_sparse(x - 1);
       basis_mats(x) = basis_mats_sparse(x);
@@ -373,9 +361,9 @@ Rcpp::List online(
     {
 
       basis_mats(x) = make_basis_matrix(spline_basis_x,
-                                        param_grid(x, 11),  // kstep
-                                        param_grid(x, 10),  // degree
-                                        param_grid(x, 12)); // uneven grid
+                                        param_grid(x, 0),  // kstep
+                                        param_grid(x, 2),  // degree
+                                        param_grid(x, 1)); // uneven grid
 
       basis_mats_sparse(x) = sp_mat(basis_mats(x));
     }
@@ -411,11 +399,11 @@ Rcpp::List online(
     {
       // In second step: skip if recalc is not necessary:
       if (x > 0 &&
-          param_grid(x, 0) == param_grid(x - 1, 0) &&
-          param_grid(x, 4) == param_grid(x - 1, 4) &&
-          param_grid(x, 5) == param_grid(x - 1, 5) &&
-          param_grid(x, 6) == param_grid(x - 1, 6) &&
-          param_grid(x, 7) == param_grid(x - 1, 7))
+          param_grid(x, 7) == param_grid(x - 1, 7) &&
+          param_grid(x, 8) == param_grid(x - 1, 8) &&
+          param_grid(x, 10) == param_grid(x - 1, 10) &&
+          param_grid(x, 11) == param_grid(x - 1, 11) &&
+          param_grid(x, 9) == param_grid(x - 1, 9))
       {
         hat_mats(x) = hat_mats(x - 1);
       }
@@ -423,11 +411,11 @@ Rcpp::List online(
       {
 
         hat_mats(x) = make_hat_matrix(spline_basis_x,
-                                      param_grid(x, 4), // kstep
-                                      param_grid(x, 0), // lambda
-                                      param_grid(x, 6), // differences
-                                      param_grid(x, 5), // degree
-                                      param_grid(x, 7)  // uneven grid
+                                      param_grid(x, 8),  // kstep
+                                      param_grid(x, 7),  // lambda
+                                      param_grid(x, 11), // differences
+                                      param_grid(x, 10), // degree
+                                      param_grid(x, 9)   // uneven grid
         );
       }
       R_CheckUserInterrupt();
@@ -544,34 +532,34 @@ Rcpp::List online(
         if (method == "ewa")
         {
           // Update the cumulative regret used by eta
-          R(x).row(l) *= (1 - param_grid(x, 1));
+          R(x).row(l) *= (1 - param_grid(x, 3));
           R(x).row(l) += r.t();
 
-          beta(x).row(l) = exp(param_grid(x, 3) * R(x).row(l));
+          beta(x).row(l) = exp(param_grid(x, 12) * R(x).row(l));
           beta(x).row(l) /= accu(beta(x).row(l));
         }
         else if (method == "ml_poly")
         {
           // Update the cumulative regret used by ML_Poly
-          R(x).row(l) *= (1 - param_grid(x, 1));
+          R(x).row(l) *= (1 - param_grid(x, 3));
           R(x).row(l) += r.t();
 
           //   // Update the learning rate
           eta(x).row(l) = 1 / (1 / eta(x).row(l) + square(r.t()));
 
-          // param_grid(x, 3) = gamma
+          // param_grid(x, 12) = gamma
           beta(x).row(l) =
-              param_grid(x, 3) * eta(x).row(l) % pmax_arma(R(x).row(l), exp(-700));
+              param_grid(x, 12) * eta(x).row(l) % pmax_arma(R(x).row(l), exp(-700));
           beta(x).row(l) /= accu(beta(x).row(l));
         }
         else if (method == "boa")
         {
 
-          V(x).row(l) *= (1 - param_grid(x, 1));
+          V(x).row(l) *= (1 - param_grid(x, 3));
           V(x).row(l) += square(r.t());
 
           E(x).row(l) =
-              max(E(x).row(l) * (1 - param_grid(x, 1)), abs(r.t()));
+              max(E(x).row(l) * (1 - param_grid(x, 3)), abs(r.t()));
 
           eta(x).row(l) =
               pmin_arma(
@@ -583,14 +571,14 @@ Rcpp::List online(
 
           if (method_var.find('A') != std::string::npos)
           {
-            R_reg(x).row(l) *= (1 - param_grid(x, 1));
+            R_reg(x).row(l) *= (1 - param_grid(x, 3));
             R_reg(x).row(l) +=
                 0.5 * (r_reg.t() + conv_to<colvec>::from(eta(x).row(l) % r.t() > 0.5).t() % (2 * E(x).row(l)));
           }
           else
           {
             // Gaillard
-            R_reg(x).row(l) *= (1 - param_grid(x, 1));
+            R_reg(x).row(l) *= (1 - param_grid(x, 3));
             R_reg(x).row(l) += r_reg.t();
           }
 
@@ -598,16 +586,16 @@ Rcpp::List online(
           {
             // Wintenberger
             beta(x).row(l) =
-                param_grid(x, 3) * eta(x).row(l) % exp(param_grid(x, 3) * eta(x).row(l) % R_reg(x).row(l)) % w0field(x).row(l);
+                param_grid(x, 12) * eta(x).row(l) % exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l)) % w0field(x).row(l);
 
             beta(x).row(l) /=
-                mean(param_grid(x, 3) * eta(x).row(l) % exp(param_grid(x, 3) * eta(x).row(l) % R_reg(x).row(l)));
+                mean(param_grid(x, 12) * eta(x).row(l) % exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l)));
           }
           else
           {
             // Gaillard
             beta(x).row(l) =
-                exp(param_grid(x, 3) * eta(x).row(l) % R_reg(x).row(l));
+                exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
             beta(x).row(l) = pmin_arma(pmax_arma(beta(x).row(l), exp(-700)), exp(700));
 
             beta(x).row(l) /= accu(beta(x).row(l));
@@ -629,30 +617,30 @@ Rcpp::List online(
       {
         for (double &e : w_temp.slice(x))
         {
-          threshold_soft(e, param_grid(x, 8));
+          threshold_soft(e, param_grid(x, 4));
         }
       }
 
       for (double &e : w_post.slice(x))
       {
-        threshold_soft(e, param_grid(x, 8));
+        threshold_soft(e, param_grid(x, 4));
       }
 
       if (!hard_threshold_ex_post)
       {
         for (double &e : w_temp.slice(x))
         {
-          threshold_hard(e, param_grid(x, 9));
+          threshold_hard(e, param_grid(x, 5));
         }
       }
 
       for (double &e : w_post.slice(x))
       {
-        threshold_hard(e, param_grid(x, 9));
+        threshold_hard(e, param_grid(x, 5));
       }
 
       // Smoothing
-      if (param_grid(x, 0) != -datum::inf)
+      if (param_grid(x, 7) != -datum::inf)
       {
         for (unsigned int k = 0; k < K; k++)
         {
@@ -673,13 +661,13 @@ Rcpp::List online(
         if (!fixed_share_ex_post)
         {
           w_temp(span(p), span::all, span(x)) =
-              (1 - param_grid(x, 2)) * w_temp(span(p), span::all, span(x)) +
-              param_grid(x, 2) / K;
+              (1 - param_grid(x, 6)) * w_temp(span(p), span::all, span(x)) +
+              param_grid(x, 6) / K;
         }
 
         w_post(span(p), span::all, span(x)) =
-            (1 - param_grid(x, 2)) * w_post(span(p), span::all, span(x)) +
-            (param_grid(x, 2) / K);
+            (1 - param_grid(x, 6)) * w_post(span(p), span::all, span(x)) +
+            (param_grid(x, 6) / K);
 
         // Enshure that constraints hold
 
@@ -762,35 +750,26 @@ Rcpp::List online(
     chosen_params.rows(0, lead_time - 1).fill(datum::nan);
   }
 
-  Rcpp::DataFrame chosen_parameters = Rcpp::DataFrame::create(
-      Rcpp::Named("smooth_lambda") = chosen_params.col(0),
-      Rcpp::Named("forget_regret") = chosen_params.col(1),
-      Rcpp::Named("fixed_share") = chosen_params.col(2),
-      Rcpp::Named("gamma") = chosen_params.col(3),
-      Rcpp::Named("smooth_knot_distance") = chosen_params.col(4),
-      Rcpp::Named("smooth_deg") = chosen_params.col(5),
-      Rcpp::Named("smooth_diff") = chosen_params.col(6),
-      Rcpp::Named("smooth_knot_distance_power") = chosen_params.col(7),
-      Rcpp::Named("threshold_soft") = chosen_params.col(8),
-      Rcpp::Named("threshold_hard") = chosen_params.col(9),
-      Rcpp::Named("bais_deg") = chosen_params.col(10),
-      Rcpp::Named("basis_knot_distance") = chosen_params.col(11),
-      Rcpp::Named("basis_knot_distance_power") = chosen_params.col(12));
+  Rcpp::CharacterVector param_names =
+      Rcpp::CharacterVector::create("basis_knot_distance",
+                                    "basis_knot_distance_power",
+                                    "basis_deg",
+                                    "forget_regret",
+                                    "threshold_soft",
+                                    "threshold_hard",
+                                    "fixed_share",
+                                    "smooth_lambda",
+                                    "smooth_knot_distance",
+                                    "smooth_knot_distance_power",
+                                    "smooth_deg",
+                                    "smooth_diff",
+                                    "gamma");
 
-  Rcpp::DataFrame parametergrid = Rcpp::DataFrame::create(
-      Rcpp::Named("smooth_lambda") = param_grid.col(0),
-      Rcpp::Named("forget_regret") = param_grid.col(1),
-      Rcpp::Named("fixed_share") = param_grid.col(2),
-      Rcpp::Named("gamma") = param_grid.col(3),
-      Rcpp::Named("smooth_knot_distance") = param_grid.col(4),
-      Rcpp::Named("smooth_deg") = param_grid.col(5),
-      Rcpp::Named("smooth_diff") = param_grid.col(6),
-      Rcpp::Named("smooth_knot_distance_power") = param_grid.col(7),
-      Rcpp::Named("threshold_soft") = param_grid.col(8),
-      Rcpp::Named("threshold_hard") = param_grid.col(9),
-      Rcpp::Named("basis_deg") = param_grid.col(10),
-      Rcpp::Named("basis_knot_distance") = param_grid.col(11),
-      Rcpp::Named("basis_knot_distance_power") = param_grid.col(12));
+  Rcpp::NumericMatrix parametergrid = Rcpp::wrap(param_grid);
+  Rcpp::colnames(parametergrid) = param_names;
+
+  Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
+  Rcpp::colnames(chosen_parameters) = param_names;
 
   Rcpp::List model_spec = Rcpp::List::create(
       Rcpp::Named("allow_quantile_crossing") = allow_quantile_crossing);

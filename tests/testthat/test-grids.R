@@ -28,7 +28,7 @@ boa_smooth <- online(
     smooth_lambda = c(10, 1000),
     smooth_ndiff = c(1, 2),
     smooth_deg = c(2, 3),
-    smooth_knot_distance = c(0.001, 0.01, 0.1),
+    smooth_knot_distance = c(0.001, 0.1),
     smooth_knot_distance_power = c(0.5, 1, 2),
     basis_deg = 1,
     basis_knot_distance = 0.01,
