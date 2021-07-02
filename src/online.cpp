@@ -761,7 +761,7 @@ Rcpp::List online(
       Rcpp::Named("chosen_parameters") = chosen_parameters,
       Rcpp::Named("opt_index") = opt_index,
       Rcpp::Named("parametergrid") = parametergrid,
-      Rcpp::Named("basis_matrices") = basis_mats,
+      Rcpp::Named("basis_matrices") = basis_mats_sparse,
       Rcpp::Named("specification") = model_spec);
 
   out.attr("class") = "online";

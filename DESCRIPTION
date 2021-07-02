@@ -9,7 +9,7 @@ Description: Use multiple online-aggregation algorithms to combine Probabilistic
 License: GPL-3
 Encoding: UTF-8
 Depends: R (>= 3.0.2)
-Imports: Rcpp (>= 1.0.5)
+Imports: Rcpp (>= 1.0.5), Matrix
 LinkingTo: Rcpp, RcppArmadillo, RcppProgress, splines2 (>= 0.3.0)
 URL: https://profoc.berrisch.biz/, https://github.com/BerriJ/profoc
 BugReports: https://github.com/BerriJ/profoc/issues

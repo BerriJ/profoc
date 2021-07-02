@@ -529,7 +529,7 @@ Rcpp::List batch(
         Rcpp::Named("chosen_parameters") = chosen_parameters,
         Rcpp::Named("parametergrid") = parametergrid,
         Rcpp::Named("opt_index") = opt_index,
-        Rcpp::Named("basis_matrices") = basis_mats);
+        Rcpp::Named("basis_matrices") = basis_mats_sparse);
 
     out.attr("class") = "profoc_batch";
 
