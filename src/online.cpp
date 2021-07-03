@@ -56,7 +56,7 @@ using namespace arma;
 //'
 //' @template param_allow_quantile_crossing
 //'
-//' @param init_weights Matrix of dimension Kx1 or KxP used as starting weights. Kx1 represents the constant solution with equal weights over all P whereas specifiying a KxP matrix allows different starting weights for each P.
+//' @param init_weights Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P whereas specifiying a PxK matrix allows different starting weights for each P.
 //' @param loss_array User specified loss array. If specified, the loss will not be calculated by profoc.
 //' @param regret_array User specified regret array. If specifiec, the regret will not be calculated by profoc.
 //' @template param_trace
@@ -242,31 +242,33 @@ Rcpp::List online(
   if (init_weights.isNotNull())
   {
     w0 = Rcpp::as<arma::mat>(init_weights);
+    if ((w0.n_rows != 1 && w0.n_rows != P) || w0.n_cols != K)
+      Rcpp::stop("Either a 1xK or PxK matrix of initial weights must be supplied.");
   }
   else
   {
-    w0.resize(K);
+    w0.set_size(1, K);
     w0.fill(1 / double(K - intercept));
     if (intercept)
-      w0.row(0).fill(0);
+      w0.col(0).fill(0);
   }
 
   // Expand w0 if necessary
-  if (w0.n_cols == 1)
+  if (w0.n_rows == 1)
   {
-    w0 = repmat(w0, 1, P);
+    w0 = repmat(w0, P, 1);
   }
 
   // Truncate from below
-  w0.rows(intercept, w0.n_rows - 1) =
-      pmax_arma(w0.rows(intercept, w0.n_rows - 1), exp(-350));
+  w0.cols(intercept, w0.n_cols - 1) =
+      pmax_arma(w0.cols(intercept, w0.n_cols - 1), exp(-350));
 
   // Normalize weights
-  w0 = w0.each_row() / sum(w0);
+  w0 = w0.each_col() / sum(w0, 1);
 
   // Init object holding temp. weights, resp. ex-ante
   cube w_temp(P, K, X);
-  w_temp.each_slice() = w0.t(); // TODO change orientation of w0
+  w_temp.each_slice() = w0;
   // Object temporary holding ex-post weights
   cube w_post(w_temp);
 
@@ -357,7 +359,7 @@ Rcpp::List online(
     R_reg(x).zeros(L, K);
     R(x).zeros(L, K);
 
-    beta(x) = (w0 * pinv(mat(basis_mats(x))).t()).t();
+    beta(x) = (w0.t() * pinv(mat(basis_mats(x))).t()).t();
 
     w0field(x) = beta(x);
 

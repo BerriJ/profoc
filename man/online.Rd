@@ -145,7 +145,7 @@ forgotten in every iteration of the algorithm when choosing the parameter combin
 
 \item{allow_quantile_crossing}{Shall quantile crossing be allowed? Defaults to false which means that predictions are sorted in ascending order.}
 
-\item{init_weights}{Matrix of dimension Kx1 or KxP used as starting weights. Kx1 represents the constant solution with equal weights over all P whereas specifiying a KxP matrix allows different starting weights for each P.}
+\item{init_weights}{Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P whereas specifiying a PxK matrix allows different starting weights for each P.}
 
 \item{loss_array}{User specified loss array. If specified, the loss will not be calculated by profoc.}
 
