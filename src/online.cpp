@@ -749,7 +749,8 @@ Rcpp::List online(
   Rcpp::colnames(chosen_parameters) = param_names;
 
   Rcpp::List model_spec = Rcpp::List::create(
-      Rcpp::Named("allow_quantile_crossing") = allow_quantile_crossing);
+      Rcpp::Named("allow_quantile_crossing") = allow_quantile_crossing,
+      Rcpp::Named("tau") = tau_vec);
 
   Rcpp::List out = Rcpp::List::create(
       Rcpp::Named("predictions") = predictions_final,
