@@ -26,7 +26,7 @@ plot.online <- function(x, ...) {
     k <- ncol(weights)
     matplot(
         y = weights,
-        x = x$specification$tau,
+        x = x$specification$data$tau,
         type = "l",
         ylab = "w",
         xlab = "p",

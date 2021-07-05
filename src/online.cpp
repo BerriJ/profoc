@@ -748,9 +748,21 @@ Rcpp::List online(
   Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
   Rcpp::colnames(chosen_parameters) = param_names;
 
-  Rcpp::List model_spec = Rcpp::List::create(
-      Rcpp::Named("allow_quantile_crossing") = allow_quantile_crossing,
+  Rcpp::List model_data = Rcpp::List::create(
+      Rcpp::Named("y") = y,
+      Rcpp::Named("experts") = experts,
       Rcpp::Named("tau") = tau_vec);
+
+  Rcpp::List model_parameters = Rcpp::List::create(
+      Rcpp::Named("allow_quantile_crossing") = allow_quantile_crossing);
+
+  Rcpp::List model_objects = Rcpp::List::create(
+      Rcpp::Named("R_reg") = R_reg);
+
+  Rcpp::List model_spec = Rcpp::List::create(
+      Rcpp::Named("data") = model_data,
+      Rcpp::Named("parameters") = model_parameters,
+      Rcpp::Named("objects") = model_objects);
 
   Rcpp::List out = Rcpp::List::create(
       Rcpp::Named("predictions") = predictions_final,
@@ -775,8 +787,16 @@ Rcpp::List predict_online(
     cube &new_experts)
 {
 
+  // This creates a reference to the specification, not a copy
   Rcpp::List specification = object["specification"];
-  bool allow_quantile_crossing = specification["allow_quantile_crossing"];
+
+  Rcpp::List model_parameters = specification["parameters"];
+  Rcpp::List model_data = specification["data"];
+
+  bool allow_quantile_crossing = model_parameters["allow_quantile_crossing"];
+  cube experts = model_data["experts"];
+  experts.insert_rows(experts.n_rows, new_experts);
+  model_data["experts"] = experts;
 
   mat predictions = object["predictions"];
   cube weights = object["weights"];
