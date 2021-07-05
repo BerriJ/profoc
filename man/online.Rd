@@ -9,7 +9,6 @@ online(
 y,
 experts,
 tau,
-intercept = FALSE,
 lead_time = 0,
 loss_function = "quantile",
 loss_parameter = 1,
@@ -55,8 +54,6 @@ column of the y matrix.}
 (Observations, Quantiles, Experts).}
 
 \item{tau}{A numeric vector of probabilities.}
-
-\item{intercept}{Determines if an intercept is added, defaults to FALSE. In this case a new expert is added as expert 1 allways predicting 1.}
 
 \item{lead_time}{offset for expert forecasts. Defaults to 0, which means that
 experts forecast t+1 at t. Setting this to h means experts predictions refer

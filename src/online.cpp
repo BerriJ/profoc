@@ -16,7 +16,6 @@ using namespace arma;
 //' @template param_experts
 //' @template param_tau
 //'
-//' @template param_intercept
 //' @template param_lead_time
 //'
 //' @template param_loss_function
@@ -65,7 +64,6 @@ using namespace arma;
 //' y,
 //' experts,
 //' tau,
-//' intercept = FALSE,
 //' lead_time = 0,
 //' loss_function = "quantile",
 //' loss_parameter = 1,
@@ -103,7 +101,6 @@ Rcpp::List online(
     mat &y,
     cube &experts,
     Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
-    const bool &intercept = false,
     const int &lead_time = 0,
     const std::string loss_function = "quantile",
     const double &loss_parameter = 1,
@@ -135,12 +132,6 @@ Rcpp::List online(
     Rcpp::NumericVector regret_array = Rcpp::NumericVector::create(),
     const bool trace = true)
 {
-
-  if (intercept)
-  {
-    mat intercept_mat(experts.n_rows, experts.n_cols, fill::ones);
-    experts = join_slices(intercept_mat, experts);
-  }
 
   // Indexing Convention -> (T, P, K, X)
   // T number of observations
@@ -248,9 +239,7 @@ Rcpp::List online(
   else
   {
     w0.set_size(1, K);
-    w0.fill(1 / double(K - intercept));
-    if (intercept)
-      w0.col(0).fill(0);
+    w0.fill(1 / double(K));
   }
 
   // Expand w0 if necessary
@@ -260,11 +249,10 @@ Rcpp::List online(
   }
 
   // Truncate from below
-  w0.cols(intercept, w0.n_cols - 1) =
-      pmax_arma(w0.cols(intercept, w0.n_cols - 1), exp(-350));
+  w0 = pmax_arma(w0, exp(-350));
 
   // Normalize weights
-  w0 = w0.each_col() / sum(w0, 1);
+  w0.each_col() /= sum(w0, 1);
 
   // Init object holding temp. weights, resp. ex-ante
   cube w_temp(P, K, X);

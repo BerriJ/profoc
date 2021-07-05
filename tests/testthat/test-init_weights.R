@@ -61,14 +61,17 @@ init_weights <- matrix(nrow = P, ncol = N)
 init_weights[, 1] <- 1:9 / 10
 init_weights[, 2] <- 9:1 / 10
 
+init_weights[1:5, ] <- init_weights[1:5, ] * 2
+init_weights[6:9, ] <- init_weights[6:9, ] / 3
+
 model <- online(
     y = matrix(y),
     experts = experts,
-    init_weights = init_weights * 2,
+    init_weights = init_weights,
     trace = FALSE
 )
 
-expect_true(all(model$weights[1, , ] == init_weights))
+expect_true(all(rowSums(model$weights[1, , ]) == 1))
 
 # Raise Error when wrong dim is supplied
 init_weights <- matrix(c(0.3, 0.7), nrow = N)
@@ -76,47 +79,6 @@ init_weights <- matrix(c(0.3, 0.7), nrow = N)
 expect_error(online(
     y = matrix(y),
     experts = experts,
-    init_weights = init_weights,
-    trace = FALSE
-), "Either a 1xK or PxK matrix of initial weights must be supplied.")
-
-# The intercepts initial weights should be 0 on default:
-model <- online(
-    y = matrix(y),
-    experts = experts,
-    intercept = TRUE,
-    trace = FALSE
-)
-
-expect_true(all(model$weights[1, , 1] == 0))
-
-# The intercepts initial must also be supplied:
-init_weights <- matrix(nrow = P, ncol = N + 1)
-init_weights[, 1] <- 0.05 # Intercepts initial weights
-init_weights[, 2] <- (1:9 / 10) - 0.025
-init_weights[, 3] <- (9:1 / 10) - 0.025
-
-
-model <- online(
-    y = matrix(y),
-    experts = experts,
-    intercept = TRUE,
-    init_weights = init_weights,
-    trace = FALSE
-)
-
-expect_true(all(round(model$weights[1, , 1], 15) == 0.05))
-
-# Will raise an error when intercept = TRUE
-# but no intercept weights are specified
-init_weights <- matrix(nrow = P, ncol = N)
-init_weights[, 1] <- 1:9 / 10
-init_weights[, 2] <- 9:1 / 10
-
-expect_error(online(
-    y = matrix(y),
-    experts = experts,
-    intercept = TRUE,
     init_weights = init_weights,
     trace = FALSE
 ), "Either a 1xK or PxK matrix of initial weights must be supplied.")
