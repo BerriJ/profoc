@@ -45,6 +45,7 @@ using namespace arma;
 //' @template param_smooth_ndiff
 //'
 //' @template param_parametergrid_max_combinations
+//' @template param_parametergrid
 //' @template param_forget_past_performance
 //'
 //' @template param_allow_quantile_crossing
@@ -76,6 +77,7 @@ using namespace arma;
 //' smooth_deg = 1,
 //' smooth_ndiff = 1,
 //' parametergrid_max_combinations = 100,
+//' parametergrid = NULL,
 //' forget_past_performance = 0,
 //' allow_quantile_crossing = FALSE,
 //' trace = TRUE
@@ -108,6 +110,7 @@ Rcpp::List batch(
     Rcpp::NumericVector smooth_deg = Rcpp::NumericVector::create(),
     Rcpp::NumericVector smooth_ndiff = Rcpp::NumericVector::create(1.5),
     const int parametergrid_max_combinations = 100,
+    Rcpp::Nullable<Rcpp::NumericMatrix> parametergrid = R_NilValue,
     const double &forget_past_performance = 0,
     bool allow_quantile_crossing = false,
     const bool trace = true)
@@ -161,32 +164,44 @@ Rcpp::List batch(
 
     vec basis_knot_distance_vec = set_default(basis_knot_distance, 1 / (double(P) + 1));
 
-    bool deg_inheritance = false;
+    bool inh_deg = false;
     if (smooth_deg.size() == 0)
-        deg_inheritance = true;
+        inh_deg = true;
 
-    bool knot_distance_inheritance = false;
+    bool inh_kstep = false;
     if (smooth_knot_distance.size() == 0)
-        knot_distance_inheritance = true;
+        inh_kstep = true;
 
-    bool knot_distance_power_inheritance = false;
+    bool inh_kstep_p = false;
     if (smooth_knot_distance_power.size() == 0)
-        knot_distance_power_inheritance = true;
+        inh_kstep_p = true;
 
     // Init parametergrid
-    mat param_grid =
-        get_combinations(basis_knot_distance_vec,                                                              // Index 0
-                         basis_knot_distance_power);                                                           // Index 1
-    param_grid = get_combinations(param_grid, basis_deg);                                                      // index 2
-    param_grid = get_combinations(param_grid, forget);                                                         // index 3
-    param_grid = get_combinations(param_grid, soft_threshold);                                                 // index 4
-    param_grid = get_combinations(param_grid, hard_threshold);                                                 // index 5
-    param_grid = get_combinations(param_grid, fixed_share);                                                    // index 6
-    param_grid = get_combinations(param_grid, smooth_lambda);                                                  // index 7
-    param_grid = get_combinations(param_grid, smooth_knot_distance, knot_distance_inheritance, 0);             // Index 8
-    param_grid = get_combinations(param_grid, smooth_knot_distance_power, knot_distance_power_inheritance, 1); // Index 9
-    param_grid = get_combinations(param_grid, smooth_deg, deg_inheritance, 2);                                 // Index 10
-    param_grid = get_combinations(param_grid, smooth_ndiff);                                                   // Index 11
+    mat param_grid;
+
+    if (parametergrid.isNotNull())
+    {
+        param_grid = Rcpp::as<arma::mat>(parametergrid);
+        if (param_grid.n_cols != 12)
+            Rcpp::stop("Please provide a parametergrid with 12 columns.");
+    }
+    else
+    {
+        // Init parametergrid
+        param_grid =
+            get_combinations(basis_knot_distance_vec,                                          // Index 0
+                             basis_knot_distance_power);                                       // Index 1
+        param_grid = get_combinations(param_grid, basis_deg);                                  // index 2
+        param_grid = get_combinations(param_grid, forget);                                     // index 3
+        param_grid = get_combinations(param_grid, soft_threshold);                             // index 4
+        param_grid = get_combinations(param_grid, hard_threshold);                             // index 5
+        param_grid = get_combinations(param_grid, fixed_share);                                // index 6
+        param_grid = get_combinations(param_grid, smooth_lambda);                              // index 7
+        param_grid = get_combinations(param_grid, smooth_knot_distance, inh_kstep, 0);         // Index 8
+        param_grid = get_combinations(param_grid, smooth_knot_distance_power, inh_kstep_p, 1); // Index 9
+        param_grid = get_combinations(param_grid, smooth_deg, inh_deg, 2);                     // Index 10
+        param_grid = get_combinations(param_grid, smooth_ndiff);                               // Index 11
+    }
 
     if (param_grid.n_rows > parametergrid_max_combinations)
     {
@@ -508,8 +523,8 @@ Rcpp::List batch(
                                       "smooth_deg",
                                       "smooth_diff");
 
-    Rcpp::NumericMatrix parametergrid = Rcpp::wrap(param_grid);
-    Rcpp::colnames(parametergrid) = param_names;
+    Rcpp::NumericMatrix parametergrid_out = Rcpp::wrap(param_grid);
+    Rcpp::colnames(parametergrid_out) = param_names;
 
     Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
     Rcpp::colnames(chosen_parameters) = param_names;
@@ -521,7 +536,7 @@ Rcpp::List batch(
         Rcpp::Named("experts_loss") = loss_exp,
         Rcpp::Named("past_performance") = past_performance,
         Rcpp::Named("chosen_parameters") = chosen_parameters,
-        Rcpp::Named("parametergrid") = parametergrid,
+        Rcpp::Named("parametergrid") = parametergrid_out,
         Rcpp::Named("opt_index") = opt_index,
         Rcpp::Named("basis_matrices") = basis_mats);
 

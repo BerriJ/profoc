@@ -29,6 +29,7 @@ smooth_knot_distance_power = 1,
 smooth_deg = 1,
 smooth_ndiff = 1,
 parametergrid_max_combinations = 100,
+parametergrid = NULL,
 forget_past_performance = 0,
 allow_quantile_crossing = FALSE,
 trace = TRUE
@@ -115,6 +116,14 @@ differentiation matrix is calculated.}
 number of parameter combinations that should be considered. If
 the number of possible combinations exceeeds this threshold,
 the maximum allowed number is randomly sampled. Defaults to 100.}
+
+\item{parametergrid}{User supplied grid of parameters. If i.e. not
+all combinations of the input vectors should be used. Must be a matrix
+with 13 columns (online) or 12 columns batch with the following order:
+basis_knot_distance, basis_knot_distance_power, basis_deg, forget_regret,
+soft_threshold, hard_threshold, fixed_share, smooth_lambda,
+smooth_knot_distance, smooth_knot_distance_power, smooth_deg,
+smooth_ndiff, gamma.}
 
 \item{forget_past_performance}{Share of past performance not to be considered, resp. to be
 forgotten in every iteration of the algorithm when choosing the parameter combination. Defaults to 0.}
