@@ -170,7 +170,8 @@ forgotten in every iteration of the algorithm when choosing the parameter combin
 
 \item{object}{Object of class inheriting from 'online'}
 
-\item{new_experts}{new expert advices}
+\item{new_experts}{new expert predictions. This must be left unspecified
+if the model already contains the expert predictions corresponding to new_y.}
 
 \item{...}{further arguments are ignored}
 
