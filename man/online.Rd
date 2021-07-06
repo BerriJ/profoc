@@ -3,6 +3,7 @@
 \name{online}
 \alias{online}
 \alias{predict.online}
+\alias{update.online}
 \alias{plot.online}
 \alias{print.online}
 \title{Probabilistic Forecast Combination - Online}
@@ -45,6 +46,8 @@ trace = TRUE
 )
 
 \method{predict}{online}(object, new_experts, ...)
+
+\method{update}{online}(object, new_y, new_experts, ...)
 
 \method{plot}{online}(x, ...)
 
@@ -171,6 +174,8 @@ forgotten in every iteration of the algorithm when choosing the parameter combin
 
 \item{...}{further arguments are ignored}
 
+\item{new_y}{new observations}
+
 \item{x}{Object of class inheriting from 'online'}
 }
 \value{
@@ -181,6 +186,8 @@ parameters to consider. online will automatically try all possible
 combinations of values provide.
 
 \code{predict.online} produces an updated model object.
+
+\code{update.online} produces an updated model object.
 }
 \description{
 Returns predictions and weights calculated by online-learning algorithms

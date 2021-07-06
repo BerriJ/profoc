@@ -210,6 +210,10 @@ predict_online <- function(object, new_experts) {
     .Call(`_profoc_predict_online`, object, new_experts)
 }
 
+update_online <- function(object, new_y, new_experts) {
+    .Call(`_profoc_update_online`, object, new_y, new_experts)
+}
+
 optimize_weights <- function(truth, experts, affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, loss_function = "quantile", tau = 0.5, forget = 0, loss_scaling = 1) {
     .Call(`_profoc_optimize_weights`, truth, experts, affine, positive, intercept, debias, loss_function, tau, forget, loss_scaling)
 }

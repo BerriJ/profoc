@@ -223,6 +223,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// update_online
+Rcpp::List update_online(Rcpp::List& object, mat& new_y, cube& new_experts);
+RcppExport SEXP _profoc_update_online(SEXP objectSEXP, SEXP new_ySEXP, SEXP new_expertsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List& >::type object(objectSEXP);
+    Rcpp::traits::input_parameter< mat& >::type new_y(new_ySEXP);
+    Rcpp::traits::input_parameter< cube& >::type new_experts(new_expertsSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_online(object, new_y, new_experts));
+    return rcpp_result_gen;
+END_RCPP
+}
 // optimize_weights
 vec optimize_weights(const vec& truth, const mat& experts, const bool& affine, const bool& positive, const bool& intercept, const bool& debias, const std::string& loss_function, const double& tau, const double& forget, const double& loss_scaling);
 RcppExport SEXP _profoc_optimize_weights(SEXP truthSEXP, SEXP expertsSEXP, SEXP affineSEXP, SEXP positiveSEXP, SEXP interceptSEXP, SEXP debiasSEXP, SEXP loss_functionSEXP, SEXP tauSEXP, SEXP forgetSEXP, SEXP loss_scalingSEXP) {
@@ -386,6 +399,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_mat2vec", (DL_FUNC) &_profoc_mat2vec, 1},
     {"_profoc_online", (DL_FUNC) &_profoc_online, 34},
     {"_profoc_predict_online", (DL_FUNC) &_profoc_predict_online, 2},
+    {"_profoc_update_online", (DL_FUNC) &_profoc_update_online, 3},
     {"_profoc_optimize_weights", (DL_FUNC) &_profoc_optimize_weights, 10},
     {"_profoc_optimize_betas", (DL_FUNC) &_profoc_optimize_betas, 12},
     {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 10},

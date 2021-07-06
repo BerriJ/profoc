@@ -13,6 +13,20 @@ predict.online <- function(object, new_experts, ...) {
     predict_online(object, new_experts)
 }
 
+#' Update method for online models
+#' Continues learning using new observations and new expert advice.
+#' @param object Object of class inheriting from 'online'
+#' @param new_y new observations
+#' @param new_experts new expert advices
+#' @param ...  further arguments are ignored
+#' @return \code{update.online} produces an updated model object.
+#' @importFrom stats update
+#' @rdname online
+#' @export
+update.online <- function(object, new_y, new_experts, ...) {
+    update_online(object, new_y, new_experts)
+}
+
 #' Plot method for online models
 #' Plots the most recent weights in each quantile.
 #' @param x Object of class inheriting from 'online'
