@@ -10,6 +10,353 @@
 
 using namespace arma;
 
+void online_learning_core(
+    const int &T,
+    const int &P,
+    const int &K,
+    const int &X,
+    const int &T_E_Y,
+    const int &start,
+    const int &lead_time,
+    const mat &y,
+    const cube &experts,
+    const vec &tau_vec,
+    const std::string loss_function,
+    const std::string method,
+    const std::string method_var,
+    const double &loss_parameter,
+    const bool &loss_gradient,
+    cube &weights,
+    cube &w_post,
+    mat &experts_mat,
+    mat &predictions_temp,
+    cube &predictions_ante,
+    cube &predictions_post,
+    mat &predictions,
+    cube &past_performance,
+    vec &opt_index,
+    cube &w_temp,
+    vec &r,
+    vec &r_reg,
+    mat &lexp,
+    vec &lpred,
+    mat &param_grid,
+    mat &chosen_params,
+    mat &Q,
+    field<mat> &R,
+    field<mat> &R_reg,
+    field<mat> &V,
+    field<mat> &E,
+    field<mat> &eta,
+    field<mat> &hat_mats,
+    field<sp_mat> &basis_mats,
+    field<mat> &w0field,
+    field<mat> &beta,
+    vec &cum_performance,
+    const double &forget_past_performance,
+    vec &tmp_performance,
+    const bool &soft_threshold_ex_post,
+    const bool &hard_threshold_ex_post,
+    const bool &smooth_ex_post,
+    const bool &fixed_share_ex_post,
+    const bool &allow_quantile_crossing,
+    mat &loss_for,
+    cube &loss_exp,
+    cube &loss_cube,
+    cube &regret_cube)
+{
+  for (unsigned int t = start; t < T; t++)
+  {
+
+    // Save final weights w_post
+    weights.row(t) = w_post.slice(opt_index(t));
+
+    // Store expert predictions temporarily
+    experts_mat = experts.row(t);
+
+    // Forecasters prediction(ex-ante)
+    predictions_temp = sum(w_temp.each_slice() % experts_mat, 1);
+    predictions_ante.row(t) = predictions_temp;
+
+    // Forecasters prediction (ex-post)
+    // Note that w_post != w_temp in ex post setting and w_post = w_temp otherwise
+    predictions_temp = sum(w_post.each_slice() % experts_mat, 1);
+    predictions_post.row(t) = predictions_temp;
+
+    // Final prediction
+    predictions.row(t) =
+        vectorise(predictions_post(span(t), span::all, span(opt_index(t)))).t();
+
+    for (unsigned int x = 0; x < X; x++)
+    {
+
+      for (unsigned int p = 0; p < P; p++)
+      {
+
+        // Evaluate the ex-post predictive performance
+        past_performance(t, p, x) = loss(y(t, p),
+                                         predictions_post(t - lead_time, p, x),
+                                         9999,           // where evaluate loss_gradient
+                                         loss_function,  // method
+                                         tau_vec(p),     // tau_vec
+                                         loss_parameter, // alpha
+                                         false);
+
+        for (unsigned int k = 0; k < K; k++)
+        {
+          lexp(p, k) = loss(y(t, p),
+                            experts(t, p, k),
+                            predictions_ante(t - lead_time, p, x), // where evaluate loss_gradient
+                            loss_function,                         // method
+                            tau_vec(p),                            // tau_vec
+                            loss_parameter,                        // alpha
+                            loss_gradient);
+        }
+
+        if (loss_cube.n_elem != 0)
+        {
+          lexp.row(p) = vectorise(loss_cube.tube(t, p));
+        }
+
+        lpred(p) = loss(y(t, p),
+                        predictions_ante(t - lead_time, p, x),
+                        predictions_ante(t - lead_time, p, x), // where to evaluate loss_gradient
+                        loss_function,                         // method
+                        tau_vec(p),                            // tau_vec
+                        loss_parameter,                        // alpha
+                        loss_gradient);
+
+        Q.row(p) = lpred(p) - lexp.row(p);
+      }
+
+      mat Q_regret;
+
+      if (regret_cube.n_elem == 0)
+      {
+        Q_regret = Q.t() * basis_mats(x);
+      }
+      else
+      {
+        Q_regret = regret_cube.row(t);
+      }
+
+      for (unsigned int l = 0; l < Q_regret.n_cols; l++)
+      {
+
+        r = Q_regret.col(l);
+
+        if (method == "ewa")
+        {
+          // Update the cumulative regret used by eta
+          R(x).row(l) *= (1 - param_grid(x, 3));
+          R(x).row(l) += r.t();
+
+          beta(x).row(l) = exp(param_grid(x, 12) * R(x).row(l));
+          beta(x).row(l) /= accu(beta(x).row(l));
+        }
+        else if (method == "ml_poly")
+        {
+          // Update the cumulative regret used by ML_Poly
+          R(x).row(l) *= (1 - param_grid(x, 3));
+          R(x).row(l) += r.t();
+
+          //   // Update the learning rate
+          eta(x).row(l) = 1 / (1 / eta(x).row(l) + square(r.t()));
+
+          // param_grid(x, 12) = gamma
+          beta(x).row(l) =
+              param_grid(x, 12) * eta(x).row(l) % pmax_arma(R(x).row(l), exp(-700));
+          beta(x).row(l) /= accu(beta(x).row(l));
+        }
+        else if (method == "boa")
+        {
+
+          V(x).row(l) *= (1 - param_grid(x, 3));
+          V(x).row(l) += square(r.t());
+
+          E(x).row(l) =
+              max(E(x).row(l) * (1 - param_grid(x, 3)), abs(r.t()));
+
+          eta(x).row(l) =
+              pmin_arma(
+                  min(1 / (2 * E(x).row(l)),
+                      sqrt(log(K) / V(x).row(l))),
+                  exp(350));
+
+          r_reg = r - eta(x).row(l).t() % square(r);
+
+          if (method_var.find('A') != std::string::npos)
+          {
+            R_reg(x).row(l) *= (1 - param_grid(x, 3));
+            R_reg(x).row(l) +=
+                0.5 * (r_reg.t() + conv_to<colvec>::from(eta(x).row(l) % r.t() > 0.5).t() % (2 * E(x).row(l)));
+          }
+          else
+          {
+            // Gaillard
+            R_reg(x).row(l) *= (1 - param_grid(x, 3));
+            R_reg(x).row(l) += r_reg.t();
+          }
+
+          if (method_var.find('C') != std::string::npos)
+          {
+            // Wintenberger
+            beta(x).row(l) =
+                param_grid(x, 12) * eta(x).row(l) % exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l)) % w0field(x).row(l);
+
+            beta(x).row(l) /=
+                mean(param_grid(x, 12) * eta(x).row(l) % exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l)));
+          }
+          else
+          {
+            // Gaillard
+            beta(x).row(l) =
+                exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
+            beta(x).row(l) = pmin_arma(pmax_arma(beta(x).row(l), exp(-700)), exp(700));
+
+            beta(x).row(l) /= accu(beta(x).row(l));
+          }
+        }
+        else
+        {
+          Rcpp::stop("Choose 'boa', 'ml_poly' or 'ewa' as method.");
+        }
+      }
+
+      w_temp.slice(x) = basis_mats(x) * beta(x);
+
+      w_post.slice(x) = w_temp.slice(x);
+
+      // Apply thresholds
+
+      if (!soft_threshold_ex_post)
+      {
+        for (double &e : w_temp.slice(x))
+        {
+          threshold_soft(e, param_grid(x, 4));
+        }
+      }
+
+      for (double &e : w_post.slice(x))
+      {
+        threshold_soft(e, param_grid(x, 4));
+      }
+
+      if (!hard_threshold_ex_post)
+      {
+        for (double &e : w_temp.slice(x))
+        {
+          threshold_hard(e, param_grid(x, 5));
+        }
+      }
+
+      for (double &e : w_post.slice(x))
+      {
+        threshold_hard(e, param_grid(x, 5));
+      }
+
+      // Smoothing
+      if (param_grid(x, 7) != -datum::inf)
+      {
+        for (unsigned int k = 0; k < K; k++)
+        {
+          if (!smooth_ex_post)
+          {
+            w_temp(span::all, span(k), span(x)) =
+                hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
+          }
+
+          w_post(span::all, span(k), span(x)) = hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
+        }
+      }
+
+      for (unsigned int p = 0; p < P; p++)
+      {
+        //Add fixed_share
+
+        if (!fixed_share_ex_post)
+        {
+          w_temp(span(p), span::all, span(x)) =
+              (1 - param_grid(x, 6)) * w_temp(span(p), span::all, span(x)) +
+              param_grid(x, 6) / K;
+        }
+
+        w_post(span(p), span::all, span(x)) =
+            (1 - param_grid(x, 6)) * w_post(span(p), span::all, span(x)) +
+            (param_grid(x, 6) / K);
+
+        // Enshure that constraints hold
+
+        // Positivity
+        w_temp(span(p), span::all, span(x)) =
+            pmax_arma(w_temp(span(p), span::all, span(x)), exp(-700));
+        w_post(span(p), span::all, span(x)) =
+            pmax_arma(w_post(span(p), span::all, span(x)), exp(-700));
+
+        // Affinity
+        w_post(span(p), span::all, span(x)) /=
+            accu(w_post(span(p), span::all, span(x)));
+        w_temp(span(p), span::all, span(x)) /=
+            accu(w_temp(span(p), span::all, span(x)));
+      }
+
+      tmp_performance(x) = accu(past_performance(span(t), span::all, span(x)));
+      // prog.increment(); // Update progress
+      R_CheckUserInterrupt();
+    }
+
+    // Sum past_performance in each slice
+    cum_performance = (1 - forget_past_performance) * cum_performance + tmp_performance;
+    opt_index(t + 1) = cum_performance.index_min();
+    chosen_params.row(t) = param_grid.row(opt_index(t + 1));
+  }
+
+  // Save Weights and Prediction
+  weights.row(T) = w_post.slice(opt_index(T));
+
+  // Predict residual expert forecasts if any are available
+  for (unsigned int t = T; t < T + T_E_Y; t++)
+  {
+    experts_mat = experts.row(t);
+    predictions_temp = sum(w_post.slice(opt_index(T)) % experts_mat, 1);
+    predictions.row(t) = vectorise(predictions_temp).t();
+  }
+
+  // Sort predictions if quantile_crossing is prohibited
+  if (!allow_quantile_crossing)
+  {
+    predictions = arma::sort(predictions, "ascend", 1);
+  }
+
+  // Save losses suffered by forecaster and experts
+  for (unsigned int t = 0; t < T; t++)
+  {
+    for (unsigned int p = 0; p < P; p++)
+    {
+      for (unsigned int k = 0; k < K; k++)
+      {
+        loss_exp(t, p, k) =
+            loss(y(t, p),
+                 experts(t, p, k),
+                 9999,           // where to evaluate the loss_gradient
+                 loss_function,  // method
+                 tau_vec(p),     // tau_vec
+                 loss_parameter, // alpha
+                 false);         // loss_gradient
+      }
+      loss_for(t, p) = loss(y(t, p),
+                            predictions(t, p),
+                            9999,           // where to evaluate the loss_gradient
+                            loss_function,  // method
+                            tau_vec(p),     // tau_vec
+                            loss_parameter, // alpha
+                            false);         // loss_gradient;
+    }
+  }
+
+  return;
+}
+
 //' @template function_online
 //'
 //' @template param_y
@@ -289,18 +636,16 @@ Rcpp::List online(
   mat predictions(T + T_E_Y, P, fill::zeros);
   cube weights(T + 1, P, K, fill::zeros);
 
-  cube loss_cube(T, P, K, fill::zeros);
-
   // Init loss array (if existent)
+  cube loss_cube;
   if (loss_array.size() > 0)
   {
     vec dim = loss_array.attr("dim");
     cube tmp_cube(loss_array.begin(), dim(0), dim(1), dim(2), false);
     loss_cube = tmp_cube;
   }
-
-  cube regret_cube(T, P, K, fill::zeros);
   // Init regret array (if existent)
+  cube regret_cube;
   if (regret_array.size() > 0)
   {
     vec dim = regret_array.attr("dim");
@@ -430,297 +775,65 @@ Rcpp::List online(
     past_performance.row(t).fill(datum::nan);
   }
 
-  for (unsigned int t = (0 + lead_time); t < T; t++)
-  {
-
-    // Save final weights w_post
-    weights.row(t) = w_post.slice(opt_index(t));
-
-    // Store expert predictions temporarily
-    experts_mat = experts.row(t);
-
-    // Forecasters prediction(ex-ante)
-    predictions_temp = sum(w_temp.each_slice() % experts_mat, 1);
-    predictions_ante.row(t) = predictions_temp;
-
-    // Forecasters prediction (ex-post)
-    // Note that w_post != w_temp in ex post setting and w_post = w_temp otherwise
-    predictions_temp = sum(w_post.each_slice() % experts_mat, 1);
-    predictions_post.row(t) = predictions_temp;
-
-    // Final prediction
-    predictions.row(t) =
-        vectorise(predictions_post(span(t), span::all, span(opt_index(t)))).t();
-
-    for (unsigned int x = 0; x < X; x++)
-    {
-
-      for (unsigned int p = 0; p < P; p++)
-      {
-
-        // Evaluate the ex-post predictive performance
-        past_performance(t, p, x) = loss(y(t, p),
-                                         predictions_post(t - lead_time, p, x),
-                                         9999,           // where evaluate loss_gradient
-                                         loss_function,  // method
-                                         tau_vec(p),     // tau_vec
-                                         loss_parameter, // alpha
-                                         false);
-
-        for (unsigned int k = 0; k < K; k++)
-        {
-          lexp(p, k) = loss(y(t, p),
-                            experts(t, p, k),
-                            predictions_ante(t - lead_time, p, x), // where evaluate loss_gradient
-                            loss_function,                         // method
-                            tau_vec(p),                            // tau_vec
-                            loss_parameter,                        // alpha
-                            loss_gradient);
-        }
-
-        if (loss_array.size() != 0)
-        {
-          lexp.row(p) = vectorise(loss_cube.tube(t, p));
-        }
-
-        lpred(p) = loss(y(t, p),
-                        predictions_ante(t - lead_time, p, x),
-                        predictions_ante(t - lead_time, p, x), // where to evaluate loss_gradient
-                        loss_function,                         // method
-                        tau_vec(p),                            // tau_vec
-                        loss_parameter,                        // alpha
-                        loss_gradient);
-
-        Q.row(p) = lpred(p) - lexp.row(p);
-      }
-
-      mat Q_regret;
-
-      if (regret_array.size() == 0)
-      {
-        Q_regret = Q.t() * basis_mats(x);
-      }
-      else
-      {
-        Q_regret = regret_cube.row(t);
-      }
-
-      for (unsigned int l = 0; l < Q_regret.n_cols; l++)
-      {
-
-        r = Q_regret.col(l);
-
-        if (method == "ewa")
-        {
-          // Update the cumulative regret used by eta
-          R(x).row(l) *= (1 - param_grid(x, 3));
-          R(x).row(l) += r.t();
-
-          beta(x).row(l) = exp(param_grid(x, 12) * R(x).row(l));
-          beta(x).row(l) /= accu(beta(x).row(l));
-        }
-        else if (method == "ml_poly")
-        {
-          // Update the cumulative regret used by ML_Poly
-          R(x).row(l) *= (1 - param_grid(x, 3));
-          R(x).row(l) += r.t();
-
-          //   // Update the learning rate
-          eta(x).row(l) = 1 / (1 / eta(x).row(l) + square(r.t()));
-
-          // param_grid(x, 12) = gamma
-          beta(x).row(l) =
-              param_grid(x, 12) * eta(x).row(l) % pmax_arma(R(x).row(l), exp(-700));
-          beta(x).row(l) /= accu(beta(x).row(l));
-        }
-        else if (method == "boa")
-        {
-
-          V(x).row(l) *= (1 - param_grid(x, 3));
-          V(x).row(l) += square(r.t());
-
-          E(x).row(l) =
-              max(E(x).row(l) * (1 - param_grid(x, 3)), abs(r.t()));
-
-          eta(x).row(l) =
-              pmin_arma(
-                  min(1 / (2 * E(x).row(l)),
-                      sqrt(log(K) / V(x).row(l))),
-                  exp(350));
-
-          r_reg = r - eta(x).row(l).t() % square(r);
-
-          if (method_var.find('A') != std::string::npos)
-          {
-            R_reg(x).row(l) *= (1 - param_grid(x, 3));
-            R_reg(x).row(l) +=
-                0.5 * (r_reg.t() + conv_to<colvec>::from(eta(x).row(l) % r.t() > 0.5).t() % (2 * E(x).row(l)));
-          }
-          else
-          {
-            // Gaillard
-            R_reg(x).row(l) *= (1 - param_grid(x, 3));
-            R_reg(x).row(l) += r_reg.t();
-          }
-
-          if (method_var.find('C') != std::string::npos)
-          {
-            // Wintenberger
-            beta(x).row(l) =
-                param_grid(x, 12) * eta(x).row(l) % exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l)) % w0field(x).row(l);
-
-            beta(x).row(l) /=
-                mean(param_grid(x, 12) * eta(x).row(l) % exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l)));
-          }
-          else
-          {
-            // Gaillard
-            beta(x).row(l) =
-                exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
-            beta(x).row(l) = pmin_arma(pmax_arma(beta(x).row(l), exp(-700)), exp(700));
-
-            beta(x).row(l) /= accu(beta(x).row(l));
-          }
-        }
-        else
-        {
-          Rcpp::stop("Choose 'boa', 'ml_poly' or 'ewa' as method.");
-        }
-      }
-
-      w_temp.slice(x) = basis_mats(x) * beta(x);
-
-      w_post.slice(x) = w_temp.slice(x);
-
-      // Apply thresholds
-
-      if (!soft_threshold_ex_post)
-      {
-        for (double &e : w_temp.slice(x))
-        {
-          threshold_soft(e, param_grid(x, 4));
-        }
-      }
-
-      for (double &e : w_post.slice(x))
-      {
-        threshold_soft(e, param_grid(x, 4));
-      }
-
-      if (!hard_threshold_ex_post)
-      {
-        for (double &e : w_temp.slice(x))
-        {
-          threshold_hard(e, param_grid(x, 5));
-        }
-      }
-
-      for (double &e : w_post.slice(x))
-      {
-        threshold_hard(e, param_grid(x, 5));
-      }
-
-      // Smoothing
-      if (param_grid(x, 7) != -datum::inf)
-      {
-        for (unsigned int k = 0; k < K; k++)
-        {
-          if (!smooth_ex_post)
-          {
-            w_temp(span::all, span(k), span(x)) =
-                hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
-          }
-
-          w_post(span::all, span(k), span(x)) = hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
-        }
-      }
-
-      for (unsigned int p = 0; p < P; p++)
-      {
-        //Add fixed_share
-
-        if (!fixed_share_ex_post)
-        {
-          w_temp(span(p), span::all, span(x)) =
-              (1 - param_grid(x, 6)) * w_temp(span(p), span::all, span(x)) +
-              param_grid(x, 6) / K;
-        }
-
-        w_post(span(p), span::all, span(x)) =
-            (1 - param_grid(x, 6)) * w_post(span(p), span::all, span(x)) +
-            (param_grid(x, 6) / K);
-
-        // Enshure that constraints hold
-
-        // Positivity
-        w_temp(span(p), span::all, span(x)) =
-            pmax_arma(w_temp(span(p), span::all, span(x)), exp(-700));
-        w_post(span(p), span::all, span(x)) =
-            pmax_arma(w_post(span(p), span::all, span(x)), exp(-700));
-
-        // Affinity
-        w_post(span(p), span::all, span(x)) /=
-            accu(w_post(span(p), span::all, span(x)));
-        w_temp(span(p), span::all, span(x)) /=
-            accu(w_temp(span(p), span::all, span(x)));
-      }
-
-      tmp_performance(x) = accu(past_performance(span(t), span::all, span(x)));
-      prog.increment(); // Update progress
-      R_CheckUserInterrupt();
-    }
-
-    // Sum past_performance in each slice
-    cum_performance = (1 - forget_past_performance) * cum_performance + tmp_performance;
-    opt_index(t + 1) = cum_performance.index_min();
-    chosen_params.row(t) = param_grid.row(opt_index(t + 1));
-  }
-
-  // Save Weights and Prediction
-  weights.row(T) = w_post.slice(opt_index(T));
-
-  // Predict residual expert forecasts if any are available
-  for (unsigned int t = T; t < T + T_E_Y; t++)
-  {
-    experts_mat = experts.row(t);
-    predictions_temp = sum(w_post.slice(opt_index(T)) % experts_mat, 1);
-    predictions.row(t) = vectorise(predictions_temp).t();
-  }
-
-  // Sort predictions if quantile_crossing is prohibited
-  if (!allow_quantile_crossing)
-  {
-    predictions = arma::sort(predictions, "ascend", 1);
-  }
-
-  // Save losses suffered by forecaster and experts
   mat loss_for(T, P, fill::zeros);
   cube loss_exp(T, P, K, fill::zeros);
 
-  for (unsigned int t = 0; t < T; t++)
-  {
-    for (unsigned int p = 0; p < P; p++)
-    {
-      for (unsigned int k = 0; k < K; k++)
-      {
-        loss_exp(t, p, k) =
-            loss(y(t, p),
-                 experts(t, p, k),
-                 9999,           // where to evaluate the loss_gradient
-                 loss_function,  // method
-                 tau_vec(p),     // tau_vec
-                 loss_parameter, // alpha
-                 false);         // loss_gradient
-      }
-      loss_for(t, p) = loss(y(t, p),
-                            predictions(t, p),
-                            9999,           // where to evaluate the loss_gradient
-                            loss_function,  // method
-                            tau_vec(p),     // tau_vec
-                            loss_parameter, // alpha
-                            false);         // loss_gradient;
-    }
-  }
+  const int start = lead_time;
+
+  online_learning_core(
+      T,
+      P,
+      K,
+      X,
+      T_E_Y,
+      start,
+      lead_time,
+      y,
+      experts,
+      tau_vec,
+      loss_function,
+      method,
+      method_var,
+      loss_parameter,
+      loss_gradient,
+      weights,
+      w_post,
+      experts_mat,
+      predictions_temp,
+      predictions_ante,
+      predictions_post,
+      predictions,
+      past_performance,
+      opt_index,
+      w_temp,
+      r,
+      r_reg,
+      lexp,
+      lpred,
+      param_grid,
+      chosen_params,
+      Q,
+      R,
+      R_reg,
+      V,
+      E,
+      eta,
+      hat_mats,
+      basis_mats,
+      w0field,
+      beta,
+      cum_performance,
+      forget_past_performance,
+      tmp_performance,
+      soft_threshold_ex_post,
+      hard_threshold_ex_post,
+      smooth_ex_post,
+      fixed_share_ex_post,
+      allow_quantile_crossing,
+      loss_for,
+      loss_exp,
+      loss_cube,
+      regret_cube);
 
   // 1-Indexing for R-Output
   opt_index = opt_index + 1;
@@ -917,6 +1030,9 @@ Rcpp::List update_online(
   mat experts_mat(P, K);
   mat predictions_temp(P, K);
 
+  cube loss_cube;
+  cube regret_cube;
+
   // Output Objects
   mat predictions = object["predictions"];
   predictions.resize(T + T_E_Y, P);
@@ -956,297 +1072,66 @@ Rcpp::List update_online(
   const double forget_past_performance = model_parameters["forget_past_performance"];
   const bool allow_quantile_crossing = model_parameters["allow_quantile_crossing"];
 
-  for (unsigned int t = T - new_y.n_rows; t < T; t++)
-  {
+  const int start = T - new_y.n_rows;
 
-    // Save final weights w_post
-    weights.row(t) = w_post.slice(opt_index(t));
-
-    // Store expert predictions temporarily
-    experts_mat = experts.row(t);
-
-    // Forecasters prediction(ex-ante)
-    predictions_temp = sum(w_temp.each_slice() % experts_mat, 1);
-    predictions_ante.row(t) = predictions_temp;
-
-    // Forecasters prediction (ex-post)
-    // Note that w_post != w_temp in ex post setting and w_post = w_temp otherwise
-    predictions_temp = sum(w_post.each_slice() % experts_mat, 1);
-    predictions_post.row(t) = predictions_temp;
-
-    // Final prediction
-    predictions.row(t) =
-        vectorise(predictions_post(span(t), span::all, span(opt_index(t)))).t();
-
-    for (unsigned int x = 0; x < X; x++)
-    {
-
-      for (unsigned int p = 0; p < P; p++)
-      {
-
-        // Evaluate the ex-post predictive performance
-        past_performance(t, p, x) = loss(y(t, p),
-                                         predictions_post(t - lead_time, p, x),
-                                         9999,           // where evaluate loss_gradient
-                                         loss_function,  // method
-                                         tau_vec(p),     // tau_vec
-                                         loss_parameter, // alpha
-                                         false);
-
-        for (unsigned int k = 0; k < K; k++)
-        {
-          lexp(p, k) = loss(y(t, p),
-                            experts(t, p, k),
-                            predictions_ante(t - lead_time, p, x), // where evaluate loss_gradient
-                            loss_function,                         // method
-                            tau_vec(p),                            // tau_vec
-                            loss_parameter,                        // alpha
-                            loss_gradient);
-        }
-
-        // if (loss_array.size() != 0)
-        // {
-        //   lexp.row(p) = vectorise(loss_cube.tube(t, p));
-        // }
-
-        lpred(p) = loss(y(t, p),
-                        predictions_ante(t - lead_time, p, x),
-                        predictions_ante(t - lead_time, p, x), // where to evaluate loss_gradient
-                        loss_function,                         // method
-                        tau_vec(p),                            // tau_vec
-                        loss_parameter,                        // alpha
-                        loss_gradient);
-
-        Q.row(p) = lpred(p) - lexp.row(p);
-      }
-
-      mat Q_regret;
-
-      // if (regret_array.size() == 0)
-      // {
-      Q_regret = Q.t() * basis_mats(x);
-      // }
-      // else
-      // {
-      //   Q_regret = regret_cube.row(t);
-      // }
-
-      for (unsigned int l = 0; l < Q_regret.n_cols; l++)
-      {
-
-        r = Q_regret.col(l);
-
-        if (method == "ewa")
-        {
-          // Update the cumulative regret used by eta
-          R(x).row(l) *= (1 - param_grid(x, 3));
-          R(x).row(l) += r.t();
-
-          beta(x).row(l) = exp(param_grid(x, 12) * R(x).row(l));
-          beta(x).row(l) /= accu(beta(x).row(l));
-        }
-        else if (method == "ml_poly")
-        {
-          // Update the cumulative regret used by ML_Poly
-          R(x).row(l) *= (1 - param_grid(x, 3));
-          R(x).row(l) += r.t();
-
-          //   // Update the learning rate
-          eta(x).row(l) = 1 / (1 / eta(x).row(l) + square(r.t()));
-
-          // param_grid(x, 12) = gamma
-          beta(x).row(l) =
-              param_grid(x, 12) * eta(x).row(l) % pmax_arma(R(x).row(l), exp(-700));
-          beta(x).row(l) /= accu(beta(x).row(l));
-        }
-        else if (method == "boa")
-        {
-
-          V(x).row(l) *= (1 - param_grid(x, 3));
-          V(x).row(l) += square(r.t());
-
-          E(x).row(l) =
-              max(E(x).row(l) * (1 - param_grid(x, 3)), abs(r.t()));
-
-          eta(x).row(l) =
-              pmin_arma(
-                  min(1 / (2 * E(x).row(l)),
-                      sqrt(log(K) / V(x).row(l))),
-                  exp(350));
-
-          r_reg = r - eta(x).row(l).t() % square(r);
-
-          if (method_var.find('A') != std::string::npos)
-          {
-            R_reg(x).row(l) *= (1 - param_grid(x, 3));
-            R_reg(x).row(l) +=
-                0.5 * (r_reg.t() + conv_to<colvec>::from(eta(x).row(l) % r.t() > 0.5).t() % (2 * E(x).row(l)));
-          }
-          else
-          {
-            // Gaillard
-            R_reg(x).row(l) *= (1 - param_grid(x, 3));
-            R_reg(x).row(l) += r_reg.t();
-          }
-
-          if (method_var.find('C') != std::string::npos)
-          {
-            // Wintenberger
-            beta(x).row(l) =
-                param_grid(x, 12) * eta(x).row(l) % exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l)) % w0field(x).row(l);
-
-            beta(x).row(l) /=
-                mean(param_grid(x, 12) * eta(x).row(l) % exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l)));
-          }
-          else
-          {
-            // Gaillard
-            beta(x).row(l) =
-                exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
-            beta(x).row(l) = pmin_arma(pmax_arma(beta(x).row(l), exp(-700)), exp(700));
-
-            beta(x).row(l) /= accu(beta(x).row(l));
-          }
-        }
-        else
-        {
-          Rcpp::stop("Choose 'boa', 'ml_poly' or 'ewa' as method.");
-        }
-      }
-
-      w_temp.slice(x) = basis_mats(x) * beta(x);
-
-      w_post.slice(x) = w_temp.slice(x);
-
-      // Apply thresholds
-
-      if (!soft_threshold_ex_post)
-      {
-        for (double &e : w_temp.slice(x))
-        {
-          threshold_soft(e, param_grid(x, 4));
-        }
-      }
-
-      for (double &e : w_post.slice(x))
-      {
-        threshold_soft(e, param_grid(x, 4));
-      }
-
-      if (!hard_threshold_ex_post)
-      {
-        for (double &e : w_temp.slice(x))
-        {
-          threshold_hard(e, param_grid(x, 5));
-        }
-      }
-
-      for (double &e : w_post.slice(x))
-      {
-        threshold_hard(e, param_grid(x, 5));
-      }
-
-      // Smoothing
-      if (param_grid(x, 7) != -datum::inf)
-      {
-        for (unsigned int k = 0; k < K; k++)
-        {
-          if (!smooth_ex_post)
-          {
-            w_temp(span::all, span(k), span(x)) =
-                hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
-          }
-
-          w_post(span::all, span(k), span(x)) = hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
-        }
-      }
-
-      for (unsigned int p = 0; p < P; p++)
-      {
-        //Add fixed_share
-
-        if (!fixed_share_ex_post)
-        {
-          w_temp(span(p), span::all, span(x)) =
-              (1 - param_grid(x, 6)) * w_temp(span(p), span::all, span(x)) +
-              param_grid(x, 6) / K;
-        }
-
-        w_post(span(p), span::all, span(x)) =
-            (1 - param_grid(x, 6)) * w_post(span(p), span::all, span(x)) +
-            (param_grid(x, 6) / K);
-
-        // Enshure that constraints hold
-
-        // Positivity
-        w_temp(span(p), span::all, span(x)) =
-            pmax_arma(w_temp(span(p), span::all, span(x)), exp(-700));
-        w_post(span(p), span::all, span(x)) =
-            pmax_arma(w_post(span(p), span::all, span(x)), exp(-700));
-
-        // Affinity
-        w_post(span(p), span::all, span(x)) /=
-            accu(w_post(span(p), span::all, span(x)));
-        w_temp(span(p), span::all, span(x)) /=
-            accu(w_temp(span(p), span::all, span(x)));
-      }
-
-      tmp_performance(x) = accu(past_performance(span(t), span::all, span(x)));
-      // prog.increment(); // Update progress
-      R_CheckUserInterrupt();
-    }
-
-    // Sum past_performance in each slice
-    cum_performance = (1 - forget_past_performance) * cum_performance + tmp_performance;
-    opt_index(t + 1) = cum_performance.index_min();
-    chosen_params.row(t) = param_grid.row(opt_index(t + 1));
-  }
-
-  // Save Weights and Prediction
-  weights.row(T) = w_post.slice(opt_index(T));
-
-  // Predict residual expert forecasts if any are available
-  for (unsigned int t = T; t < T + T_E_Y; t++)
-  {
-    experts_mat = experts.row(t);
-    predictions_temp = sum(w_post.slice(opt_index(T)) % experts_mat, 1);
-    predictions.row(t) = vectorise(predictions_temp).t();
-  }
-
-  // Sort predictions if quantile_crossing is prohibited
-  if (!allow_quantile_crossing)
-  {
-    predictions = arma::sort(predictions, "ascend", 1);
-  }
-
-  // Save losses suffered by forecaster and experts
   mat loss_for(T, P, fill::zeros);
   cube loss_exp(T, P, K, fill::zeros);
 
-  for (unsigned int t = 0; t < T; t++)
-  {
-    for (unsigned int p = 0; p < P; p++)
-    {
-      for (unsigned int k = 0; k < K; k++)
-      {
-        loss_exp(t, p, k) =
-            loss(y(t, p),
-                 experts(t, p, k),
-                 9999,           // where to evaluate the loss_gradient
-                 loss_function,  // method
-                 tau_vec(p),     // tau_vec
-                 loss_parameter, // alpha
-                 false);         // loss_gradient
-      }
-      loss_for(t, p) = loss(y(t, p),
-                            predictions(t, p),
-                            9999,           // where to evaluate the loss_gradient
-                            loss_function,  // method
-                            tau_vec(p),     // tau_vec
-                            loss_parameter, // alpha
-                            false);         // loss_gradient;
-    }
-  }
+  online_learning_core(
+      T,
+      P,
+      K,
+      X,
+      T_E_Y,
+      start,
+      lead_time,
+      y,
+      experts,
+      tau_vec,
+      loss_function,
+      method,
+      method_var,
+      loss_parameter,
+      loss_gradient,
+      weights,
+      w_post,
+      experts_mat,
+      predictions_temp,
+      predictions_ante,
+      predictions_post,
+      predictions,
+      past_performance,
+      opt_index,
+      w_temp,
+      r,
+      r_reg,
+      lexp,
+      lpred,
+      param_grid,
+      chosen_params,
+      Q,
+      R,
+      R_reg,
+      V,
+      E,
+      eta,
+      hat_mats,
+      basis_mats,
+      w0field,
+      beta,
+      cum_performance,
+      forget_past_performance,
+      tmp_performance,
+      soft_threshold_ex_post,
+      hard_threshold_ex_post,
+      smooth_ex_post,
+      fixed_share_ex_post,
+      allow_quantile_crossing,
+      loss_for,
+      loss_exp,
+      loss_cube,
+      regret_cube);
+
   // Update internal objects
   model_objects["V"] = V;
   model_objects["E"] = E;
