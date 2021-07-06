@@ -210,7 +210,7 @@ predict_online <- function(object, new_experts) {
     .Call(`_profoc_predict_online`, object, new_experts)
 }
 
-update_online <- function(object, new_y, new_experts) {
+update_online <- function(object, new_y, new_experts = as.numeric( c())) {
     .Call(`_profoc_update_online`, object, new_y, new_experts)
 }
 

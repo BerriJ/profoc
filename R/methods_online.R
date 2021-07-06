@@ -3,7 +3,7 @@
 #' This does not update weights. If new observations are available
 #' use update instead. The latter updates and computes predictions.
 #' @param object Object of class inheriting from 'online'
-#' @param new_experts new expert advices
+#' @param new_experts new expert predictions
 #' @param ...  further arguments are ignored
 #' @return \code{predict.online} produces an updated model object.
 #' @importFrom stats predict
@@ -17,13 +17,14 @@ predict.online <- function(object, new_experts, ...) {
 #' Continues learning using new observations and new expert advice.
 #' @param object Object of class inheriting from 'online'
 #' @param new_y new observations
-#' @param new_experts new expert advices
+#' @param new_experts new expert predictions. This must be left unspecified
+#' if the model already contains the expert predictions corresponding to new_y.
 #' @param ...  further arguments are ignored
 #' @return \code{update.online} produces an updated model object.
 #' @importFrom stats update
 #' @rdname online
 #' @export
-update.online <- function(object, new_y, new_experts, ...) {
+update.online <- function(object, new_y, new_experts = as.numeric(c()), ...) {
     update_online(object, new_y, new_experts)
 }
 

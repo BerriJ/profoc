@@ -148,6 +148,9 @@ Rcpp::List online(
   const int K = experts.n_slices;
   const int T_E_Y = experts.n_rows - y.n_rows;
 
+  if (T_E_Y < 0)
+    Rcpp::stop("Number of provided expert predictions has to match or exceed observations.");
+
   if (y.n_cols > 1 && !allow_quantile_crossing)
   {
     Rcpp::warning("Warning: allow_quantile_crossing set to true since multivariate prediction target was provided.");
@@ -773,7 +776,6 @@ Rcpp::List online(
       Rcpp::Named("w_post") = w_post,
       Rcpp::Named("predictions_ante") = predictions_ante,
       Rcpp::Named("predictions_post") = predictions_post,
-      Rcpp::Named("tmp_performance") = tmp_performance,
       Rcpp::Named("cum_performance") = cum_performance,
       Rcpp::Named("hat_matrices") = hat_mats,
       Rcpp::Named("V") = V,
@@ -846,8 +848,17 @@ Rcpp::List predict_online(
 Rcpp::List update_online(
     Rcpp::List &object,
     mat &new_y,
-    cube &new_experts)
+    Rcpp::NumericVector new_experts = Rcpp::NumericVector::create())
 {
+
+  cube experts_new;
+
+  if (new_experts.size() > 0)
+  {
+    vec dim = new_experts.attr("dim");
+    cube tmp_cube(new_experts.begin(), dim(0), dim(1), dim(2), false);
+    experts_new = tmp_cube;
+  }
 
   // This creates a reference to the specification, not a copy
   Rcpp::List specification = object["specification"];
@@ -860,7 +871,8 @@ Rcpp::List update_online(
   cube experts = model_data["experts"];
   int P = experts.n_cols;
 
-  experts.insert_rows(experts.n_rows, new_experts);
+  if (new_experts.size() > 0)
+    experts.insert_rows(experts.n_rows, experts_new);
 
   mat y = model_data["y"];
   // Expand y matrix if necessary
@@ -875,6 +887,9 @@ Rcpp::List update_online(
   const int K = experts.n_slices;
   const int T_E_Y = experts.n_rows - y.n_rows;
 
+  if (T_E_Y < 0)
+    Rcpp::stop("Number of provided expert predictions has to match or exceed observations.");
+
   vec tau_vec = model_data["tau"];
   mat param_grid = object["parametergrid"];
   const int X = param_grid.n_rows;
@@ -888,7 +903,7 @@ Rcpp::List update_online(
   cube past_performance = object["past_performance"];
   past_performance.resize(T, P, X);
 
-  vec tmp_performance = model_objects["tmp_performance"];
+  vec tmp_performance(X, fill::zeros);
   vec cum_performance = model_objects["cum_performance"];
 
   cube w_temp = model_objects["w_temp"];
@@ -965,10 +980,6 @@ Rcpp::List update_online(
 
     for (unsigned int x = 0; x < X; x++)
     {
-
-      arma::cout << loss_function << "loss_function" << arma::endl;
-      arma::cout << loss_parameter << "loss_parameter" << arma::endl;
-      arma::cout << tau_vec << "tau_vec(p)" << arma::endl;
 
       for (unsigned int p = 0; p < P; p++)
       {
@@ -1248,7 +1259,6 @@ Rcpp::List update_online(
   model_objects["w_post"] = w_post;
   model_objects["predictions_ante"] = predictions_ante;
   model_objects["predictions_post"] = predictions_post;
-  model_objects["tmp_performance"] = tmp_performance;
   model_objects["cum_performance"] = cum_performance;
 
   // Update data
@@ -1256,11 +1266,31 @@ Rcpp::List update_online(
   model_data["y"] = y;
 
   // Update output
-  object["chosen_parameters"] = chosen_params;
+  Rcpp::CharacterVector param_names =
+      Rcpp::CharacterVector::create("basis_knot_distance",
+                                    "basis_knot_distance_power",
+                                    "basis_deg",
+                                    "forget_regret",
+                                    "threshold_soft",
+                                    "threshold_hard",
+                                    "fixed_share",
+                                    "smooth_lambda",
+                                    "smooth_knot_distance",
+                                    "smooth_knot_distance_power",
+                                    "smooth_deg",
+                                    "smooth_diff",
+                                    "gamma");
+
+  Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
+  Rcpp::colnames(chosen_parameters) = param_names;
+
+  object["chosen_parameters"] = chosen_parameters;
   object["opt_index"] = opt_index + 1;
   object["predictions"] = predictions;
   object["weights"] = weights;
   object["past_performance"] = past_performance;
+  object["forecaster_loss"] = loss_for;
+  object["experts_loss"] = loss_exp;
 
   return object;
 }

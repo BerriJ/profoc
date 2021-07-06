@@ -224,14 +224,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // update_online
-Rcpp::List update_online(Rcpp::List& object, mat& new_y, cube& new_experts);
+Rcpp::List update_online(Rcpp::List& object, mat& new_y, Rcpp::NumericVector new_experts);
 RcppExport SEXP _profoc_update_online(SEXP objectSEXP, SEXP new_ySEXP, SEXP new_expertsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::List& >::type object(objectSEXP);
     Rcpp::traits::input_parameter< mat& >::type new_y(new_ySEXP);
-    Rcpp::traits::input_parameter< cube& >::type new_experts(new_expertsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type new_experts(new_expertsSEXP);
     rcpp_result_gen = Rcpp::wrap(update_online(object, new_y, new_experts));
     return rcpp_result_gen;
 END_RCPP

@@ -134,6 +134,9 @@ Rcpp::List batch(
     const int K = experts.n_slices;
     const int T_E_Y = experts.n_rows - y.n_rows;
 
+    if (T_E_Y < 0)
+        Rcpp::stop("Number of provided expert predictions has to match or exceed observations.");
+
     if (T <= initial_window)
         Rcpp::stop("Initial estimation window exceeds input data.");
 

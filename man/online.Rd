@@ -47,7 +47,7 @@ trace = TRUE
 
 \method{predict}{online}(object, new_experts, ...)
 
-\method{update}{online}(object, new_y, new_experts, ...)
+\method{update}{online}(object, new_y, new_experts = as.numeric(c()), ...)
 
 \method{plot}{online}(x, ...)
 
