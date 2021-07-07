@@ -13,7 +13,7 @@ intercept = FALSE,
 debias = TRUE,
 lead_time = 0,
 initial_window = 30,
-expanding_window = TRUE,
+rolling_window = 100,
 loss_function = "quantile",
 loss_parameter = 1,
 basis_knot_distance = 0.01,
@@ -64,7 +64,7 @@ to t+1+h at time t. The weight updates delay accordingly.}
 
 \item{initial_window}{Defines the size of the initial estimaton window.}
 
-\item{expanding_window}{Defines wether an expanding window or a rolling window shall be used for batch optimization. Defaults to TRUE.}
+\item{rolling_window}{Defines wether an expanding window or a rolling window shall be used for batch optimization. Defaults to TRUE.}
 
 \item{loss_function}{Either "quantile", "expectile" or "percentage".}
 

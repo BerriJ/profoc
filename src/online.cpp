@@ -133,6 +133,7 @@ void online_learning_core(
       else
       {
         Q_regret = regret_cube.row(t);
+        Q_regret = Q_regret.t();
         Q_regret *= basis_mats(x);
       }
 

@@ -13,7 +13,7 @@
 #' @template param_lead_time
 #'
 #' @param initial_window Defines the size of the initial estimaton window.
-#' @param expanding_window Defines wether an expanding window or a rolling window shall be used for batch optimization. Defaults to TRUE.
+#' @param rolling_window Defines wether an expanding window or a rolling window shall be used for batch optimization. Defaults to TRUE.
 #'
 #' @template param_loss_function
 #' @template param_loss_parameter
@@ -52,7 +52,7 @@
 #' debias = TRUE,
 #' lead_time = 0,
 #' initial_window = 30,
-#' expanding_window = TRUE,
+#' rolling_window = 100,
 #' loss_function = "quantile",
 #' loss_parameter = 1,
 #' basis_knot_distance = 0.01,
@@ -74,8 +74,8 @@
 #' trace = TRUE
 #' )
 #' @export
-batch <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, lead_time = 0L, initial_window = 30L, expanding_window = TRUE, loss_function = "quantile", loss_parameter = 1, basis_knot_distance = as.numeric( c()), basis_knot_distance_power = as.numeric( c(1)), basis_deg = as.numeric( c(1)), forget = as.numeric( c(0)), soft_threshold = as.numeric( c(-1 / 0)), hard_threshold = as.numeric( c(-1 / 0)), fixed_share = as.numeric( c(0)), smooth_lambda = as.numeric( c(-1 / 0)), smooth_knot_distance = as.numeric( c()), smooth_knot_distance_power = as.numeric( c()), smooth_deg = as.numeric( c()), smooth_ndiff = as.numeric( c(1.5)), parametergrid_max_combinations = 100L, parametergrid = NULL, forget_past_performance = 0, allow_quantile_crossing = FALSE, trace = TRUE) {
-    .Call(`_profoc_batch`, y, experts, tau, affine, positive, intercept, debias, lead_time, initial_window, expanding_window, loss_function, loss_parameter, basis_knot_distance, basis_knot_distance_power, basis_deg, forget, soft_threshold, hard_threshold, fixed_share, smooth_lambda, smooth_knot_distance, smooth_knot_distance_power, smooth_deg, smooth_ndiff, parametergrid_max_combinations, parametergrid, forget_past_performance, allow_quantile_crossing, trace)
+batch <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, lead_time = 0L, initial_window = 30L, rolling_window = 100L, loss_function = "quantile", loss_parameter = 1, basis_knot_distance = as.numeric( c()), basis_knot_distance_power = as.numeric( c(1)), basis_deg = as.numeric( c(1)), forget = as.numeric( c(0)), soft_threshold = as.numeric( c(-1 / 0)), hard_threshold = as.numeric( c(-1 / 0)), fixed_share = as.numeric( c(0)), smooth_lambda = as.numeric( c(-1 / 0)), smooth_knot_distance = as.numeric( c()), smooth_knot_distance_power = as.numeric( c()), smooth_deg = as.numeric( c()), smooth_ndiff = as.numeric( c(1.5)), parametergrid_max_combinations = 100L, parametergrid = NULL, forget_past_performance = 0, allow_quantile_crossing = FALSE, trace = TRUE) {
+    .Call(`_profoc_batch`, y, experts, tau, affine, positive, intercept, debias, lead_time, initial_window, rolling_window, loss_function, loss_parameter, basis_knot_distance, basis_knot_distance_power, basis_deg, forget, soft_threshold, hard_threshold, fixed_share, smooth_lambda, smooth_knot_distance, smooth_knot_distance_power, smooth_deg, smooth_ndiff, parametergrid_max_combinations, parametergrid, forget_past_performance, allow_quantile_crossing, trace)
 }
 
 loss <- function(y, x, pred = 0, method = "quantile", tau = 0.5, a = 1, gradient = TRUE) {

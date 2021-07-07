@@ -22,7 +22,7 @@ using namespace arma;
 //' @template param_lead_time
 //'
 //' @param initial_window Defines the size of the initial estimaton window.
-//' @param expanding_window Defines wether an expanding window or a rolling window shall be used for batch optimization. Defaults to TRUE.
+//' @param rolling_window Defines wether an expanding window or a rolling window shall be used for batch optimization. Defaults to TRUE.
 //'
 //' @template param_loss_function
 //' @template param_loss_parameter
@@ -61,7 +61,7 @@ using namespace arma;
 //' debias = TRUE,
 //' lead_time = 0,
 //' initial_window = 30,
-//' expanding_window = TRUE,
+//' rolling_window = 100,
 //' loss_function = "quantile",
 //' loss_parameter = 1,
 //' basis_knot_distance = 0.01,
@@ -93,8 +93,8 @@ Rcpp::List batch(
     const bool &intercept = false,
     const bool &debias = true,
     const int &lead_time = 0,
-    int initial_window = 30,
-    const bool expanding_window = true,
+    const int initial_window = 30,
+    const int rolling_window = 100,
     const std::string loss_function = "quantile",
     const double &loss_parameter = 1,
     Rcpp::NumericVector basis_knot_distance = Rcpp::NumericVector::create(),
@@ -329,10 +329,15 @@ Rcpp::List batch(
 
     for (unsigned int t = (0 + initial_window + lead_time); t < T; t++)
     {
-        if (!expanding_window)
+        if (t >= rolling_window)
         {
             start += 1;
         }
+
+        vec tmp = vectorise(y.rows(start, t - lead_time));
+
+        arma::cout << start << arma::endl;
+        arma::cout << tmp.n_elem << "tmp.n_elem" << arma::endl;
 
         // Save final weights w_post
         weights.row(t) = w_post.slice(opt_index(t));
