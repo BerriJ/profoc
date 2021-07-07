@@ -112,7 +112,7 @@ void online_learning_core(
 
         if (loss_cube.n_elem != 0)
         {
-          lexp.row(p) = vectorise(loss_cube.tube(t, p));
+          lexp.row(p) = vectorise(loss_cube.tube(t, p)).t();
         }
 
         lfor(p) = loss(y(t, p),
