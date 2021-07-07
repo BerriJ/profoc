@@ -10,11 +10,12 @@
 
 using namespace arma;
 
+// TODO Move core objects into a struct
+
 void online_learning_core(
     const int &T,
     const int &P,
     const int &K,
-    const int &X,
     const int &T_E_Y,
     const int &start,
     const int &lead_time,
@@ -28,21 +29,14 @@ void online_learning_core(
     const bool &loss_gradient,
     cube &weights,
     cube &w_post,
-    mat &experts_mat,
-    mat &predictions_temp,
     cube &predictions_ante,
     cube &predictions_post,
     mat &predictions,
     cube &past_performance,
     vec &opt_index,
     cube &w_temp,
-    vec &r,
-    vec &r_reg,
-    mat &lexp,
-    vec &lpred,
     mat &param_grid,
     mat &chosen_params,
-    mat &Q,
     field<mat> &R,
     field<mat> &R_reg,
     field<mat> &V,
@@ -72,10 +66,10 @@ void online_learning_core(
     weights.row(t) = w_post.slice(opt_index(t));
 
     // Store expert predictions temporarily
-    experts_mat = experts.row(t);
+    mat experts_mat = experts.row(t);
 
     // Forecasters prediction(ex-ante)
-    predictions_temp = sum(w_temp.each_slice() % experts_mat, 1);
+    mat predictions_temp = sum(w_temp.each_slice() % experts_mat, 1);
     predictions_ante.row(t) = predictions_temp;
 
     // Forecasters prediction (ex-post)
@@ -87,8 +81,11 @@ void online_learning_core(
     predictions.row(t) =
         vectorise(predictions_post(span(t), span::all, span(opt_index(t)))).t();
 
-    for (unsigned int x = 0; x < X; x++)
+    for (unsigned int x = 0; x < param_grid.n_rows; x++)
     {
+
+      mat lexp(P, K); // Experts loss
+      vec lfor(P);    // Forecasters loss
 
       for (unsigned int p = 0; p < P; p++)
       {
@@ -118,32 +115,31 @@ void online_learning_core(
           lexp.row(p) = vectorise(loss_cube.tube(t, p));
         }
 
-        lpred(p) = loss(y(t, p),
-                        predictions_ante(t - lead_time, p, x),
-                        predictions_ante(t - lead_time, p, x), // where to evaluate loss_gradient
-                        loss_function,                         // method
-                        tau_vec(p),                            // tau_vec
-                        loss_parameter,                        // alpha
-                        loss_gradient);
-
-        Q.row(p) = lpred(p) - lexp.row(p);
+        lfor(p) = loss(y(t, p),
+                       predictions_ante(t - lead_time, p, x),
+                       predictions_ante(t - lead_time, p, x), // where to evaluate loss_gradient
+                       loss_function,                         // method
+                       tau_vec(p),                            // tau_vec
+                       loss_parameter,                        // alpha
+                       loss_gradient);
       }
 
       mat Q_regret;
-
       if (regret_cube.n_elem == 0)
       {
-        Q_regret = Q.t() * basis_mats(x);
+        Q_regret = (lfor - lexp.each_col()).t();
+        Q_regret *= basis_mats(x);
       }
       else
       {
         Q_regret = regret_cube.row(t);
+        Q_regret *= basis_mats(x);
       }
 
       for (unsigned int l = 0; l < Q_regret.n_cols; l++)
       {
 
-        r = Q_regret.col(l);
+        vec r = Q_regret.col(l);
 
         if (method == "ewa")
         {
@@ -183,7 +179,7 @@ void online_learning_core(
                       sqrt(log(K) / V(x).row(l))),
                   exp(350));
 
-          r_reg = r - eta(x).row(l).t() % square(r);
+          vec r_reg = r - eta(x).row(l).t() % square(r);
 
           if (method_var.find('A') != std::string::npos)
           {
@@ -317,8 +313,8 @@ void online_learning_core(
   // Predict residual expert forecasts if any are available
   for (unsigned int t = T; t < T + T_E_Y; t++)
   {
-    experts_mat = experts.row(t);
-    predictions_temp = sum(w_post.slice(opt_index(T)) % experts_mat, 1);
+    mat experts_mat = experts.row(t);
+    mat predictions_temp = sum(w_post.slice(opt_index(T)) % experts_mat, 1);
     predictions.row(t) = vectorise(predictions_temp).t();
   }
 
@@ -624,13 +620,8 @@ Rcpp::List online(
   // Object temporary holding ex-post weights
   cube w_post(w_temp);
 
-  // Weights output
-
-  mat experts_mat(P, K);
-
   cube predictions_post(T, P, X);
   cube predictions_ante(T, P, X);
-  mat predictions_temp(P, K);
 
   // Output Objects
   mat predictions(T + T_E_Y, P, fill::zeros);
@@ -660,12 +651,7 @@ Rcpp::List online(
   field<mat> E(X);
   field<mat> k(X);
   field<mat> eta(X);
-  vec lpred(P);
-  mat lexp(P, K);
-  mat Q(P, K);
-  vec r(K);
   field<mat> R(X);
-  vec r_reg(K);
   field<mat> R_reg(X);
   field<mat> beta(X);
   field<mat> w0field(X);
@@ -748,7 +734,8 @@ Rcpp::List online(
     }
   }
 
-  // TODO check if number of expert preds > lead_time
+  if (T <= lead_time)
+    Rcpp::stop("Number of expert predictions need to exceed lead_time.");
 
   // Predictions at t < lead_time using initial weights
   for (unsigned int t = 0; t < lead_time; t++)
@@ -757,10 +744,10 @@ Rcpp::List online(
     weights.row(t) = w_post.slice(opt_index(t));
 
     // Store expert predictions temporarily
-    experts_mat = experts.row(t);
+    mat experts_mat = experts.row(t);
 
     // Forecasters prediction(ex-ante)
-    predictions_temp = sum(w_temp.each_slice() % experts_mat, 1);
+    mat predictions_temp = sum(w_temp.each_slice() % experts_mat, 1);
     predictions_ante.row(t) = predictions_temp;
 
     // Forecasters prediction (ex-post)
@@ -784,7 +771,6 @@ Rcpp::List online(
       T,
       P,
       K,
-      X,
       T_E_Y,
       start,
       lead_time,
@@ -798,21 +784,14 @@ Rcpp::List online(
       loss_gradient,
       weights,
       w_post,
-      experts_mat,
-      predictions_temp,
       predictions_ante,
       predictions_post,
       predictions,
       past_performance,
       opt_index,
       w_temp,
-      r,
-      r_reg,
-      lexp,
-      lpred,
       param_grid,
       chosen_params,
-      Q,
       R,
       R_reg,
       V,
@@ -1027,9 +1006,6 @@ Rcpp::List update_online(
   cube predictions_post = model_objects["predictions_post"];
   predictions_post.resize(T, P, X);
 
-  mat experts_mat(P, K);
-  mat predictions_temp(P, K);
-
   cube loss_cube;
   cube regret_cube;
 
@@ -1047,12 +1023,7 @@ Rcpp::List update_online(
   field<mat> E = model_objects["E"];
   field<mat> k = model_objects["k"];
   field<mat> eta = model_objects["eta"];
-  vec lpred(P);
-  mat lexp(P, K);
-  mat Q(P, K);
-  vec r(K);
   field<mat> R = model_objects["R"];
-  vec r_reg(K);
   field<mat> R_reg = model_objects["R_reg"];
   field<mat> beta = model_objects["beta"];
   field<mat> w0field = model_objects["w0field"];
@@ -1081,7 +1052,6 @@ Rcpp::List update_online(
       T,
       P,
       K,
-      X,
       T_E_Y,
       start,
       lead_time,
@@ -1095,21 +1065,14 @@ Rcpp::List update_online(
       loss_gradient,
       weights,
       w_post,
-      experts_mat,
-      predictions_temp,
       predictions_ante,
       predictions_post,
       predictions,
       past_performance,
       opt_index,
       w_temp,
-      r,
-      r_reg,
-      lexp,
-      lpred,
       param_grid,
       chosen_params,
-      Q,
       R,
       R_reg,
       V,
