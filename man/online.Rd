@@ -5,6 +5,7 @@
 \alias{predict.online}
 \alias{update.online}
 \alias{plot.online}
+\alias{autoplot.online}
 \alias{print.online}
 \title{Probabilistic Forecast Combination - Online}
 \usage{
@@ -50,6 +51,8 @@ trace = TRUE
 \method{update}{online}(object, new_y, new_experts = as.numeric(c()), ...)
 
 \method{plot}{online}(x, ...)
+
+\method{autoplot}{online}(object, ...)
 
 \method{print}{online}(x, ...)
 }
