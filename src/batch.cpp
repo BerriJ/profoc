@@ -22,7 +22,9 @@ using namespace arma;
 //' @template param_lead_time
 //'
 //' @param initial_window Defines the size of the initial estimaton window.
-//' @param rolling_window Defines wether an expanding window or a rolling window shall be used for batch optimization. Defaults to TRUE.
+//' @param rolling_window Defines the size of the rolling window. Defaults to
+//' the value of initial_window. Set it to the number of observations to receive
+//' an expanding window.
 //'
 //' @template param_loss_function
 //' @template param_loss_parameter
@@ -61,7 +63,7 @@ using namespace arma;
 //' debias = TRUE,
 //' lead_time = 0,
 //' initial_window = 30,
-//' rolling_window = 100,
+//' rolling_window = initial_window,
 //' loss_function = "quantile",
 //' loss_parameter = 1,
 //' basis_knot_distance = 0.01,
@@ -72,9 +74,9 @@ using namespace arma;
 //' hard_threshold = -Inf,
 //' fixed_share = 0,
 //' smooth_lambda = -Inf,
-//' smooth_knot_distance = 0.01,
-//' smooth_knot_distance_power = 1,
-//' smooth_deg = 1,
+//' smooth_knot_distance = basis_knot_distance,
+//' smooth_knot_distance_power = basis_knot_distance_power,
+//' smooth_deg = basis_deg,
 //' smooth_ndiff = 1,
 //' parametergrid_max_combinations = 100,
 //' parametergrid = NULL,
@@ -94,7 +96,7 @@ Rcpp::List batch(
     const bool &debias = true,
     const int &lead_time = 0,
     const int initial_window = 30,
-    const int rolling_window = 100,
+    Rcpp::NumericVector rolling_window = Rcpp::NumericVector::create(),
     const std::string loss_function = "quantile",
     const double &loss_parameter = 1,
     Rcpp::NumericVector basis_knot_distance = Rcpp::NumericVector::create(),
@@ -138,7 +140,7 @@ Rcpp::List batch(
         Rcpp::stop("Number of provided expert predictions has to match or exceed observations.");
 
     if (T <= initial_window)
-        Rcpp::stop("Initial estimation window exceeds input data.");
+        Rcpp::stop("Initial estimation window greater or equal to input data.");
 
     if (y.n_cols > 1 && !allow_quantile_crossing)
     {
@@ -164,6 +166,20 @@ Rcpp::List batch(
         tau_vec.resize(P);
         tau_vec.fill(tau_vec(0));
     }
+
+    int rolling_window_int;
+    if (rolling_window.size() == 0)
+    {
+        rolling_window_int = initial_window;
+    }
+    else
+    {
+        vec tmp = rolling_window;
+        rolling_window_int = tmp(0);
+    }
+
+    if (initial_window > rolling_window_int)
+        Rcpp::stop("Initial estimation window bigger than rolling_window.");
 
     vec basis_knot_distance_vec = set_default(basis_knot_distance, 1 / (double(P) + 1));
 
@@ -304,9 +320,6 @@ Rcpp::List batch(
         R_CheckUserInterrupt();
     }
 
-    // Used for rolling window
-    int start = 0;
-
     // Predictions at t < lead_time + initial_window  using initial weights
     for (unsigned int t = 0; t < initial_window + lead_time; t++)
     {
@@ -327,17 +340,15 @@ Rcpp::List batch(
         past_performance.row(t).fill(datum::nan);
     }
 
+    // Used for rolling window
+    int start = 0;
+
     for (unsigned int t = (0 + initial_window + lead_time); t < T; t++)
     {
-        if (t >= rolling_window)
+        if (t >= rolling_window_int)
         {
             start += 1;
         }
-
-        vec tmp = vectorise(y.rows(start, t - lead_time));
-
-        arma::cout << start << arma::endl;
-        arma::cout << tmp.n_elem << "tmp.n_elem" << arma::endl;
 
         // Save final weights w_post
         weights.row(t) = w_post.slice(opt_index(t));

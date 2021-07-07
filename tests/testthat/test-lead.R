@@ -55,7 +55,6 @@ results <- batch(
     positive = TRUE,
     initial_window = init_win,
     lead_time = lead,
-    expanding_window = FALSE,
     trace = FALSE,
     basis_knot_distance = 0.01,
     basis_deg = 1

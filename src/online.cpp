@@ -57,7 +57,8 @@ void online_learning_core(
     mat &loss_for,
     cube &loss_exp,
     cube &loss_cube,
-    cube &regret_cube)
+    cube &regret_cube,
+    Progress &prog)
 {
   for (unsigned int t = start; t < T; t++)
   {
@@ -298,7 +299,7 @@ void online_learning_core(
       }
 
       tmp_performance(x) = accu(past_performance(span(t), span::all, span(x)));
-      // prog.increment(); // Update progress
+      prog.increment(); // Update progress
       R_CheckUserInterrupt();
     }
 
@@ -813,7 +814,8 @@ Rcpp::List online(
       loss_for,
       loss_exp,
       loss_cube,
-      regret_cube);
+      regret_cube,
+      prog);
 
   // 1-Indexing for R-Output
   opt_index = opt_index + 1;
@@ -975,6 +977,8 @@ Rcpp::List update_online(
   }
   y.insert_rows(y.n_rows, new_y);
 
+  Progress prog(999, false);
+
   // Object Dimensions
   const int T = y.n_rows;
   const int K = experts.n_slices;
@@ -1094,7 +1098,8 @@ Rcpp::List update_online(
       loss_for,
       loss_exp,
       loss_cube,
-      regret_cube);
+      regret_cube,
+      prog);
 
   // Update internal objects
   model_objects["V"] = V;

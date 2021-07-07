@@ -13,7 +13,7 @@ intercept = FALSE,
 debias = TRUE,
 lead_time = 0,
 initial_window = 30,
-rolling_window = 100,
+rolling_window = initial_window,
 loss_function = "quantile",
 loss_parameter = 1,
 basis_knot_distance = 0.01,
@@ -24,9 +24,9 @@ soft_threshold = -Inf,
 hard_threshold = -Inf,
 fixed_share = 0,
 smooth_lambda = -Inf,
-smooth_knot_distance = 0.01,
-smooth_knot_distance_power = 1,
-smooth_deg = 1,
+smooth_knot_distance = basis_knot_distance,
+smooth_knot_distance_power = basis_knot_distance_power,
+smooth_deg = basis_deg,
 smooth_ndiff = 1,
 parametergrid_max_combinations = 100,
 parametergrid = NULL,
@@ -64,7 +64,9 @@ to t+1+h at time t. The weight updates delay accordingly.}
 
 \item{initial_window}{Defines the size of the initial estimaton window.}
 
-\item{rolling_window}{Defines wether an expanding window or a rolling window shall be used for batch optimization. Defaults to TRUE.}
+\item{rolling_window}{Defines the size of the rolling window. Defaults to
+the value of initial_window. Set it to the number of observations to receive
+an expanding window.}
 
 \item{loss_function}{Either "quantile", "expectile" or "percentage".}
 
