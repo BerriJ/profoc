@@ -548,6 +548,30 @@ Rcpp::List batch(
     Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
     Rcpp::colnames(chosen_parameters) = param_names;
 
+    Rcpp::List model_data = Rcpp::List::create(
+        Rcpp::Named("y") = y,
+        Rcpp::Named("experts") = experts,
+        Rcpp::Named("tau") = tau_vec);
+
+    Rcpp::List model_parameters = Rcpp::List::create(
+        Rcpp::Named("lead_time") = lead_time,
+        Rcpp::Named("loss_function") = loss_function,
+        Rcpp::Named("loss_parameter") = loss_parameter,
+        Rcpp::Named("forget_past_performance") = forget_past_performance,
+        Rcpp::Named("allow_quantile_crossing") = allow_quantile_crossing);
+
+    Rcpp::List model_objects = Rcpp::List::create(
+        Rcpp::Named("w_post") = w_post,
+        Rcpp::Named("predictions_post") = predictions_post,
+        Rcpp::Named("cum_performance") = cum_performance,
+        Rcpp::Named("hat_matrices") = hat_mats,
+        Rcpp::Named("beta") = beta);
+
+    Rcpp::List model_spec = Rcpp::List::create(
+        Rcpp::Named("data") = model_data,
+        Rcpp::Named("parameters") = model_parameters,
+        Rcpp::Named("objects") = model_objects);
+
     Rcpp::List out = Rcpp::List::create(
         Rcpp::Named("predictions") = predictions_final,
         Rcpp::Named("weights") = weights,
@@ -557,9 +581,10 @@ Rcpp::List batch(
         Rcpp::Named("chosen_parameters") = chosen_parameters,
         Rcpp::Named("parametergrid") = parametergrid_out,
         Rcpp::Named("opt_index") = opt_index,
-        Rcpp::Named("basis_matrices") = basis_mats);
+        Rcpp::Named("basis_matrices") = basis_mats,
+        Rcpp::Named("specification") = model_spec);
 
-    out.attr("class") = "profoc_batch";
+    out.attr("class") = "batch";
 
     return out;
 }

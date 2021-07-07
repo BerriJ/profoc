@@ -1,3 +1,13 @@
+#' Print method for online models
+#' Prints the average loss of all experts (E) and the forecast combination (FC).
+#' @param x Object of class inheriting from 'online'
+#' @param ...  further arguments are ignored
+#' @rdname online
+#' @export
+print.online <- function(x, ...) {
+    print_common(x)
+}
+
 #' Predict method for online models
 #' Calculates predictions based on new expert advice.
 #' This does not update weights. If new observations are available
@@ -37,67 +47,15 @@ update.online <- function(object, new_y, new_experts = as.numeric(c()), ...) {
 #' @rdname online
 #' @export
 plot.online <- function(x, ...) {
-    weights <- x$weights[nrow(x$weights), , ]
-    k <- ncol(weights)
-    matplot(
-        y = weights,
-        x = x$specification$data$tau,
-        type = "l",
-        ylab = "w",
-        xlab = "p",
-        ylim = c(0, 1),
-        lty = 1,
-        lwd = 2,
-        col = rainbow(k, v = 0.85)
-    )
-
-    legend("top", paste("Expert", 1:k),
-        bty = "n",
-        lty = 1,
-        col = rainbow(k, v = 0.85),
-        lwd = 2
-    )
+    plot_common(x, ...)
 }
 
-#' @export
-autoplot <- function(object, ...) {
-    UseMethod("autoplot")
-}
-
+#' Autoplot method for online models
+#' Plots the most recent weights in each quantile using ggplot2.
+#' @param object Object of class inheriting from 'online'
+#' @importFrom utils installed.packages
 #' @rdname online
 #' @export
 autoplot.online <- function(object, ...) {
-    if ("ggplot2" %in% installed.packages()) {
-        weights <- object$weights[nrow(object$weights), , ]
-        p <- object$specification$data$tau
-        weight <- matrix(weights)
-        Expert <- as.character(rep(seq_len(ncol(weights)), each = nrow(weights)))
-        df <- data.frame(weight, Expert, p)
-        ggplot2::ggplot(df, ggplot2::aes(x = p, y = weight, fill = Expert)) +
-            ggplot2::theme_minimal() +
-            ggplot2::geom_area()
-    } else {
-        cat("Package ggplo2 needs to be installed to use autoplot.")
-    }
-}
-
-#' Print method for online models
-#' Prints the average loss of all experts (E) and the forecast combination (FC).
-#' @param x Object of class inheriting from 'online'
-#' @param ...  further arguments are ignored
-#' @rdname online
-#' @export
-print.online <- function(x, ...) {
-    k <- dim(x$weights)[3]
-    experts_loss <- experts <- paste0(
-        "E", 1:k, ": ",
-        round(apply(x$experts_loss, 3, mean), 4)
-    )
-    forecasters_loss <- round(mean(x$forecaster_loss), 4)
-    cat(
-        "Losses: \n",
-        experts, "\n",
-        "FC:",
-        forecasters_loss
-    )
+    autoplot_common(object)
 }

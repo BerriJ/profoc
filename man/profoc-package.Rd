@@ -33,5 +33,3 @@ Source Code: \url{https://github.com/BerriJ/profoc}
 BugReports: \url{https://github.com/BerriJ/profoc/issues}
 
 }
-\examples{
-}

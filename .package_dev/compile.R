@@ -1,7 +1,7 @@
 Rcpp::compileAttributes()
 devtools::document()
 devtools::build()
-devtools::check()
+devtools::check(cran = TRUE)
 devtools::test()
 
 # Release TODO:

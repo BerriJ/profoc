@@ -2,11 +2,11 @@
 % Please edit documentation in R/RcppExports.R, R/methods_online.R
 \name{online}
 \alias{online}
+\alias{print.online}
 \alias{predict.online}
 \alias{update.online}
 \alias{plot.online}
 \alias{autoplot.online}
-\alias{print.online}
 \title{Probabilistic Forecast Combination - Online}
 \usage{
 online(
@@ -46,6 +46,8 @@ regret_array = NULL,
 trace = TRUE
 )
 
+\method{print}{online}(x, ...)
+
 \method{predict}{online}(object, new_experts, ...)
 
 \method{update}{online}(object, new_y, new_experts = as.numeric(c()), ...)
@@ -53,8 +55,6 @@ trace = TRUE
 \method{plot}{online}(x, ...)
 
 \method{autoplot}{online}(object, ...)
-
-\method{print}{online}(x, ...)
 }
 \arguments{
 \item{y}{A numeric matrix of realizations. In probabilistic
@@ -171,16 +171,16 @@ forgotten in every iteration of the algorithm when choosing the parameter combin
 
 \item{trace}{If a progessbar shall be printed. Defaults to TRUE.}
 
+\item{x}{Object of class inheriting from 'online'}
+
+\item{...}{further arguments are ignored}
+
 \item{object}{Object of class inheriting from 'online'}
 
 \item{new_experts}{new expert predictions. This must be left unspecified
 if the model already contains the expert predictions corresponding to new_y.}
 
-\item{...}{further arguments are ignored}
-
 \item{new_y}{new observations}
-
-\item{x}{Object of class inheriting from 'online'}
 }
 \value{
 online can tune various parameters automatically based on
