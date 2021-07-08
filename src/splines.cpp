@@ -63,8 +63,7 @@ mat make_hat_matrix(const vec &x, const double &kstep, const double &lambda, con
         mat D2 = make_difference_matrix(knots, 2, deg);
         P2 = D2.t() * D2;
 
-        P = pow(2 - bdiff, 2) * P1 + pow(bdiff - 1, 2) * P2;
-
+        P = (2 - bdiff) * P1 + (bdiff - 1) * P2;
         H = B * arma::inv(B.t() * B + lambda * P) * B.t();
     }
     else

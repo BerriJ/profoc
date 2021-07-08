@@ -119,8 +119,8 @@ the b-spline basis. Takes the value of of basis_knot_distance_power if unspecifi
 Defaults to the value of basis_deg.}
 
 \item{smooth_ndiff}{Degree of the differencing operator in the smoothing equation.
-1.5 (default) leads to shrikage towards a constant. Can also be 2 or any value
-in between. If a value in between is used, a weighted sum of the first and second
+1.5 (default) leads to shrikage towards a constant. Can take values from 1 to 2.
+If a value in between is used, a weighted sum of the first and second
 differentiation matrix is calculated.}
 
 \item{parametergrid_max_combinations}{Integer specifying the maximum

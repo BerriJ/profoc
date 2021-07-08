@@ -184,7 +184,7 @@ mat2vec <- function(x) {
 #' smooth_knot_distance = c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1),
 #' smooth_knot_distance_power = 1,
 #' smooth_deg = 3,
-#' smooth_ndiff = 1,
+#' smooth_ndiff = 1.5,
 #' gamma = 1,
 #' parametergrid_max_combinations = 100,
 #' parametergrid = NULL,
