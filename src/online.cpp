@@ -129,12 +129,14 @@ void online_learning_core(
       if (regret_cube.n_elem == 0)
       {
         Q_regret = (lfor - lexp.each_col()).t();
+        Q_regret *= double(basis_mats(x).n_cols) / double(P);
         Q_regret *= basis_mats(x);
       }
       else
       {
         Q_regret = regret_cube.row(t);
         Q_regret = Q_regret.t();
+        Q_regret *= double(basis_mats(x).n_cols) / double(P);
         Q_regret *= basis_mats(x);
       }
 
