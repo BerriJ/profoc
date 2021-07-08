@@ -65,6 +65,13 @@ void online_learning_core(
 
     // Forecasters prediction
     mat predictions_temp = sum(weights_tmp.each_slice() % experts_mat, 1);
+
+    // Sort predictions if quantile_crossing is prohibited
+    if (!allow_quantile_crossing)
+    {
+      predictions_temp = arma::sort(predictions_temp, "ascend", 0);
+    }
+
     predictions_tmp.row(t) = predictions_temp;
 
     // Final prediction
@@ -271,13 +278,12 @@ void online_learning_core(
   {
     mat experts_mat = experts.row(t);
     mat predictions_temp = sum(weights_tmp.slice(opt_index(T)) % experts_mat, 1);
+    // Sort predictions if quantile_crossing is prohibited
+    if (!allow_quantile_crossing)
+    {
+      predictions_temp = arma::sort(predictions_temp, "ascend", 0);
+    }
     predictions.row(t) = vectorise(predictions_temp).t();
-  }
-
-  // Sort predictions if quantile_crossing is prohibited
-  if (!allow_quantile_crossing)
-  {
-    predictions = arma::sort(predictions, "ascend", 1);
   }
 
   // Save losses suffered by forecaster and experts
