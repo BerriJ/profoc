@@ -81,99 +81,13 @@ results_soft_hard <- online(
     trace = FALSE
 )
 
-results_soft_hard_all_post <- online(
-    matrix(y),
-    experts,
-    prob_grid,
-    hard_threshold = threshold_val,
-    soft_threshold = threshold_val,
-    hard_threshold_ex_post = TRUE,
-    soft_threshold_ex_post = TRUE,
-    trace = FALSE
-)
-
 # ts.plot(results_soft_hard$weights[, 1, ],
 #     ylim = c(0, 1),
 #     main = "Threshold Soft-Hard"
 # )
 # abline(h = threshold_val, col = "grey")
-
-# ts.plot(results_soft_hard_all_post$weights[, 1, ],
-#     ylim = c(0, 1),
-#     main = "Threshold Soft-Hard Ex-Post"
-# )
-# abline(h = threshold_val, col = "grey")
 # %%
 
-# %% Mix Ex-Post
-set.seed(1)
-
-results_soft_hard_hard_post <- online(
-    matrix(y),
-    experts,
-    prob_grid,
-    hard_threshold = threshold_val,
-    soft_threshold = threshold_val,
-    hard_threshold_ex_post = TRUE,
-    trace = FALSE
-)
-
-results_soft_hard_soft_post <- online(
-    matrix(y),
-    experts,
-    prob_grid,
-    hard_threshold = threshold_val,
-    soft_threshold = threshold_val,
-    soft_threshold_ex_post = TRUE,
-    trace = FALSE
-)
-
-# ts.plot(results_soft_hard_hard_post$weights[, 1, ],
-#     ylim = c(0, 1),
-#     main = "Threshold Soft-Hard with Hard Ex-Post"
-# )
-# abline(h = threshold_val, col = "grey")
-
-# ts.plot(results_soft_hard_soft_post$weights[, 1, ],
-#     ylim = c(0, 1),
-#     main = "Threshold Soft-Hard with Soft Ex-Post"
-# )
-# abline(h = threshold_val, col = "grey")
-# %%
-
-# %% Ex-Post setting
-set.seed(1)
-
-results_hard_post <- online(
-    matrix(y),
-    experts,
-    prob_grid,
-    hard_threshold = threshold_val,
-    hard_threshold_ex_post = TRUE,
-    trace = FALSE
-)
-
-results_soft_post <- online(
-    matrix(y),
-    experts,
-    prob_grid,
-    soft_threshold = threshold_val,
-    soft_threshold_ex_post = TRUE,
-    trace = FALSE
-)
-
-# ts.plot(results_hard_post$weights[, 1, ],
-#     ylim = c(0, 1),
-#     main = "Threshold Hard Ex-Post"
-# )
-# abline(h = threshold_val, col = "grey")
-
-# ts.plot(results_soft_post$weights[, 1, ],
-#     ylim = c(0, 1),
-#     main = "Threshold Soft Ex-Post"
-# )
-# abline(h = threshold_val, col = "grey")
-# %%
 
 # %% Tests
 losses <- c()
@@ -182,12 +96,7 @@ losses <- c()
 losses[1] <- mean(results$forecaster_loss)
 losses[2] <- mean(results_hard$forecaster_loss)
 losses[3] <- mean(results_soft$forecaster_loss)
-losses[4] <- mean(results_hard_post$forecaster_loss)
-losses[5] <- mean(results_soft_post$forecaster_loss)
-losses[6] <- mean(results_soft_hard$forecaster_loss)
-losses[7] <- mean(results_soft_hard_all_post$forecaster_loss)
-losses[8] <- mean(results_soft_hard_hard_post$forecaster_loss)
-losses[9] <- mean(results_soft_hard_soft_post$forecaster_loss)
+losses[4] <- mean(results_soft_hard$forecaster_loss)
 
 losses <- round(losses, 3)
 

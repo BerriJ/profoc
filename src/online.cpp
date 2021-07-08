@@ -28,13 +28,11 @@ void online_learning_core(
     const double &loss_parameter,
     const bool &loss_gradient,
     cube &weights,
-    cube &w_post,
-    cube &predictions_ante,
-    cube &predictions_post,
+    cube &weights_tmp,
+    cube &predictions_tmp,
     mat &predictions,
     cube &past_performance,
     vec &opt_index,
-    cube &w_temp,
     mat &param_grid,
     mat &chosen_params,
     field<mat> &R,
@@ -49,10 +47,6 @@ void online_learning_core(
     vec &cum_performance,
     const double &forget_past_performance,
     vec &tmp_performance,
-    const bool &soft_threshold_ex_post,
-    const bool &hard_threshold_ex_post,
-    const bool &smooth_ex_post,
-    const bool &fixed_share_ex_post,
     const bool &allow_quantile_crossing,
     mat &loss_for,
     cube &loss_exp,
@@ -63,24 +57,19 @@ void online_learning_core(
   for (unsigned int t = start; t < T; t++)
   {
 
-    // Save final weights w_post
-    weights.row(t) = w_post.slice(opt_index(t));
+    // Save final weights weights_tmp
+    weights.row(t) = weights_tmp.slice(opt_index(t));
 
     // Store expert predictions temporarily
     mat experts_mat = experts.row(t);
 
-    // Forecasters prediction(ex-ante)
-    mat predictions_temp = sum(w_temp.each_slice() % experts_mat, 1);
-    predictions_ante.row(t) = predictions_temp;
-
-    // Forecasters prediction (ex-post)
-    // Note that w_post != w_temp in ex post setting and w_post = w_temp otherwise
-    predictions_temp = sum(w_post.each_slice() % experts_mat, 1);
-    predictions_post.row(t) = predictions_temp;
+    // Forecasters prediction
+    mat predictions_temp = sum(weights_tmp.each_slice() % experts_mat, 1);
+    predictions_tmp.row(t) = predictions_temp;
 
     // Final prediction
     predictions.row(t) =
-        vectorise(predictions_post(span(t), span::all, span(opt_index(t)))).t();
+        vectorise(predictions_tmp(span(t), span::all, span(opt_index(t)))).t();
 
     for (unsigned int x = 0; x < param_grid.n_rows; x++)
     {
@@ -93,7 +82,7 @@ void online_learning_core(
 
         // Evaluate the ex-post predictive performance
         past_performance(t, p, x) = loss(y(t, p),
-                                         predictions_post(t - lead_time, p, x),
+                                         predictions_tmp(t - lead_time, p, x),
                                          9999,           // where evaluate loss_gradient
                                          loss_function,  // method
                                          tau_vec(p),     // tau_vec
@@ -104,10 +93,10 @@ void online_learning_core(
         {
           lexp(p, k) = loss(y(t, p),
                             experts(t, p, k),
-                            predictions_ante(t - lead_time, p, x), // where evaluate loss_gradient
-                            loss_function,                         // method
-                            tau_vec(p),                            // tau_vec
-                            loss_parameter,                        // alpha
+                            predictions_tmp(t - lead_time, p, x), // where evaluate loss_gradient
+                            loss_function,                        // method
+                            tau_vec(p),                           // tau_vec
+                            loss_parameter,                       // alpha
                             loss_gradient);
         }
 
@@ -117,11 +106,11 @@ void online_learning_core(
         }
 
         lfor(p) = loss(y(t, p),
-                       predictions_ante(t - lead_time, p, x),
-                       predictions_ante(t - lead_time, p, x), // where to evaluate loss_gradient
-                       loss_function,                         // method
-                       tau_vec(p),                            // tau_vec
-                       loss_parameter,                        // alpha
+                       predictions_tmp(t - lead_time, p, x),
+                       predictions_tmp(t - lead_time, p, x), // where to evaluate loss_gradient
+                       loss_function,                        // method
+                       tau_vec(p),                           // tau_vec
+                       loss_parameter,                       // alpha
                        loss_gradient);
       }
 
@@ -221,83 +210,46 @@ void online_learning_core(
         {
           Rcpp::stop("Choose 'boa', 'ml_poly' or 'ewa' as method.");
         }
-      }
 
-      w_temp.slice(x) = basis_mats(x) * beta(x);
-
-      w_post.slice(x) = w_temp.slice(x);
-
-      // Apply thresholds
-
-      if (!soft_threshold_ex_post)
-      {
-        for (double &e : w_temp.slice(x))
+        // Apply thresholds
+        for (double &e : beta(x).row(l))
         {
           threshold_soft(e, param_grid(x, 4));
         }
-      }
 
-      for (double &e : w_post.slice(x))
-      {
-        threshold_soft(e, param_grid(x, 4));
-      }
-
-      if (!hard_threshold_ex_post)
-      {
-        for (double &e : w_temp.slice(x))
+        for (double &e : beta(x).row(l))
         {
           threshold_hard(e, param_grid(x, 5));
         }
+
+        //Add fixed_share
+        beta(x).row(l) =
+            (1 - param_grid(x, 6)) * beta(x).row(l) +
+            (param_grid(x, 6) / K);
       }
 
-      for (double &e : w_post.slice(x))
-      {
-        threshold_hard(e, param_grid(x, 5));
-      }
+      weights_tmp.slice(x) = basis_mats(x) * beta(x);
 
       // Smoothing
       if (param_grid(x, 7) != -datum::inf)
       {
         for (unsigned int k = 0; k < K; k++)
         {
-          if (!smooth_ex_post)
-          {
-            w_temp(span::all, span(k), span(x)) =
-                hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
-          }
-
-          w_post(span::all, span(k), span(x)) = hat_mats(x) * vectorise(w_temp(span::all, span(k), span(x)));
+          weights_tmp(span::all, span(k), span(x)) = hat_mats(x) * vectorise(weights_tmp(span::all, span(k), span(x)));
         }
       }
 
+      // Enshure that constraints hold
       for (unsigned int p = 0; p < P; p++)
       {
-        //Add fixed_share
-
-        if (!fixed_share_ex_post)
-        {
-          w_temp(span(p), span::all, span(x)) =
-              (1 - param_grid(x, 6)) * w_temp(span(p), span::all, span(x)) +
-              param_grid(x, 6) / K;
-        }
-
-        w_post(span(p), span::all, span(x)) =
-            (1 - param_grid(x, 6)) * w_post(span(p), span::all, span(x)) +
-            (param_grid(x, 6) / K);
-
-        // Enshure that constraints hold
 
         // Positivity
-        w_temp(span(p), span::all, span(x)) =
-            pmax_arma(w_temp(span(p), span::all, span(x)), exp(-700));
-        w_post(span(p), span::all, span(x)) =
-            pmax_arma(w_post(span(p), span::all, span(x)), exp(-700));
+        weights_tmp(span(p), span::all, span(x)) =
+            pmax_arma(weights_tmp(span(p), span::all, span(x)), exp(-700));
 
         // Affinity
-        w_post(span(p), span::all, span(x)) /=
-            accu(w_post(span(p), span::all, span(x)));
-        w_temp(span(p), span::all, span(x)) /=
-            accu(w_temp(span(p), span::all, span(x)));
+        weights_tmp(span(p), span::all, span(x)) /=
+            accu(weights_tmp(span(p), span::all, span(x)));
       }
 
       tmp_performance(x) = accu(past_performance(span(t), span::all, span(x)));
@@ -312,13 +264,13 @@ void online_learning_core(
   }
 
   // Save Weights and Prediction
-  weights.row(T) = w_post.slice(opt_index(T));
+  weights.row(T) = weights_tmp.slice(opt_index(T));
 
   // Predict residual expert forecasts if any are available
   for (unsigned int t = T; t < T + T_E_Y; t++)
   {
     mat experts_mat = experts.row(t);
-    mat predictions_temp = sum(w_post.slice(opt_index(T)) % experts_mat, 1);
+    mat predictions_temp = sum(weights_tmp.slice(opt_index(T)) % experts_mat, 1);
     predictions.row(t) = vectorise(predictions_temp).t();
   }
 
@@ -381,19 +333,15 @@ void online_learning_core(
 //' forgotten in every iteration of the algorithm. Defaults to 0.
 //'
 //' @template param_soft_threshold
-//' @template param_soft_threshold_ex_post
 //' @template param_hard_threshold
-//' @template param_hard_threshold_ex_post
 //'
 //' @template param_fixed_share
-//' @template param_fixed_share_ex_post
 //'
 //' @template param_smooth_lambda
 //' @template param_smooth_knot_distance
 //' @template param_smooth_knot_distance_power
 //' @template param_smooth_deg
 //' @template param_smooth_ndiff
-//' @template param_smooth_ex_post
 //'
 //' @param gamma Scaling parameter for the learning rate.
 //'
@@ -423,17 +371,13 @@ void online_learning_core(
 //' basis_deg = 3,
 //' forget_regret = 0,
 //' soft_threshold = -Inf,
-//' soft_threshold_ex_post = FALSE,
 //' hard_threshold = -Inf,
-//' hard_threshold_ex_post = FALSE,
 //' fixed_share = 0,
-//' fixed_share_ex_post = FALSE,
 //' smooth_lambda = -Inf,
 //' smooth_knot_distance = c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1),
 //' smooth_knot_distance_power = 1,
 //' smooth_deg = 3,
 //' smooth_ndiff = 1,
-//' smooth_ex_post = FALSE,
 //' gamma = 1,
 //' parametergrid_max_combinations = 100,
 //' parametergrid = NULL,
@@ -461,17 +405,13 @@ Rcpp::List online(
     Rcpp::NumericVector basis_deg = Rcpp::NumericVector::create(3),
     Rcpp::NumericVector forget_regret = Rcpp::NumericVector::create(0),
     Rcpp::NumericVector soft_threshold = Rcpp::NumericVector::create(-1 / 0),
-    bool soft_threshold_ex_post = false,
     Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create(-1 / 0),
-    bool hard_threshold_ex_post = false,
     Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(0),
-    const bool &fixed_share_ex_post = false,
     Rcpp::NumericVector smooth_lambda = Rcpp::NumericVector::create(-1 / 0),
     Rcpp::NumericVector smooth_knot_distance = Rcpp::NumericVector::create(),
     Rcpp::NumericVector smooth_knot_distance_power = Rcpp::NumericVector::create(),
     Rcpp::NumericVector smooth_deg = Rcpp::NumericVector::create(),
     Rcpp::NumericVector smooth_ndiff = Rcpp::NumericVector::create(1.5),
-    const bool &smooth_ex_post = false,
     Rcpp::NumericVector gamma = Rcpp::NumericVector::create(1),
     const int parametergrid_max_combinations = 100,
     Rcpp::Nullable<Rcpp::NumericMatrix> parametergrid = R_NilValue,
@@ -618,14 +558,11 @@ Rcpp::List online(
   // Normalize weights
   w0.each_col() /= sum(w0, 1);
 
-  // Init object holding temp. weights, resp. ex-ante
-  cube w_temp(P, K, X);
-  w_temp.each_slice() = w0;
-  // Object temporary holding ex-post weights
-  cube w_post(w_temp);
+  // Init object holding weights
+  cube weights_tmp(P, K, X);
+  weights_tmp.each_slice() = w0;
 
-  cube predictions_post(T, P, X);
-  cube predictions_ante(T, P, X);
+  cube predictions_tmp(T, P, X);
 
   // Output Objects
   mat predictions(T + T_E_Y, P, fill::zeros);
@@ -744,24 +681,19 @@ Rcpp::List online(
   // Predictions at t < lead_time using initial weights
   for (unsigned int t = 0; t < lead_time; t++)
   {
-    // Save final weights w_post
-    weights.row(t) = w_post.slice(opt_index(t));
+    // Save final weights weights_tmp
+    weights.row(t) = weights_tmp.slice(opt_index(t));
 
     // Store expert predictions temporarily
     mat experts_mat = experts.row(t);
 
-    // Forecasters prediction(ex-ante)
-    mat predictions_temp = sum(w_temp.each_slice() % experts_mat, 1);
-    predictions_ante.row(t) = predictions_temp;
-
-    // Forecasters prediction (ex-post)
-    // Note that w_post != w_temp in ex post setting and w_post = w_temp otherwise
-    predictions_temp = sum(w_post.each_slice() % experts_mat, 1);
-    predictions_post.row(t) = predictions_temp;
+    // Forecasters prediction
+    mat predictions_temp = sum(weights_tmp.each_slice() % experts_mat, 1);
+    predictions_tmp.row(t) = predictions_temp;
 
     // Final prediction
     predictions.row(t) =
-        vectorise(predictions_post(span(t), span::all, span(opt_index(t)))).t();
+        vectorise(predictions_tmp(span(t), span::all, span(opt_index(t)))).t();
 
     past_performance.row(t).fill(datum::nan);
   }
@@ -787,13 +719,11 @@ Rcpp::List online(
       loss_parameter,
       loss_gradient,
       weights,
-      w_post,
-      predictions_ante,
-      predictions_post,
+      weights_tmp,
+      predictions_tmp,
       predictions,
       past_performance,
       opt_index,
-      w_temp,
       param_grid,
       chosen_params,
       R,
@@ -808,10 +738,6 @@ Rcpp::List online(
       cum_performance,
       forget_past_performance,
       tmp_performance,
-      soft_threshold_ex_post,
-      hard_threshold_ex_post,
-      smooth_ex_post,
-      fixed_share_ex_post,
       allow_quantile_crossing,
       loss_for,
       loss_exp,
@@ -861,18 +787,12 @@ Rcpp::List online(
       Rcpp::Named("loss_gradient") = loss_gradient,
       Rcpp::Named("method") = method,
       Rcpp::Named("method_var") = method_var,
-      Rcpp::Named("soft_threshold_ex_post") = soft_threshold_ex_post,
-      Rcpp::Named("hard_threshold_ex_post") = hard_threshold_ex_post,
-      Rcpp::Named("fixed_share_ex_post") = fixed_share_ex_post,
-      Rcpp::Named("smooth_ex_post") = smooth_ex_post,
       Rcpp::Named("forget_past_performance") = forget_past_performance,
       Rcpp::Named("allow_quantile_crossing") = allow_quantile_crossing);
 
   Rcpp::List model_objects = Rcpp::List::create(
-      Rcpp::Named("w_temp") = w_temp,
-      Rcpp::Named("w_post") = w_post,
-      Rcpp::Named("predictions_ante") = predictions_ante,
-      Rcpp::Named("predictions_post") = predictions_post,
+      Rcpp::Named("weights_tmp") = weights_tmp,
+      Rcpp::Named("predictions_tmp") = predictions_tmp,
       Rcpp::Named("cum_performance") = cum_performance,
       Rcpp::Named("hat_matrices") = hat_mats,
       Rcpp::Named("V") = V,
@@ -1005,13 +925,10 @@ Rcpp::List update_online(
   vec tmp_performance(X, fill::zeros);
   vec cum_performance = model_objects["cum_performance"];
 
-  cube w_temp = model_objects["w_temp"];
-  cube w_post = model_objects["w_post"];
+  cube weights_tmp = model_objects["weights_tmp"];
 
-  cube predictions_ante = model_objects["predictions_ante"];
-  predictions_ante.resize(T, P, X);
-  cube predictions_post = model_objects["predictions_post"];
-  predictions_post.resize(T, P, X);
+  cube predictions_tmp = model_objects["predictions_tmp"];
+  predictions_tmp.resize(T, P, X);
 
   cube loss_cube;
   cube regret_cube;
@@ -1043,10 +960,6 @@ Rcpp::List update_online(
   const std::string method = model_parameters["method"];
   const std::string method_var = model_parameters["method_var"];
 
-  const bool soft_threshold_ex_post = model_parameters["soft_threshold_ex_post"];
-  const bool hard_threshold_ex_post = model_parameters["hard_threshold_ex_post"];
-  const bool fixed_share_ex_post = model_parameters["fixed_share_ex_post"];
-  const bool smooth_ex_post = model_parameters["smooth_ex_post"];
   const double forget_past_performance = model_parameters["forget_past_performance"];
   const bool allow_quantile_crossing = model_parameters["allow_quantile_crossing"];
 
@@ -1071,13 +984,11 @@ Rcpp::List update_online(
       loss_parameter,
       loss_gradient,
       weights,
-      w_post,
-      predictions_ante,
-      predictions_post,
+      weights_tmp,
+      predictions_tmp,
       predictions,
       past_performance,
       opt_index,
-      w_temp,
       param_grid,
       chosen_params,
       R,
@@ -1092,10 +1003,6 @@ Rcpp::List update_online(
       cum_performance,
       forget_past_performance,
       tmp_performance,
-      soft_threshold_ex_post,
-      hard_threshold_ex_post,
-      smooth_ex_post,
-      fixed_share_ex_post,
       allow_quantile_crossing,
       loss_for,
       loss_exp,
@@ -1111,10 +1018,8 @@ Rcpp::List update_online(
   model_objects["R"] = R;
   model_objects["R_reg"] = R_reg;
   model_objects["beta"] = beta;
-  model_objects["w_temp"] = w_temp;
-  model_objects["w_post"] = w_post;
-  model_objects["predictions_ante"] = predictions_ante;
-  model_objects["predictions_post"] = predictions_post;
+  model_objects["weights_tmp"] = weights_tmp;
+  model_objects["predictions_tmp"] = predictions_tmp;
   model_objects["cum_performance"] = cum_performance;
 
   // Update data

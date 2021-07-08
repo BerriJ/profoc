@@ -24,17 +24,13 @@ basis_knot_distance_power = 1,
 basis_deg = 3,
 forget_regret = 0,
 soft_threshold = -Inf,
-soft_threshold_ex_post = FALSE,
 hard_threshold = -Inf,
-hard_threshold_ex_post = FALSE,
 fixed_share = 0,
-fixed_share_ex_post = FALSE,
 smooth_lambda = -Inf,
 smooth_knot_distance = c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1),
 smooth_knot_distance_power = 1,
 smooth_deg = 3,
 smooth_ndiff = 1,
-smooth_ex_post = FALSE,
 gamma = 1,
 parametergrid_max_combinations = 100,
 parametergrid = NULL,
@@ -104,21 +100,12 @@ forgotten in every iteration of the algorithm. Defaults to 0.}
 to the weights: w = sgn(w)*max(abs(w)-t,0) where t is the soft_threshold parameter.
 Defaults to -inf which means that no threshold will be applied.}
 
-\item{soft_threshold_ex_post}{Analogous to ex_post_smooth: shall the soft
-thresholding be applied during (the default, FALSE) or after online-learning (TRUE).}
-
 \item{hard_threshold}{If specified the following hard thresholding will be applied
 to the weights: w = w*(abs(w)>t) where t is the threshold_hard parameter.
 Defaults to -inf which means that no threshold will be applied.}
 
-\item{hard_threshold_ex_post}{Analogous to smooth_ex_post: shall the hard
-thresholding be applied during (the default, FALSE) or after online-learning (TRUE).}
-
 \item{fixed_share}{Amount of fixed share to be added to the weights.
 Defaults to 0. 1 leads to uniform weights.}
-
-\item{fixed_share_ex_post}{Analogous to smooth_ex_post: shall a fixed-share
-be added during (FALSE) or after online-learning (TRUE).}
 
 \item{smooth_lambda}{Penalization parameter used in the smoothing Step.
 -Inf causes the smoothing step to be skipped (default).}
@@ -137,11 +124,6 @@ Defaults to the value of basis_deg.}
 1.5 (default) leads to shrikage towards a constant. Can also be 2 or any value
 in between. If a value in between is used, a weighted sum of the first and second
 differentiation matrix is calculated.}
-
-\item{smooth_ex_post}{Determines if smoothing is during or after
-online-learning. If true, contemporary weights are not affected
-but output weights are. If false (default) smoothed weights are
-also by the algorithm.}
 
 \item{gamma}{Scaling parameter for the learning rate.}
 
