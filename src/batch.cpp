@@ -277,14 +277,14 @@ Rcpp::List batch(
             }
             else
             {
-
-                hat_mats(x) = make_hat_matrix(spline_basis_x,
-                                              param_grid(x, 8),  // kstep
-                                              param_grid(x, 7),  // lambda
-                                              param_grid(x, 11), // differences
-                                              param_grid(x, 10), // degree
-                                              param_grid(x, 9)   // uneven grid
-                );
+                if (param_grid(x, 7) != -datum::inf)
+                    hat_mats(x) = make_hat_matrix(spline_basis_x,
+                                                  param_grid(x, 8),  // kstep
+                                                  param_grid(x, 7),  // lambda
+                                                  param_grid(x, 11), // differences
+                                                  param_grid(x, 10), // degree
+                                                  param_grid(x, 9)   // uneven grid
+                    );
             }
             R_CheckUserInterrupt();
             prog.increment(); // Update progress
