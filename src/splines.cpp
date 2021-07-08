@@ -46,9 +46,6 @@ mat make_hat_matrix(const vec &x, const double &kstep, const double &lambda, con
 
     mat B = splines2_basis(x, knots, deg, boundary_knots);
 
-    if (B.n_cols >= B.n_rows && lambda == 0)
-        Rcpp::stop("Spline design matrix singular. Either increase kstep, provide more quantiles or increase lambda.");
-
     mat P1(m + deg + 1, m + deg + 1);
     mat P2(m + deg + 1, m + deg + 1);
     mat P(m + deg + 1, m + deg + 1);
@@ -64,7 +61,13 @@ mat make_hat_matrix(const vec &x, const double &kstep, const double &lambda, con
         P2 = D2.t() * D2;
 
         P = (2 - bdiff) * P1 + (bdiff - 1) * P2;
-        H = B * arma::inv(B.t() * B + lambda * P) * B.t();
+        H = B * arma::pinv(B.t() * B + lambda * P) * B.t();
+
+        for (double &e : H)
+        {
+            if (fabs(e) < 1E-10)
+                e = 0;
+        }
     }
     else
     {
@@ -91,7 +94,7 @@ sp_mat make_basis_matrix(const vec &x, const double &kstep, const int deg, const
 
         for (double &e : B)
         {
-            if (e < 1E-10)
+            if (fabs(e) < 1E-10)
                 e = 0;
         }
     }
