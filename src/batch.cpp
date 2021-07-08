@@ -159,7 +159,7 @@ Rcpp::List batch(
     if (tau_vec.size() == 0)
     {
         tau_vec.resize(P);
-        tau_vec = regspace(1, P) / (P + 1);
+        tau_vec = arma::regspace(1, P) / (P + 1);
     }
     else if (tau_vec.size() == 1)
     {
@@ -241,24 +241,23 @@ Rcpp::List batch(
     // Populate uniform weights
 
     // Init object holding temp. weights, resp. ex-ante
-    cube w_post(P, K, X);
-    w_post.fill(1 / double(K - intercept * debias));
+    cube weights_tmp(P, K, X);
+    weights_tmp.fill(1 / double(K - intercept * debias));
 
     if (intercept && debias)
-        w_post.col(0).fill(0);
+        weights_tmp.col(0).fill(0);
 
     // Weights output
     cube weights(T + 1, P, K, fill::zeros);
 
     mat experts_mat(P, K);
 
-    cube predictions_post(T, P, X);
-    mat predictions_temp(P, K);
+    cube predictions_tmp(T, P, X);
     mat predictions_final(T + T_E_Y, P, fill::zeros);
 
     // Smoothing Setup
     field<mat> hat_mats(param_grid.n_rows);
-    vec spline_basis_x = regspace(1, P) / (P + 1);
+    vec spline_basis_x = arma::regspace(1, P) / (P + 1);
 
     // Only if smoothing is possible (tau_vec.size > 1)
     if (P > 1)
@@ -315,7 +314,7 @@ Rcpp::List batch(
                                               param_grid(x, 1)); // uneven grid
         }
 
-        beta(x) = (w_post.slice(x).t() * pinv(mat(basis_mats(x))).t()).t();
+        beta(x) = (weights_tmp.slice(x).t() * pinv(mat(basis_mats(x))).t()).t();
 
         R_CheckUserInterrupt();
     }
@@ -323,19 +322,19 @@ Rcpp::List batch(
     // Predictions at t < lead_time + initial_window  using initial weights
     for (unsigned int t = 0; t < initial_window + lead_time; t++)
     {
-        // Save final weights w_post
-        weights.row(t) = w_post.slice(opt_index(t));
+        // Save final weights weights_tmp
+        weights.row(t) = weights_tmp.slice(opt_index(t));
 
         // Store expert predictions temporarily
         experts_mat = experts.row(t);
 
         // Forecasters prediction (ex-post)
-        predictions_temp = sum(w_post.each_slice() % experts_mat, 1);
-        predictions_post.row(t) = predictions_temp;
+        mat predictions_temp = sum(weights_tmp.each_slice() % experts_mat, 1);
+        predictions_tmp.row(t) = predictions_temp;
 
         // Final prediction
         predictions_final.row(t) =
-            vectorise(predictions_post(span(t), span::all, span(opt_index(t)))).t();
+            vectorise(predictions_tmp(span(t), span::all, span(opt_index(t)))).t();
 
         past_performance.row(t).fill(datum::nan);
     }
@@ -350,19 +349,19 @@ Rcpp::List batch(
             start += 1;
         }
 
-        // Save final weights w_post
-        weights.row(t) = w_post.slice(opt_index(t));
+        // Save final weights weights_tmp
+        weights.row(t) = weights_tmp.slice(opt_index(t));
 
         // Store expert predictions temporarily
         experts_mat = experts.row(t);
 
         // Forecasters prediction (ex-post)
-        predictions_temp = sum(w_post.each_slice() % experts_mat, 1);
-        predictions_post.row(t) = predictions_temp;
+        mat predictions_temp = sum(weights_tmp.each_slice() % experts_mat, 1);
+        predictions_tmp.row(t) = predictions_temp;
 
         // Final prediction
         predictions_final.row(t) =
-            vectorise(predictions_post(span(t), span::all, span(opt_index(t)))).t();
+            vectorise(predictions_tmp(span(t), span::all, span(opt_index(t)))).t();
 
         cube experts_tmp_cube = experts.rows(start, t - lead_time);
 
@@ -374,7 +373,7 @@ Rcpp::List batch(
 
                 // Evaluate the ex-post predictive performance
                 past_performance(t, p, x) = loss(y(t, p),
-                                                 predictions_post(t - lead_time, p, x),
+                                                 predictions_tmp(t - lead_time, p, x),
                                                  9999,           // where evaluate gradient
                                                  loss_function,  // method
                                                  tau_vec(p),     // tau_vec
@@ -386,7 +385,7 @@ Rcpp::List batch(
                     // optim_weights()
                     mat experts_tmp = experts_tmp_cube.col(p);
 
-                    w_post(span(p), span::all, span(x)) = optimize_weights(
+                    weights_tmp(span(p), span::all, span(x)) = optimize_weights(
                         y(span(start, t - lead_time), p),
                         experts_tmp,
                         affine,
@@ -398,8 +397,22 @@ Rcpp::List batch(
                         param_grid(x, 3), // Forget
                         loss_parameter);
 
-                    R_CheckUserInterrupt();
+                    // Apply thresholds
+                    for (double &e : weights_tmp(span(p), span(intercept * debias, K - 1), span(x)))
+                    {
+                        threshold_soft(e, param_grid(x, 4));
+                    }
+
+                    for (double &e : weights_tmp(span(p), span(intercept * debias, K - 1), span(x)))
+                    {
+                        threshold_hard(e, param_grid(x, 5));
+                    }
+
+                    //Add fixed_share
+                    weights_tmp(span(p), span(intercept * debias, K - 1), span(x)) *= (1 - param_grid(x, 6));
+                    weights_tmp(span(p), span(intercept * debias, K - 1), span(x)) += (param_grid(x, 6) / (K - intercept * debias));
                 }
+                R_CheckUserInterrupt();
             }
 
             if (!basis_mats(x).is_diagmat())
@@ -418,21 +431,26 @@ Rcpp::List batch(
                     basis_mats(x),
                     beta(x));
 
-                w_post.slice(x) = basis_mats(x) * beta(x);
+                for (unsigned int l = 0; l < beta(x).n_rows; l++)
+                {
+                    // Apply thresholds
+                    for (double &e : beta(x).row(l))
+                    {
+                        threshold_soft(e, param_grid(x, 4));
+                    }
 
-                R_CheckUserInterrupt();
-            }
+                    for (double &e : beta(x).row(l))
+                    {
+                        threshold_hard(e, param_grid(x, 5));
+                    }
 
-            // Apply thresholds
+                    //Add fixed_share
+                    beta(x).row(l) =
+                        (1 - param_grid(x, 6)) * beta(x).row(l) +
+                        (param_grid(x, 6) / K);
+                }
 
-            for (double &e : w_post(span::all, span(intercept * debias, K - 1), span(x)))
-            {
-                threshold_soft(e, param_grid(x, 4));
-            }
-
-            for (double &e : w_post(span::all, span(intercept * debias, K - 1), span(x)))
-            {
-                threshold_hard(e, param_grid(x, 5));
+                weights_tmp.slice(x) = basis_mats(x) * beta(x);
             }
 
             // Smoothing
@@ -440,28 +458,23 @@ Rcpp::List batch(
             {
                 for (unsigned int k = 0; k < K; k++)
                 {
-                    w_post(span::all, span(k), span(x)) =
+                    weights_tmp(span::all, span(k), span(x)) =
                         hat_mats(x) *
-                        vectorise(w_post(span::all, span(k), span(x)));
+                        vectorise(weights_tmp(span::all, span(k), span(x)));
                 }
             }
 
+            // Ensure constraints are met
             for (unsigned int p = 0; p < P; p++)
             {
-                //Add fixed_share
-                w_post(span(p), span(intercept * debias, K - 1), span(x)) =
-                    (1 - param_grid(x, 6)) * w_post(span(p), span(intercept * debias, K - 1), span(x)) +
-                    (param_grid(x, 6) / (K - intercept * debias));
-
-                // Ensure constraints are met
                 if (positive)
                 {
-                    w_post(span(p), span(intercept * debias, K - 1), span(x)) = pmax_arma(w_post(span(p), span(intercept * debias, K - 1), span(x)), 0);
+                    weights_tmp(span(p), span(intercept * debias, K - 1), span(x)) = pmax_arma(weights_tmp(span(p), span(intercept * debias, K - 1), span(x)), 0);
                 }
 
                 if (affine)
                 {
-                    w_post(span(p), span(intercept * debias, K - 1), span(x)) /= accu(w_post(span(p), span(intercept * debias, K - 1), span(x)));
+                    weights_tmp(span(p), span(intercept * debias, K - 1), span(x)) /= accu(weights_tmp(span(p), span(intercept * debias, K - 1), span(x)));
                 }
             }
 
@@ -477,13 +490,13 @@ Rcpp::List batch(
     }
 
     // Save Weights and Prediction
-    weights.row(T) = w_post.slice(opt_index(T));
+    weights.row(T) = weights_tmp.slice(opt_index(T));
 
     // Predict residual expert forecasts if any are available
     for (unsigned int t = T; t < T + T_E_Y; t++)
     {
         experts_mat = experts.row(t);
-        predictions_temp = sum(w_post.slice(opt_index(T)) % experts_mat, 1);
+        mat predictions_temp = sum(weights_tmp.slice(opt_index(T)) % experts_mat, 1);
         predictions_final.row(t) = vectorise(predictions_temp).t();
     }
 
@@ -561,8 +574,8 @@ Rcpp::List batch(
         Rcpp::Named("allow_quantile_crossing") = allow_quantile_crossing);
 
     Rcpp::List model_objects = Rcpp::List::create(
-        Rcpp::Named("w_post") = w_post,
-        Rcpp::Named("predictions_post") = predictions_post,
+        Rcpp::Named("weights_tmp") = weights_tmp,
+        Rcpp::Named("predictions_tmp") = predictions_tmp,
         Rcpp::Named("cum_performance") = cum_performance,
         Rcpp::Named("hat_matrices") = hat_mats,
         Rcpp::Named("beta") = beta);
