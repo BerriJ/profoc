@@ -139,7 +139,7 @@ void online_learning_core(
           // Update the cumulative regret used by eta
           R(x).row(l) *= (1 - param_grid(x, 3));
           R(x).row(l) += r.t();
-
+          eta(x).row(l).fill(param_grid(x, 12));
           beta(x).row(l) = exp(param_grid(x, 12) * R(x).row(l));
           beta(x).row(l) /= accu(beta(x).row(l));
         }
@@ -149,7 +149,7 @@ void online_learning_core(
           R(x).row(l) *= (1 - param_grid(x, 3));
           R(x).row(l) += r.t();
 
-          //   // Update the learning rate
+          // Update the learning rate
           eta(x).row(l) = 1 / (1 / eta(x).row(l) + square(r.t()));
 
           // param_grid(x, 12) = gamma
