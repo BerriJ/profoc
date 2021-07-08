@@ -25,7 +25,7 @@ expect_warning(boa <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
-    smooth_lambda = c(1:2),
+    p_smooth_lambda = c(1:2),
     parametergrid_max_combinations = 10,
     trace = FALSE
 ), "Warning: Too many parameter combinations possible. 10 combinations were randomly sampled. Results may depend on sampling.")

@@ -25,7 +25,7 @@ mod <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
-    smooth_lambda = c(10),
+    p_smooth_lambda = c(10),
     basis_deg = c(1.3, 1.7),
     basis_knot_distance = c(0.043, 0.447),
     basis_knot_distance_power = c(0.7, 1.3),
@@ -35,19 +35,19 @@ mod <- online(
 expect_true(
     identical(
         mod$parametergrid[, "basis_knot_distance"],
-        mod$parametergrid[, "smooth_knot_distance"]
+        mod$parametergrid[, "p_smooth_knot_distance"]
     )
 )
 expect_true(
     identical(
         mod$parametergrid[, "basis_deg"],
-        mod$parametergrid[, "smooth_deg"]
+        mod$parametergrid[, "p_smooth_deg"]
     )
 )
 expect_true(
     identical(
         mod$parametergrid[, "basis_knot_distance_power"],
-        mod$parametergrid[, "smooth_knot_distance_power"]
+        mod$parametergrid[, "p_smooth_knot_distance_power"]
     )
 )
 
@@ -56,28 +56,28 @@ mod <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
-    smooth_lambda = c(10),
-    smooth_deg = c(1.3, 1.7),
-    smooth_knot_distance = c(0.043, 0.447),
-    smooth_knot_distance_power = c(0.7, 1.3),
+    p_smooth_lambda = c(10),
+    p_smooth_deg = c(1.3, 1.7),
+    p_smooth_knot_distance = c(0.043, 0.447),
+    p_smooth_knot_distance_power = c(0.7, 1.3),
     trace = FALSE
 )
 
 expect_false(
     identical(
         mod$parametergrid[, "basis_knot_distance"],
-        mod$parametergrid[, "smooth_knot_distance"]
+        mod$parametergrid[, "p_smooth_knot_distance"]
     )
 )
 expect_false(
     identical(
         mod$parametergrid[, "basis_deg"],
-        mod$parametergrid[, "smooth_deg"]
+        mod$parametergrid[, "p_smooth_deg"]
     )
 )
 expect_false(
     identical(
         mod$parametergrid[, "basis_knot_distance_power"],
-        mod$parametergrid[, "smooth_knot_distance_power"]
+        mod$parametergrid[, "p_smooth_knot_distance_power"]
     )
 )

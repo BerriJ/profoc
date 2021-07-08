@@ -26,11 +26,11 @@ forget_regret = 0,
 soft_threshold = -Inf,
 hard_threshold = -Inf,
 fixed_share = 0,
-smooth_lambda = -Inf,
-smooth_knot_distance = c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1),
-smooth_knot_distance_power = 1,
-smooth_deg = 3,
-smooth_ndiff = 1.5,
+p_smooth_lambda = -Inf,
+p_smooth_knot_distance = c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1),
+p_smooth_knot_distance_power = 1,
+p_smooth_deg = 3,
+p_smooth_ndiff = 1.5,
 gamma = 1,
 parametergrid_max_combinations = 100,
 parametergrid = NULL,
@@ -107,20 +107,20 @@ Defaults to -inf which means that no threshold will be applied.}
 \item{fixed_share}{Amount of fixed share to be added to the weights.
 Defaults to 0. 1 leads to uniform weights.}
 
-\item{smooth_lambda}{Penalization parameter used in the smoothing Step.
+\item{p_smooth_lambda}{Penalization parameter used in the smoothing Step.
 -Inf causes the smoothing step to be skipped (default).}
 
-\item{smooth_knot_distance}{determines the distance of the knots. Defaults to
+\item{p_smooth_knot_distance}{determines the distance of the knots. Defaults to
 the value of basis_knot_distance.
 Corrsponds to the grid steps when knot_distance_power = 1 (the default).}
 
-\item{smooth_knot_distance_power}{Parameter which defines the symetrie of
+\item{p_smooth_knot_distance_power}{Parameter which defines the symetrie of
 the b-spline basis. Takes the value of of basis_knot_distance_power if unspecified.}
 
-\item{smooth_deg}{Degree of the B-Spine basis functions.
+\item{p_smooth_deg}{Degree of the B-Spine basis functions.
 Defaults to the value of basis_deg.}
 
-\item{smooth_ndiff}{Degree of the differencing operator in the smoothing equation.
+\item{p_smooth_ndiff}{Degree of the differencing operator in the smoothing equation.
 1.5 (default) leads to shrikage towards a constant. Can take values from 1 to 2.
 If a value in between is used, a weighted sum of the first and second
 differentiation matrix is calculated.}
@@ -136,9 +136,9 @@ the maximum allowed number is randomly sampled. Defaults to 100.}
 all combinations of the input vectors should be used. Must be a matrix
 with 13 columns (online) or 12 columns batch with the following order:
 basis_knot_distance, basis_knot_distance_power, basis_deg, forget_regret,
-soft_threshold, hard_threshold, fixed_share, smooth_lambda,
-smooth_knot_distance, smooth_knot_distance_power, smooth_deg,
-smooth_ndiff, gamma.}
+soft_threshold, hard_threshold, fixed_share, p_smooth_lambda,
+p_smooth_knot_distance, p_smooth_knot_distance_power, p_smooth_deg,
+p_smooth_ndiff, gamma.}
 
 \item{forget_past_performance}{Share of past performance not to be considered, resp. to be
 forgotten in every iteration of the algorithm when choosing the parameter combination. Defaults to 0.}

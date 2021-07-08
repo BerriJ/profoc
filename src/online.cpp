@@ -42,7 +42,7 @@ void online_learning_core(
     field<mat> &eta,
     field<mat> &hat_mats,
     field<sp_mat> &basis_mats,
-    field<mat> &w0field,
+    field<mat> &beta0field,
     field<mat> &beta,
     vec &cum_performance,
     const double &forget_past_performance,
@@ -191,7 +191,7 @@ void online_learning_core(
           {
             // Wintenberger
             beta(x).row(l) =
-                param_grid(x, 12) * eta(x).row(l) % exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l)) % w0field(x).row(l);
+                param_grid(x, 12) * eta(x).row(l) % exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l)) % beta0field(x).row(l);
 
             beta(x).row(l) /=
                 mean(param_grid(x, 12) * eta(x).row(l) % exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l)));
@@ -337,11 +337,11 @@ void online_learning_core(
 //'
 //' @template param_fixed_share
 //'
-//' @template param_smooth_lambda
-//' @template param_smooth_knot_distance
-//' @template param_smooth_knot_distance_power
-//' @template param_smooth_deg
-//' @template param_smooth_ndiff
+//' @template param_p_smooth_lambda
+//' @template param_p_smooth_knot_distance
+//' @template param_p_smooth_knot_distance_power
+//' @template param_p_smooth_deg
+//' @template param_p_smooth_ndiff
 //'
 //' @param gamma Scaling parameter for the learning rate.
 //'
@@ -373,11 +373,11 @@ void online_learning_core(
 //' soft_threshold = -Inf,
 //' hard_threshold = -Inf,
 //' fixed_share = 0,
-//' smooth_lambda = -Inf,
-//' smooth_knot_distance = c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1),
-//' smooth_knot_distance_power = 1,
-//' smooth_deg = 3,
-//' smooth_ndiff = 1.5,
+//' p_smooth_lambda = -Inf,
+//' p_smooth_knot_distance = c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1),
+//' p_smooth_knot_distance_power = 1,
+//' p_smooth_deg = 3,
+//' p_smooth_ndiff = 1.5,
 //' gamma = 1,
 //' parametergrid_max_combinations = 100,
 //' parametergrid = NULL,
@@ -407,11 +407,11 @@ Rcpp::List online(
     Rcpp::NumericVector soft_threshold = Rcpp::NumericVector::create(-1 / 0),
     Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create(-1 / 0),
     Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(0),
-    Rcpp::NumericVector smooth_lambda = Rcpp::NumericVector::create(-1 / 0),
-    Rcpp::NumericVector smooth_knot_distance = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector smooth_knot_distance_power = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector smooth_deg = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector smooth_ndiff = Rcpp::NumericVector::create(1.5),
+    Rcpp::NumericVector p_smooth_lambda = Rcpp::NumericVector::create(-1 / 0),
+    Rcpp::NumericVector p_smooth_knot_distance = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector p_smooth_knot_distance_power = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector p_smooth_deg = Rcpp::NumericVector::create(),
+    Rcpp::NumericVector p_smooth_ndiff = Rcpp::NumericVector::create(1.5),
     Rcpp::NumericVector gamma = Rcpp::NumericVector::create(1),
     const int parametergrid_max_combinations = 100,
     Rcpp::Nullable<Rcpp::NumericMatrix> parametergrid = R_NilValue,
@@ -476,15 +476,15 @@ Rcpp::List online(
   }
 
   bool inh_deg = false;
-  if (smooth_deg.size() == 0)
+  if (p_smooth_deg.size() == 0)
     inh_deg = true;
 
   bool inh_kstep = false;
-  if (smooth_knot_distance.size() == 0)
+  if (p_smooth_knot_distance.size() == 0)
     inh_kstep = true;
 
   bool inh_kstep_p = false;
-  if (smooth_knot_distance_power.size() == 0)
+  if (p_smooth_knot_distance_power.size() == 0)
     inh_kstep_p = true;
 
   // Init parametergrid
@@ -499,19 +499,19 @@ Rcpp::List online(
   else
   {
     param_grid =
-        get_combinations(basis_knot_distance_vec,                                          // Index 0
-                         basis_knot_distance_power);                                       // Index 1
-    param_grid = get_combinations(param_grid, basis_deg);                                  // index 2
-    param_grid = get_combinations(param_grid, forget_regret);                              // index 3
-    param_grid = get_combinations(param_grid, soft_threshold);                             // index 4
-    param_grid = get_combinations(param_grid, hard_threshold);                             // index 5
-    param_grid = get_combinations(param_grid, fixed_share);                                // index 6
-    param_grid = get_combinations(param_grid, smooth_lambda);                              // index 7
-    param_grid = get_combinations(param_grid, smooth_knot_distance, inh_kstep, 0);         // Index 8
-    param_grid = get_combinations(param_grid, smooth_knot_distance_power, inh_kstep_p, 1); // Index 9
-    param_grid = get_combinations(param_grid, smooth_deg, inh_deg, 2);                     // Index 10
-    param_grid = get_combinations(param_grid, smooth_ndiff);                               // Index 11
-    param_grid = get_combinations(param_grid, gamma);                                      // Index 12
+        get_combinations(basis_knot_distance_vec,                                            // Index 0
+                         basis_knot_distance_power);                                         // Index 1
+    param_grid = get_combinations(param_grid, basis_deg);                                    // index 2
+    param_grid = get_combinations(param_grid, forget_regret);                                // index 3
+    param_grid = get_combinations(param_grid, soft_threshold);                               // index 4
+    param_grid = get_combinations(param_grid, hard_threshold);                               // index 5
+    param_grid = get_combinations(param_grid, fixed_share);                                  // index 6
+    param_grid = get_combinations(param_grid, p_smooth_lambda);                              // index 7
+    param_grid = get_combinations(param_grid, p_smooth_knot_distance, inh_kstep, 0);         // Index 8
+    param_grid = get_combinations(param_grid, p_smooth_knot_distance_power, inh_kstep_p, 1); // Index 9
+    param_grid = get_combinations(param_grid, p_smooth_deg, inh_deg, 2);                     // Index 10
+    param_grid = get_combinations(param_grid, p_smooth_ndiff);                               // Index 11
+    param_grid = get_combinations(param_grid, gamma);                                        // Index 12
   }
 
   if (param_grid.n_rows > parametergrid_max_combinations)
@@ -595,7 +595,7 @@ Rcpp::List online(
   field<mat> R(X);
   field<mat> R_reg(X);
   field<mat> beta(X);
-  field<mat> w0field(X);
+  field<mat> beta0field(X);
 
   vec spline_basis_x = regspace(1, P) / (P + 1);
 
@@ -638,7 +638,7 @@ Rcpp::List online(
 
     beta(x) = (w0.t() * pinv(mat(basis_mats(x))).t()).t();
 
-    w0field(x) = beta(x);
+    beta0field(x) = beta(x);
 
     R_CheckUserInterrupt();
   }
@@ -733,7 +733,7 @@ Rcpp::List online(
       eta,
       hat_mats,
       basis_mats,
-      w0field,
+      beta0field,
       beta,
       cum_performance,
       forget_past_performance,
@@ -762,10 +762,10 @@ Rcpp::List online(
                                     "threshold_soft",
                                     "threshold_hard",
                                     "fixed_share",
-                                    "smooth_lambda",
-                                    "smooth_knot_distance",
-                                    "smooth_knot_distance_power",
-                                    "smooth_deg",
+                                    "p_smooth_lambda",
+                                    "p_smooth_knot_distance",
+                                    "p_smooth_knot_distance_power",
+                                    "p_smooth_deg",
                                     "smooth_diff",
                                     "gamma");
 
@@ -802,7 +802,7 @@ Rcpp::List online(
       Rcpp::Named("R") = R,
       Rcpp::Named("R_reg") = R_reg,
       Rcpp::Named("beta") = beta,
-      Rcpp::Named("w0field") = w0field);
+      Rcpp::Named("beta0field") = beta0field);
 
   Rcpp::List model_spec = Rcpp::List::create(
       Rcpp::Named("data") = model_data,
@@ -950,7 +950,7 @@ Rcpp::List update_online(
   field<mat> R = model_objects["R"];
   field<mat> R_reg = model_objects["R_reg"];
   field<mat> beta = model_objects["beta"];
-  field<mat> w0field = model_objects["w0field"];
+  field<mat> beta0field = model_objects["beta0field"];
 
   // Misc parameters
   const int lead_time = model_parameters["lead_time"];
@@ -998,7 +998,7 @@ Rcpp::List update_online(
       eta,
       hat_mats,
       basis_mats,
-      w0field,
+      beta0field,
       beta,
       cum_performance,
       forget_past_performance,
@@ -1035,10 +1035,10 @@ Rcpp::List update_online(
                                     "threshold_soft",
                                     "threshold_hard",
                                     "fixed_share",
-                                    "smooth_lambda",
-                                    "smooth_knot_distance",
-                                    "smooth_knot_distance_power",
-                                    "smooth_deg",
+                                    "p_smooth_lambda",
+                                    "p_smooth_knot_distance",
+                                    "p_smooth_knot_distance_power",
+                                    "p_smooth_deg",
                                     "smooth_diff",
                                     "gamma");
 

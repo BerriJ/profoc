@@ -38,10 +38,10 @@ grid <- expand.grid(
     0, # hard_threshold
     c(0, 0.04), # fixed_share
     -Inf, # lambda
-    0.01, # smooth_knot_distance
-    1, # smooth_knot_distance_power
-    3, # smooth_deg
-    2, # smooth_ndiff
+    0.01, # p_smooth_knot_distance
+    1, # p_smooth_knot_distance_power
+    3, # p_smooth_deg
+    2, # p_smooth_ndiff
     1 # gamma
 )
 grid <- as.matrix(grid)
