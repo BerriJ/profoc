@@ -35,7 +35,7 @@ gamma = 1,
 parametergrid_max_combinations = 100,
 parametergrid = NULL,
 forget_past_performance = 0,
-allow_quantile_crossing = FALSE,
+sorting = "online",
 init_weights = NULL,
 loss_array = NULL,
 regret_array = NULL,
@@ -143,7 +143,10 @@ p_smooth_ndiff, gamma.}
 \item{forget_past_performance}{Share of past performance not to be considered, resp. to be
 forgotten in every iteration of the algorithm when choosing the parameter combination. Defaults to 0.}
 
-\item{allow_quantile_crossing}{Shall quantile crossing be allowed? Defaults to false which means that predictions are sorted in ascending order.}
+\item{sorting}{Shall predictions be sorted? Defaults to 'online' which
+sorts before calculating the regret. Other options are 'none' which
+disables sorting at all and 'ex_post' which corresponds to sorting
+predictions after learning.}
 
 \item{init_weights}{Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P whereas specifiying a PxK matrix allows different starting weights for each P.}
 
