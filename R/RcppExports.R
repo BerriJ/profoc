@@ -129,8 +129,6 @@ mat2vec <- function(x) {
 #' @param loss_gradient Determines if a linearized version of the loss is used.
 #'
 #' @template param_method
-#' @param method_var Allows to calculate slight variations of the BOA
-#' algorithm
 #'
 #' @template param_basis_knot_distance_online
 #' @template param_basis_knot_distance_power
@@ -171,8 +169,7 @@ mat2vec <- function(x) {
 #' loss_function = "quantile",
 #' loss_parameter = 1,
 #' loss_gradient = TRUE,
-#' method = "boa",
-#' method_var = "A",
+#' method = "bewa",
 #' basis_knot_distance = 1/(P+1),
 #' basis_knot_distance_power = 1,
 #' basis_deg = 1,
@@ -196,8 +193,8 @@ mat2vec <- function(x) {
 #' trace = TRUE
 #' )
 #' @export
-online <- function(y, experts, tau = as.numeric( c()), lead_time = 0L, loss_function = "quantile", loss_parameter = 1, loss_gradient = TRUE, method = "boa", method_var = "A", basis_knot_distance = as.numeric( c()), basis_knot_distance_power = as.numeric( c(1)), basis_deg = as.numeric( c(1)), forget_regret = as.numeric( c(0)), soft_threshold = as.numeric( c(-1 / 0)), hard_threshold = as.numeric( c(-1 / 0)), fixed_share = as.numeric( c(0)), p_smooth_lambda = as.numeric( c(-1 / 0)), p_smooth_knot_distance = as.numeric( c()), p_smooth_knot_distance_power = as.numeric( c()), p_smooth_deg = as.numeric( c()), p_smooth_ndiff = as.numeric( c(1.5)), gamma = as.numeric( c(1)), parametergrid_max_combinations = 100L, parametergrid = NULL, forget_past_performance = 0, allow_quantile_crossing = FALSE, init_weights = NULL, loss_array = as.numeric( c()), regret_array = as.numeric( c()), trace = TRUE) {
-    .Call(`_profoc_online`, y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, method_var, basis_knot_distance, basis_knot_distance_power, basis_deg, forget_regret, soft_threshold, hard_threshold, fixed_share, p_smooth_lambda, p_smooth_knot_distance, p_smooth_knot_distance_power, p_smooth_deg, p_smooth_ndiff, gamma, parametergrid_max_combinations, parametergrid, forget_past_performance, allow_quantile_crossing, init_weights, loss_array, regret_array, trace)
+online <- function(y, experts, tau = as.numeric( c()), lead_time = 0L, loss_function = "quantile", loss_parameter = 1, loss_gradient = TRUE, method = "bewa", basis_knot_distance = as.numeric( c()), basis_knot_distance_power = as.numeric( c(1)), basis_deg = as.numeric( c(1)), forget_regret = as.numeric( c(0)), soft_threshold = as.numeric( c(-1 / 0)), hard_threshold = as.numeric( c(-1 / 0)), fixed_share = as.numeric( c(0)), p_smooth_lambda = as.numeric( c(-1 / 0)), p_smooth_knot_distance = as.numeric( c()), p_smooth_knot_distance_power = as.numeric( c()), p_smooth_deg = as.numeric( c()), p_smooth_ndiff = as.numeric( c(1.5)), gamma = as.numeric( c(1)), parametergrid_max_combinations = 100L, parametergrid = NULL, forget_past_performance = 0, allow_quantile_crossing = FALSE, init_weights = NULL, loss_array = as.numeric( c()), regret_array = as.numeric( c()), trace = TRUE) {
+    .Call(`_profoc_online`, y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, basis_knot_distance, basis_knot_distance_power, basis_deg, forget_regret, soft_threshold, hard_threshold, fixed_share, p_smooth_lambda, p_smooth_knot_distance, p_smooth_knot_distance_power, p_smooth_deg, p_smooth_ndiff, gamma, parametergrid_max_combinations, parametergrid, forget_past_performance, allow_quantile_crossing, init_weights, loss_array, regret_array, trace)
 }
 
 predict_online <- function(object, new_experts) {

@@ -24,7 +24,6 @@ void online_learning_core(
     const vec &tau_vec,
     const std::string loss_function,
     const std::string method,
-    const std::string method_var,
     const double &loss_parameter,
     const bool &loss_gradient,
     cube &weights,
@@ -164,7 +163,7 @@ void online_learning_core(
               param_grid(x, 12) * eta(x).row(l) % pmax_arma(R(x).row(l), exp(-700));
           beta(x).row(l) /= accu(beta(x).row(l));
         }
-        else if (method == "boa")
+        else if (method == "boa" || method == "bewa")
         {
 
           V(x).row(l) *= (1 - param_grid(x, 3));
@@ -181,20 +180,11 @@ void online_learning_core(
 
           vec r_reg = r - eta(x).row(l).t() % square(r);
 
-          if (method_var.find('A') != std::string::npos)
-          {
-            R_reg(x).row(l) *= (1 - param_grid(x, 3));
-            R_reg(x).row(l) +=
-                0.5 * (r_reg.t() + conv_to<colvec>::from(eta(x).row(l) % r.t() > 0.5).t() % (2 * E(x).row(l)));
-          }
-          else
-          {
-            // Gaillard
-            R_reg(x).row(l) *= (1 - param_grid(x, 3));
-            R_reg(x).row(l) += r_reg.t();
-          }
+          R_reg(x).row(l) *= (1 - param_grid(x, 3));
+          R_reg(x).row(l) +=
+              0.5 * (r_reg.t() + conv_to<colvec>::from(eta(x).row(l) % r.t() > 0.5).t() % (2 * E(x).row(l)));
 
-          if (method_var.find('C') != std::string::npos)
+          if (method == "boa")
           {
             // Wintenberger
             beta(x).row(l) =
@@ -209,13 +199,12 @@ void online_learning_core(
             beta(x).row(l) =
                 exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
             beta(x).row(l) = pmin_arma(pmax_arma(beta(x).row(l), exp(-700)), exp(700));
-
             beta(x).row(l) /= accu(beta(x).row(l));
           }
         }
         else
         {
-          Rcpp::stop("Choose 'boa', 'ml_poly' or 'ewa' as method.");
+          Rcpp::stop("Choose 'boa', 'bewa', 'ml_poly' or 'ewa' as method.");
         }
 
         // Apply thresholds
@@ -344,8 +333,6 @@ void online_learning_core(
 //' @param loss_gradient Determines if a linearized version of the loss is used.
 //'
 //' @template param_method
-//' @param method_var Allows to calculate slight variations of the BOA
-//' algorithm
 //'
 //' @template param_basis_knot_distance_online
 //' @template param_basis_knot_distance_power
@@ -386,8 +373,7 @@ void online_learning_core(
 //' loss_function = "quantile",
 //' loss_parameter = 1,
 //' loss_gradient = TRUE,
-//' method = "boa",
-//' method_var = "A",
+//' method = "bewa",
 //' basis_knot_distance = 1/(P+1),
 //' basis_knot_distance_power = 1,
 //' basis_deg = 1,
@@ -420,8 +406,7 @@ Rcpp::List online(
     const std::string loss_function = "quantile",
     const double &loss_parameter = 1,
     const bool &loss_gradient = true,
-    const std::string method = "boa",
-    const std::string method_var = "A",
+    const std::string method = "bewa",
     Rcpp::NumericVector basis_knot_distance = Rcpp::NumericVector::create(),
     Rcpp::NumericVector basis_knot_distance_power = Rcpp::NumericVector::create(1),
     Rcpp::NumericVector basis_deg = Rcpp::NumericVector::create(1),
@@ -732,7 +717,6 @@ Rcpp::List online(
       tau_vec,
       loss_function,
       method,
-      method_var,
       loss_parameter,
       loss_gradient,
       weights,
@@ -803,7 +787,6 @@ Rcpp::List online(
       Rcpp::Named("loss_parameter") = loss_parameter,
       Rcpp::Named("loss_gradient") = loss_gradient,
       Rcpp::Named("method") = method,
-      Rcpp::Named("method_var") = method_var,
       Rcpp::Named("forget_past_performance") = forget_past_performance,
       Rcpp::Named("allow_quantile_crossing") = allow_quantile_crossing);
 
@@ -975,7 +958,6 @@ Rcpp::List update_online(
   const double loss_parameter = model_parameters["loss_parameter"];
   const bool loss_gradient = model_parameters["loss_gradient"];
   const std::string method = model_parameters["method"];
-  const std::string method_var = model_parameters["method_var"];
 
   const double forget_past_performance = model_parameters["forget_past_performance"];
   const bool allow_quantile_crossing = model_parameters["allow_quantile_crossing"];
@@ -997,7 +979,6 @@ Rcpp::List update_online(
       tau_vec,
       loss_function,
       method,
-      method_var,
       loss_parameter,
       loss_gradient,
       weights,

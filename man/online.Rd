@@ -17,8 +17,7 @@ lead_time = 0,
 loss_function = "quantile",
 loss_parameter = 1,
 loss_gradient = TRUE,
-method = "boa",
-method_var = "A",
+method = "bewa",
 basis_knot_distance = 1/(P+1),
 basis_knot_distance_power = 1,
 basis_deg = 1,
@@ -74,10 +73,9 @@ to t+1+h at time t. The weight updates delay accordingly.}
 
 \item{loss_gradient}{Determines if a linearized version of the loss is used.}
 
-\item{method}{One of "boa", "ml_poly" or "ewa".}
-
-\item{method_var}{Allows to calculate slight variations of the BOA
-algorithm}
+\item{method}{One of "boa", "bewa", "ml_poly" or "ewa". Where "bewa" refers to a mixture of boa and ewa including the second
+order refinemend of boa, but updating weights with the simple
+ exponential weighting.}
 
 \item{basis_knot_distance}{determines the distance of the knots in the probability
 basis. Defaults to 1/(P+1) which means that one knot is created for every quantile. Takes a vector with values >0 where values > .5 coresspond to constant
