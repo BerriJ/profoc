@@ -388,17 +388,17 @@ void online_learning_core(
 //' loss_gradient = TRUE,
 //' method = "boa",
 //' method_var = "A",
-//' basis_knot_distance = c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1),
+//' basis_knot_distance = 1/(P+1),
 //' basis_knot_distance_power = 1,
-//' basis_deg = 3,
+//' basis_deg = 1,
 //' forget_regret = 0,
 //' soft_threshold = -Inf,
 //' hard_threshold = -Inf,
 //' fixed_share = 0,
 //' p_smooth_lambda = -Inf,
-//' p_smooth_knot_distance = c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1),
-//' p_smooth_knot_distance_power = 1,
-//' p_smooth_deg = 3,
+//' p_smooth_knot_distance = p_smooth_knot_distance,
+//' p_smooth_knot_distance_power = p_smooth_knot_distance_power,
+//' p_smooth_deg = basis_deg,
 //' p_smooth_ndiff = 1.5,
 //' gamma = 1,
 //' parametergrid_max_combinations = 100,
@@ -424,7 +424,7 @@ Rcpp::List online(
     const std::string method_var = "A",
     Rcpp::NumericVector basis_knot_distance = Rcpp::NumericVector::create(),
     Rcpp::NumericVector basis_knot_distance_power = Rcpp::NumericVector::create(1),
-    Rcpp::NumericVector basis_deg = Rcpp::NumericVector::create(3),
+    Rcpp::NumericVector basis_deg = Rcpp::NumericVector::create(1),
     Rcpp::NumericVector forget_regret = Rcpp::NumericVector::create(0),
     Rcpp::NumericVector soft_threshold = Rcpp::NumericVector::create(-1 / 0),
     Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create(-1 / 0),
@@ -488,13 +488,8 @@ Rcpp::List online(
   vec basis_knot_distance_vec = basis_knot_distance;
   if (basis_knot_distance.size() == 0)
   {
-    vec tmp(6, fill::zeros);
-    tmp.subvec(0, 4) = arma::linspace(log2(1 / (double(P) + 1)) - 1, -1, 5);
-    for (double &e : tmp)
-    {
-      e = pow(2, e);
-    }
-    basis_knot_distance_vec = tmp;
+    basis_knot_distance_vec.resize(1);
+    basis_knot_distance_vec(0) = 1 / (double(P) + 1);
   }
 
   bool inh_deg = false;

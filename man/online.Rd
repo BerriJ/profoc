@@ -19,17 +19,17 @@ loss_parameter = 1,
 loss_gradient = TRUE,
 method = "boa",
 method_var = "A",
-basis_knot_distance = c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1),
+basis_knot_distance = 1/(P+1),
 basis_knot_distance_power = 1,
-basis_deg = 3,
+basis_deg = 1,
 forget_regret = 0,
 soft_threshold = -Inf,
 hard_threshold = -Inf,
 fixed_share = 0,
 p_smooth_lambda = -Inf,
-p_smooth_knot_distance = c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1),
-p_smooth_knot_distance_power = 1,
-p_smooth_deg = 3,
+p_smooth_knot_distance = p_smooth_knot_distance,
+p_smooth_knot_distance_power = p_smooth_knot_distance_power,
+p_smooth_deg = basis_deg,
 p_smooth_ndiff = 1.5,
 gamma = 1,
 parametergrid_max_combinations = 100,
@@ -80,10 +80,8 @@ to t+1+h at time t. The weight updates delay accordingly.}
 algorithm}
 
 \item{basis_knot_distance}{determines the distance of the knots in the probability
-basis. Defaults to the follwing sequence:
-c(2^seq(log(1/(length(tau)+1),2)-1, -1, length=5),1).
-The best knot_distance is selected in each step according
-to the past performance.}
+basis. Defaults to 1/(P+1) which means that one knot is created for every quantile. Takes a vector with values >0 where values > .5 coresspond to constant
+weights (only one single knot).}
 
 \item{basis_knot_distance_power}{Parameter which defines the symetrie of the
 basis reducing the probability space. Defaults to 1 which corresponds to the
@@ -91,7 +89,7 @@ equidistant case. Values less than 1 create more knots in the center while
 values above 1 concentrate more knots in the tails.}
 
 \item{basis_deg}{Degree of the basis reducing the probability space.
-Defaults to 3.}
+Defaults to 1.}
 
 \item{forget_regret}{Share of past regret not to be considered, resp. to be
 forgotten in every iteration of the algorithm. Defaults to 0.}
