@@ -47,7 +47,7 @@ void online_learning_core(
     vec &cum_performance,
     const double &forget_past_performance,
     vec &tmp_performance,
-    std::string sorting,
+    const bool &allow_quantile_crossing,
     mat &loss_for,
     cube &loss_exp,
     cube &loss_cube,
@@ -67,7 +67,7 @@ void online_learning_core(
     mat predictions_temp = sum(weights_tmp.each_slice() % experts_mat, 1);
 
     // Sort predictions if quantile_crossing is prohibited
-    if (sorting == "online")
+    if (!allow_quantile_crossing)
     {
       predictions_temp = arma::sort(predictions_temp, "ascend", 0);
     }
@@ -279,13 +279,11 @@ void online_learning_core(
     mat experts_mat = experts.row(t);
     mat predictions_temp = sum(weights_tmp.slice(opt_index(T)) % experts_mat, 1);
     // Sort predictions if quantile_crossing is prohibited
+    if (!allow_quantile_crossing)
+    {
+      predictions_temp = arma::sort(predictions_temp, "ascend", 0);
+    }
     predictions.row(t) = vectorise(predictions_temp).t();
-  }
-
-  // Sort predictions if quantile_crossing is prohibited
-  if (sorting == "ex_post")
-  {
-    predictions = arma::sort(predictions, "ascend", 1);
   }
 
   // Save losses suffered by forecaster and experts
@@ -357,7 +355,7 @@ void online_learning_core(
 //' @template param_parametergrid
 //' @template param_forget_past_performance
 //'
-//' @template param_sorting
+//' @template param_allow_quantile_crossing
 //'
 //' @param init_weights Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P whereas specifiying a PxK matrix allows different starting weights for each P.
 //' @param loss_array User specified loss array. If specified, the loss will not be calculated by profoc.
@@ -390,7 +388,7 @@ void online_learning_core(
 //' parametergrid_max_combinations = 100,
 //' parametergrid = NULL,
 //' forget_past_performance = 0,
-//' sorting = "online",
+//' allow_quantile_crossing = FALSE,
 //' init_weights = NULL,
 //' loss_array = NULL,
 //' regret_array = NULL,
@@ -424,7 +422,7 @@ Rcpp::List online(
     const int parametergrid_max_combinations = 100,
     Rcpp::Nullable<Rcpp::NumericMatrix> parametergrid = R_NilValue,
     const double &forget_past_performance = 0,
-    std::string sorting = "online",
+    bool allow_quantile_crossing = false,
     Rcpp::Nullable<Rcpp::NumericMatrix> init_weights = R_NilValue,
     Rcpp::NumericVector loss_array = Rcpp::NumericVector::create(),
     Rcpp::NumericVector regret_array = Rcpp::NumericVector::create(),
@@ -446,12 +444,10 @@ Rcpp::List online(
   if (T_E_Y < 0)
     Rcpp::stop("Number of provided expert predictions has to match or exceed observations.");
 
-  if (y.n_cols > 1 &&
-      ((sorting == "online") ||
-       sorting == "ex_post"))
+  if (y.n_cols > 1 && !allow_quantile_crossing)
   {
-    Rcpp::warning("Warning: sorting set to 'none' since multivariate prediction target was provided.");
-    sorting = "none";
+    Rcpp::warning("Warning: allow_quantile_crossing set to true since multivariate prediction target was provided.");
+    allow_quantile_crossing = true;
   }
 
   // Expand y matrix if necessary
@@ -748,7 +744,7 @@ Rcpp::List online(
       cum_performance,
       forget_past_performance,
       tmp_performance,
-      sorting,
+      allow_quantile_crossing,
       loss_for,
       loss_exp,
       loss_cube,
@@ -798,7 +794,7 @@ Rcpp::List online(
       Rcpp::Named("method") = method,
       Rcpp::Named("method_var") = method_var,
       Rcpp::Named("forget_past_performance") = forget_past_performance,
-      Rcpp::Named("sorting") = sorting);
+      Rcpp::Named("allow_quantile_crossing") = allow_quantile_crossing);
 
   Rcpp::List model_objects = Rcpp::List::create(
       Rcpp::Named("weights_tmp") = weights_tmp,
@@ -848,7 +844,7 @@ Rcpp::List predict_online(
   Rcpp::List model_parameters = specification["parameters"];
   Rcpp::List model_data = specification["data"];
 
-  std::string sorting = model_parameters["sorting"];
+  bool allow_quantile_crossing = model_parameters["allow_quantile_crossing"];
   cube experts = model_data["experts"];
   experts.insert_rows(experts.n_rows, new_experts);
   model_data["experts"] = experts;
@@ -859,7 +855,7 @@ Rcpp::List predict_online(
   mat predictions_new(new_experts.n_rows, new_experts.n_cols);
 
   // Sort predictions if quantile_crossing is prohibited
-  if (sorting == "ex_post")
+  if (!allow_quantile_crossing)
   {
     predictions_new = arma::sort(predictions_new, "ascend", 1);
   }
@@ -971,7 +967,7 @@ Rcpp::List update_online(
   const std::string method_var = model_parameters["method_var"];
 
   const double forget_past_performance = model_parameters["forget_past_performance"];
-  std::string sorting = model_parameters["sorting"];
+  const bool allow_quantile_crossing = model_parameters["allow_quantile_crossing"];
 
   const int start = T - new_y.n_rows;
 
@@ -1013,7 +1009,7 @@ Rcpp::List update_online(
       cum_performance,
       forget_past_performance,
       tmp_performance,
-      sorting,
+      allow_quantile_crossing,
       loss_for,
       loss_exp,
       loss_cube,

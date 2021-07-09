@@ -24,7 +24,7 @@ boa_smooth_crossed <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
-    sorting = "none",
+    allow_quantile_crossing = TRUE,
     trace = FALSE
 )
 
@@ -32,9 +32,11 @@ boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
-    sorting = "ex_post",
+    allow_quantile_crossing = FALSE,
     trace = FALSE
 )
+
+colSums(boa_smooth$forecaster_loss)
 
 # We expect that quantile crossing happens and therefore losses are different:
 expect_true(
@@ -69,7 +71,7 @@ boa_smooth_crossed <- online(
     y = y,
     tau = prob_grid,
     experts = experts,
-    sorting = "none",
+    allow_quantile_crossing = TRUE,
     trace = FALSE
 )
 
@@ -78,7 +80,7 @@ expect_warning(
         y = y,
         tau = prob_grid,
         experts = experts,
-        sorting = "ex_post",
+        allow_quantile_crossing = FALSE,
         trace = FALSE
     )
 )
