@@ -219,14 +219,30 @@ void online_learning_core(
         }
 
         // Apply thresholds
-        for (double &e : beta(x).row(l))
+        if (param_grid(x, 4) > 0)
         {
-          threshold_soft(e, param_grid(x, 4));
+          int best_k = beta(x).row(l).index_max();
+          for (double &e : beta(x).row(l))
+          {
+            threshold_soft(e, param_grid(x, 4));
+          }
+          if (accu(beta(x).row(l)) == 0)
+          {
+            beta(x)(l, best_k) = 1;
+          }
         }
 
-        for (double &e : beta(x).row(l))
+        if (param_grid(x, 5) > 0)
         {
-          threshold_hard(e, param_grid(x, 5));
+          int best_k = beta(x).row(l).index_max();
+          for (double &e : beta(x).row(l))
+          {
+            threshold_hard(e, param_grid(x, 5));
+          }
+          if (accu(beta(x).row(l)) == 0)
+          {
+            beta(x)(l, best_k) = 1;
+          }
         }
 
         //Add fixed_share
