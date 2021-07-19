@@ -146,7 +146,7 @@ void online_learning_core(
           R(x).row(l) *= (1 - param_grid(x, 3));
           R(x).row(l) += r.t();
           eta(x).row(l).fill(param_grid(x, 12));
-          beta(x).row(l) = exp(param_grid(x, 12) * R(x).row(l));
+          beta(x).row(l) = beta0field(x).row(l) * K % exp(param_grid(x, 12) * R(x).row(l));
           beta(x).row(l) /= accu(beta(x).row(l));
         }
         else if (method == "ml_poly")
@@ -160,7 +160,7 @@ void online_learning_core(
 
           // param_grid(x, 12) = gamma
           beta(x).row(l) =
-              param_grid(x, 12) * eta(x).row(l) % pmax_arma(R(x).row(l), exp(-700));
+              beta0field(x).row(l) * K * param_grid(x, 12) % eta(x).row(l) % pmax_arma(R(x).row(l), exp(-700));
           beta(x).row(l) /= accu(beta(x).row(l));
         }
         else if (method == "boa" || method == "bewa")
@@ -175,7 +175,7 @@ void online_learning_core(
           eta(x).row(l) =
               pmin_arma(
                   min(1 / (2 * E(x).row(l)),
-                      sqrt(log(K) / V(x).row(l))),
+                      sqrt(-log(beta0field(x).row(l)) / V(x).row(l))),
                   exp(350));
 
           vec r_reg = r - eta(x).row(l).t() % square(r);
@@ -197,7 +197,7 @@ void online_learning_core(
           {
             // Gaillard
             beta(x).row(l) =
-                exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
+                beta0field(x).row(l) * K % exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
             beta(x).row(l) = pmin_arma(pmax_arma(beta(x).row(l), exp(-700)), exp(700));
             beta(x).row(l) /= accu(beta(x).row(l));
           }
@@ -243,6 +243,7 @@ void online_learning_core(
       // Smoothing
       if (param_grid(x, 7) != -datum::inf)
       {
+        // Note that hat was already mutliplied with basis so we can use it directly here
         weights_tmp.slice(x) = hat_mats(x) * beta(x);
       }
       else
