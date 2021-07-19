@@ -240,15 +240,14 @@ void online_learning_core(
             (param_grid(x, 6) / K);
       }
 
-      weights_tmp.slice(x) = basis_mats(x) * beta(x);
-
       // Smoothing
       if (param_grid(x, 7) != -datum::inf)
       {
-        for (unsigned int k = 0; k < K; k++)
-        {
-          weights_tmp(span::all, span(k), span(x)) = hat_mats(x) * vectorise(weights_tmp(span::all, span(k), span(x)));
-        }
+        weights_tmp.slice(x) = hat_mats(x) * beta(x);
+      }
+      else
+      {
+        weights_tmp.slice(x) = basis_mats(x) * beta(x);
       }
 
       // Enshure that constraints hold
@@ -672,6 +671,8 @@ Rcpp::List online(
                                         param_grid(x, 9)   // uneven grid
           );
       }
+      if (param_grid(x, 7) != -datum::inf)
+        hat_mats(x) *= basis_mats(x);
       R_CheckUserInterrupt();
       prog.increment(); // Update progress
     }

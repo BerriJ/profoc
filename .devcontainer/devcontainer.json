@@ -1,8 +1,8 @@
 {
     "name": "Profoc",
-    "image": "ghcr.io/berrij/devenv:dev",
+    "image": "ghcr.io/berrij/devenv:2021-07-01_dev",
     // Grant xhost access to root user in order to start x11 devices (r plots)
-    "initializeCommand": "docker pull ghcr.io/berrij/devenv:dev",
+    "initializeCommand": "docker pull ghcr.io/berrij/devenv:2021-07-01_dev",
     // Arguments to docker run so container can use local x11
     "runArgs": [
         "--rm",
