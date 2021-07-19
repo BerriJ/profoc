@@ -456,12 +456,7 @@ Rcpp::List batch(
             // Smoothing
             if (param_grid(x, 7) != -datum::inf)
             {
-                for (unsigned int k = 0; k < K; k++)
-                {
-                    weights_tmp(span::all, span(k), span(x)) =
-                        hat_mats(x) *
-                        vectorise(weights_tmp(span::all, span(k), span(x)));
-                }
+                weights_tmp.slice(x) = hat_mats(x) * weights_tmp.slice(x);
             }
 
             // Ensure constraints are met
