@@ -7,6 +7,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // batch
 Rcpp::List batch(mat& y, cube& experts, Rcpp::NumericVector tau, const bool& affine, const bool& positive, const bool& intercept, const bool& debias, const int& lead_time, const int initial_window, Rcpp::NumericVector rolling_window, const std::string loss_function, const double& loss_parameter, Rcpp::NumericVector basis_knot_distance, Rcpp::NumericVector basis_knot_distance_power, Rcpp::NumericVector basis_deg, Rcpp::NumericVector forget, Rcpp::NumericVector soft_threshold, Rcpp::NumericVector hard_threshold, Rcpp::NumericVector fixed_share, Rcpp::NumericVector p_smooth_lambda, Rcpp::NumericVector p_smooth_knot_distance, Rcpp::NumericVector p_smooth_knot_distance_power, Rcpp::NumericVector p_smooth_deg, Rcpp::NumericVector p_smooth_ndiff, const int parametergrid_max_combinations, Rcpp::Nullable<Rcpp::NumericMatrix> parametergrid, const double& forget_past_performance, bool allow_quantile_crossing, const bool trace);
 RcppExport SEXP _profoc_batch(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP affineSEXP, SEXP positiveSEXP, SEXP interceptSEXP, SEXP debiasSEXP, SEXP lead_timeSEXP, SEXP initial_windowSEXP, SEXP rolling_windowSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP basis_knot_distanceSEXP, SEXP basis_knot_distance_powerSEXP, SEXP basis_degSEXP, SEXP forgetSEXP, SEXP soft_thresholdSEXP, SEXP hard_thresholdSEXP, SEXP fixed_shareSEXP, SEXP p_smooth_lambdaSEXP, SEXP p_smooth_knot_distanceSEXP, SEXP p_smooth_knot_distance_powerSEXP, SEXP p_smooth_degSEXP, SEXP p_smooth_ndiffSEXP, SEXP parametergrid_max_combinationsSEXP, SEXP parametergridSEXP, SEXP forget_past_performanceSEXP, SEXP allow_quantile_crossingSEXP, SEXP traceSEXP) {

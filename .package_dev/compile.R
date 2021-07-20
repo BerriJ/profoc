@@ -13,3 +13,8 @@ devtools::test()
 # Merge develop into main, without squashing commits, wihtout extra merge commit
 
 devtools::load_all()
+
+# Potential library unload problems can be solved by specifying
+# CXXFLAGS=-fno-gnu-unique in ~/.R/Makevars
+# or
+# PKG_CXXFLAGS=-fno-gnu-unique in src/Makevars
