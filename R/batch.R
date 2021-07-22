@@ -123,5 +123,19 @@ batch <- function(y,
         trace = trace
     )
 
+    dimnames(model$specification$data$y) <- dimnames(y)
+
+    if (intercept & !is.null(dimnames(experts))) {
+        names <- c("Intercept", dimnames(experts)[[3]])
+    } else if (!intercept & !is.null(dimnames(experts))) {
+        names <- dimnames(experts)[[3]]
+    } else if (intercept) {
+        names <- c("Intercept", paste0("E", 1:dim(experts)[[3]]))
+    } else if (!intercept) {
+        names <- paste0("E", 1:dim(experts)[[3]])
+    }
+
+    dimnames(model$specification$data$experts)[[3]] <- names
+
     return(model)
 }

@@ -130,5 +130,14 @@ online <- function(y, experts,
         trace = trace
     )
 
+    dimnames(model$specification$data$y) <- dimnames(y)
+
+    dimnames(model$specification$data$experts) <- dimnames(experts)
+
+    if (is.null(dimnames(model$specification$data$experts)[[3]])) {
+        dimnames(model$specification$data$experts)[[3]] <-
+            paste0("E", 1:dim(experts)[[3]])
+    }
+
     return(model)
 }
