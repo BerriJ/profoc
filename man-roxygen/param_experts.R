@@ -1,2 +1,2 @@
-#' @param experts A an array of predictions with dimension
+#' @param experts An array of predictions with dimension
 #'  (Observations, Quantiles, Experts).

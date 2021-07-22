@@ -1,16 +1,17 @@
-profoc 0.8.0 (Release date: 2021-06-30) This date may change
+profoc 0.8.0 (Release date: 2021-07-23) This date may change
 ==============
 
 ## Changes:
 
 * The `profoc` function was renamed to `online` for consistency.
-* A new function `batch` is introduced to apply batch-learning.
-* A new function `oracle` was introduces to approximate the orcales.
+* Added `batch` function to apply batch-learning.
+* Added `oracle` function to approximate the oracle.
+* Update, predict, plot, and print methods were added for `online` and `batch` objects.
 
 
 ### Interface:
 
-* The default of `ndiff` was changed to 1.5 which means slope and curvature gets penalized in the smoothing step.
+* Unfortunately, we decided to apply significant changes to the API. This likely breaks old code. Please refer to the respective function documentation for more information.
 
 ### Internal changes:
 

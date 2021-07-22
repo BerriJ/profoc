@@ -9,37 +9,23 @@ The profoc Package
 <!-- badges: end -->
 
 
-The main function `online` can be used to combine probabilistic forecasts as described in Berrisch, Ziel: "CRPS Learning", 2021.
+The main function `online` can be used to combine probabilistic forecasts using the CRPS learning algorithm proposed in Berrisch, Ziel (2021).
 The function `batch` can be used in a similar way for batch optimization.
-
-Usage
-=====
-
-The function `online` has the following Arguments:
-
-tbd.
-
-Examples:
-=========
-
-``` r
-library(profoc)
-# TBD
-```
+Print, plot, update, and predict methods are available.
 
 Installation
 ------------
 
 ### Install from Github
 
-You can install the latest stable version from github with
+You can install the latest stable release from GitHub using:
 
 ``` r
 # install.packages("remotes")
 remotes::install_github("BerriJ/profoc")
 ```
 
-You can install the latest development version from github with
+You can install the latest development release from GitHub using:
 
 ``` r
 # install.packages("remotes")

@@ -1,1 +1,1 @@
-#' @param trace If a progessbar shall be printed. Defaults to TRUE.
+#' @param trace Print a progress bar to the console? Defaults to TRUE.

@@ -11,22 +11,23 @@ loss_function = "quantile", loss_parameter = 1, forget = 0)
 \arguments{
 \item{y}{A numeric matrix of realizations. In probabilistic
 settings a matrix of dimension Tx1. In multivariate setting
-a TxP matrix can be used. In the latter case each slice of
-the experts array gets evaluated using the corresponding
+a TxP matrix can be used. In the latter case, each slice of
+the expert's array gets evaluated using the corresponding
 column of the y matrix.}
 
-\item{experts}{A an array of predictions with dimension
+\item{experts}{An array of predictions with dimension
 (Observations, Quantiles, Experts).}
 
 \item{tau}{A numeric vector of probabilities.}
 
-\item{affine}{Defines wether weights are summing to 1 or now. Defaults to FALSE.}
+\item{affine}{Defines whether weights are summing to 1 or now. Defaults to FALSE.}
 
-\item{positive}{Defines wether weights have to positive. Defaults to FALSE.}
+\item{positive}{Defines if a positivity constraint is applied to the weights.
+Defaults to FALSE.}
 
-\item{intercept}{Determines if an intercept is added, defaults to FALSE. In this case a new expert is added as expert 1 allways predicting 1.}
+\item{intercept}{Determines if an intercept is added, defaults to FALSE. If true, a new first expert is added, always predicting 1.}
 
-\item{debias}{Defines wether the intercepts weight is constrainted or not.
+\item{debias}{Defines whether the intercepts weight is constrained or not.
 If TRUE (the default), the intercept weight is unconstrained.
 Only affects the results if affine and or positive is set to TRUE.
 If FALSE, the intercept is treated as an expert.}
@@ -35,7 +36,9 @@ If FALSE, the intercept is treated as an expert.}
 
 \item{loss_parameter}{Optional parameter scaling the power of the loss function.}
 
-\item{forget}{Adds an exponential forgetting to the optimization. Past observations will get less influence in the optimization. Defaults to 0 which corresponds to no forgetting.}
+\item{forget}{Adds an exponential forgetting to the optimization.
+Past observations will get less influence on the optimization.
+Defaults to 0, which corresponds to no forgetting.}
 }
 \value{
 Returns weights and corresponding predictions.

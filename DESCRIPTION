@@ -1,11 +1,11 @@
 Package: profoc
 Type: Package
 Title: Probabilistic Forecast Combination Using CRPS Learning
-Version: 0.7.0
+Version: 0.8.0
 Date: 2021-06-04
 Author: Jonathan Berrisch, Florian Ziel
 Maintainer: Jonathan Berrisch <Jonathan@Berrisch.biz>
-Description: Use multiple online-aggregation algorithms to combine Probabilistic forecasts using CRPS learning as described in Berrisch, Ziel: "CRPS Learning", 2021.
+Description: Combine probabilistic forecasts using CRPS learning algorithms proposed in Berrisch, Ziel (2021) <arXiv:2102.00968>. The package implements multiple online learning algorithms like Bernstein online aggregation; see Wintenberger (2014) <arXiv:1404.1356>. Quantile regression is also implemented for comparison purposes. Model parameters can be tuned automatically with respect to the loss of the forecast combination. Methods like predict(), update(), plot() and print() are available for convenience.
 License: GPL-3
 Encoding: UTF-8
 Depends: R (>= 3.0.2)

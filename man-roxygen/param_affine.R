@@ -1,1 +1,1 @@
-#' @param affine Defines wether weights are summing to 1 or now. Defaults to FALSE.
+#' @param affine Defines whether weights are summing to 1 or now. Defaults to FALSE.

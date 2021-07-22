@@ -1,1 +1,2 @@
-#' @param positive Defines wether weights have to positive. Defaults to FALSE.
+#' @param positive Defines if a positivity constraint is applied to the weights.
+#' Defaults to FALSE.

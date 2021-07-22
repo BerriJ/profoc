@@ -66,11 +66,11 @@ if the model already contains the expert predictions corresponding to new_y.}
 
 \item{y}{A numeric matrix of realizations. In probabilistic
 settings a matrix of dimension Tx1. In multivariate setting
-a TxP matrix can be used. In the latter case each slice of
-the experts array gets evaluated using the corresponding
+a TxP matrix can be used. In the latter case, each slice of
+the expert's array gets evaluated using the corresponding
 column of the y matrix.}
 
-\item{experts}{A an array of predictions with dimension
+\item{experts}{An array of predictions with dimension
 (Observations, Quantiles, Experts).}
 
 \item{tau}{A numeric vector of probabilities.}
@@ -85,17 +85,18 @@ to t+1+h at time t. The weight updates delay accordingly.}
 
 \item{loss_gradient}{Determines if a linearized version of the loss is used.}
 
-\item{method}{One of "boa", "bewa", "ml_poly" or "ewa". Where "bewa" refers to a mixture of boa and ewa including the second
-order refinemend of boa, but updating weights with the simple
+\item{method}{One of "boa", "bewa", "ml_poly" or "ewa". Where "bewa" refers to a mixture of boa and ewa, including the second
+order refinement of boa, but updating weights with the simple
  exponential weighting.}
 
 \item{basis_knot_distance}{determines the distance of the knots in the probability
-basis. Defaults to 1/(P+1) which means that one knot is created for every quantile. Takes a vector with values >0 where values > .5 coresspond to constant
+basis. Defaults to 1 / (dim(experts)[2] + 1), which means that one knot is created
+for every quantile. Takes a vector with values >0 where values > .5 correspond to constant
 weights (only one single knot).}
 
 \item{basis_knot_distance_power}{Parameter which defines the symetrie of the
-basis reducing the probability space. Defaults to 1 which corresponds to the
-equidistant case. Values less than 1 create more knots in the center while
+basis reducing the probability space. Defaults to 1 which corresponds to
+equidistant knots. Values less than 1 create more knots in the center while
 values above 1 concentrate more knots in the tails.}
 
 \item{basis_deg}{Degree of the basis reducing the probability space.
@@ -104,38 +105,38 @@ Defaults to 1.}
 \item{forget_regret}{Share of past regret not to be considered, resp. to be
 forgotten in every iteration of the algorithm. Defaults to 0.}
 
-\item{soft_threshold}{If specified the following soft threshold will be applied
+\item{soft_threshold}{If specified, the following soft threshold will be applied
 to the weights: w = sgn(w)*max(abs(w)-t,0) where t is the soft_threshold parameter.
-Defaults to -inf which means that no threshold will be applied.
-If all expert weights are thresholded to 0 a weight of 1 will be assigned
-to the expert with highest weights prior to thresholding. Thus soft_threshold = 1
-leads to 'follow the leader' if method = "ewa".}
+Defaults to -inf, which means that no threshold will be applied.
+If all expert weights are thresholded to 0, a weight of 1 will be assigned
+to the expert with the highest weights prior to thresholding. Thus soft_threshold = 1
+leads to the 'follow the leader' strategy if method is set to "ewa".}
 
-\item{hard_threshold}{If specified the following hard thresholding will be applied
+\item{hard_threshold}{If specified, the following hard thresholding will be applied
 to the weights: w = w*(abs(w)>t) where t is the threshold_hard parameter.
-Defaults to -inf which means that no threshold will be applied.
-If all expert weights are thresholded to 0 a weight of 1 will be assigned
-to the expert with highest weights prior to thresholding. Thus soft_threshold = 1
-leads to 'follow the leader' if method = "ewa".}
+Defaults to -inf, which means that no threshold will be applied.
+If all expert weights are thresholded to 0, a weight of 1 will be assigned
+to the expert with the highest weight prior to thresholding. Thus hard_threshold = 1
+leads to the 'follow the leader' strategy if method is set to "ewa".}
 
 \item{fixed_share}{Amount of fixed share to be added to the weights.
 Defaults to 0. 1 leads to uniform weights.}
 
-\item{p_smooth_lambda}{Penalization parameter used in the smoothing Step.
+\item{p_smooth_lambda}{Penalization parameter used in the smoothing step.
 -Inf causes the smoothing step to be skipped (default).}
 
 \item{p_smooth_knot_distance}{determines the distance of the knots. Defaults to
 the value of basis_knot_distance.
-Corrsponds to the grid steps when knot_distance_power = 1 (the default).}
+Corresponds to the grid steps when knot_distance_power = 1 (the default).}
 
-\item{p_smooth_knot_distance_power}{Parameter which defines the symetrie of
-the b-spline basis. Takes the value of of basis_knot_distance_power if unspecified.}
+\item{p_smooth_knot_distance_power}{Parameter which defines the symmetry of
+the P-Spline basis. Takes the value of basis_knot_distance_power if unspecified.}
 
 \item{p_smooth_deg}{Degree of the B-Spine basis functions.
 Defaults to the value of basis_deg.}
 
 \item{p_smooth_ndiff}{Degree of the differencing operator in the smoothing equation.
-1.5 (default) leads to shrikage towards a constant. Can take values from 1 to 2.
+1.5 (default) leads to shrinkage towards a constant. Can take values from 1 to 2.
 If a value in between is used, a weighted sum of the first and second
 differentiation matrix is calculated.}
 
@@ -143,11 +144,11 @@ differentiation matrix is calculated.}
 
 \item{parametergrid_max_combinations}{Integer specifying the maximum
 number of parameter combinations that should be considered. If
-the number of possible combinations exceeeds this threshold,
+the number of possible combinations exceeds this threshold,
 the maximum allowed number is randomly sampled. Defaults to 100.}
 
-\item{parametergrid}{User supplied grid of parameters. If i.e. not
-all combinations of the input vectors should be used. Must be a matrix
+\item{parametergrid}{User supplied grid of parameters. Can be used if not
+all combinations of the input vectors should be considered. Must be a matrix
 with 13 columns (online) or 12 columns batch with the following order:
 basis_knot_distance, basis_knot_distance_power, basis_deg, forget_regret,
 soft_threshold, hard_threshold, fixed_share, p_smooth_lambda,
@@ -155,9 +156,10 @@ p_smooth_knot_distance, p_smooth_knot_distance_power, p_smooth_deg,
 p_smooth_ndiff, gamma.}
 
 \item{forget_past_performance}{Share of past performance not to be considered, resp. to be
-forgotten in every iteration of the algorithm when choosing the parameter combination. Defaults to 0.}
+forgotten in every iteration of the algorithm when selecting the best parameter
+combination. Defaults to 0.}
 
-\item{allow_quantile_crossing}{Shall quantile crossing be allowed? Defaults to false which means that predictions are sorted in ascending order.}
+\item{allow_quantile_crossing}{Shall quantile crossing be allowed? Defaults to false, which means that predictions are sorted in ascending order.}
 
 \item{init_weights}{Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P whereas specifiying a PxK matrix allows different starting weights for each P.}
 
@@ -165,21 +167,23 @@ forgotten in every iteration of the algorithm when choosing the parameter combin
 
 \item{regret_array}{User specified regret array. If specifiec, the regret will not be calculated by profoc.}
 
-\item{trace}{If a progessbar shall be printed. Defaults to TRUE.}
+\item{trace}{Print a progress bar to the console? Defaults to TRUE.}
 }
 \value{
 \code{predict.online} produces an updated model object.
 
 \code{update.online} produces an updated model object.
 
+Returns weights and corresponding predictions.
+}
+\description{
+Returns predictions and weights calculated by online-learning algorithms
+using CRPS Learning.
+}
+\details{
 online can tune various parameters automatically based on
 the past loss. For this, lambda, forget, fixed_share, gamma, ndiff,
 deg and knot_distance can be specified as numeric vectors containing
 parameters to consider. online will automatically try all possible
 combinations of values provide.
-}
-\description{
-Returns predictions and weights calculated by online-learning algorithms
-using CRPS Learning. By default, the weights are calculated by
-gradient based bernstein online aggregation (BOAG).
 }
