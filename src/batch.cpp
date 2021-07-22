@@ -10,112 +10,37 @@
 
 using namespace arma;
 
-//' @template function_batch
-//'
-//' @template param_y
-//' @template param_experts
-//' @template param_tau
-//' @template param_affine
-//' @template param_positive
-//' @template param_intercept
-//' @template param_debias
-//' @template param_lead_time
-//'
-//' @param initial_window Defines the size of the initial estimaton window.
-//' @param rolling_window Defines the size of the rolling window. Defaults to
-//' the value of initial_window. Set it to the number of observations to receive
-//' an expanding window.
-//'
-//' @template param_loss_function
-//' @template param_loss_parameter
-//'
-//' @template param_basis_knot_distance_batch
-//' @template param_basis_knot_distance_power
-//' @template param_basis_deg_batch
-//'
-//' @template param_forget
-//'
-//' @template param_soft_threshold
-//' @template param_hard_threshold
-//'
-//' @template param_fixed_share
-//'
-//' @template param_p_smooth_lambda
-//' @template param_p_smooth_knot_distance
-//' @template param_p_smooth_knot_distance_power
-//' @template param_p_smooth_deg
-//' @template param_p_smooth_ndiff
-//'
-//' @template param_parametergrid_max_combinations
-//' @template param_parametergrid
-//' @template param_forget_past_performance
-//'
-//' @template param_allow_quantile_crossing
-//'
-//' @template param_trace
-//'
-//' @usage batch(y,
-//' experts,
-//' tau,
-//' affine = FALSE,
-//' positive = FALSE,
-//' intercept = FALSE,
-//' debias = TRUE,
-//' lead_time = 0,
-//' initial_window = 30,
-//' rolling_window = initial_window,
-//' loss_function = "quantile",
-//' loss_parameter = 1,
-//' basis_knot_distance = 0.01,
-//' basis_knot_distance_power = 1,
-//' basis_deg = 1,
-//' forget = 0,
-//' soft_threshold = -Inf,
-//' hard_threshold = -Inf,
-//' fixed_share = 0,
-//' p_smooth_lambda = -Inf,
-//' p_smooth_knot_distance = basis_knot_distance,
-//' p_smooth_knot_distance_power = basis_knot_distance_power,
-//' p_smooth_deg = basis_deg,
-//' p_smooth_ndiff = 1,
-//' parametergrid_max_combinations = 100,
-//' parametergrid = NULL,
-//' forget_past_performance = 0,
-//' allow_quantile_crossing = FALSE,
-//' trace = TRUE
-//' )
-//' @export
 // [[Rcpp::export]]
-Rcpp::List batch(
+Rcpp::List batch_rcpp(
     mat &y,
     cube &experts,
-    Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
-    const bool &affine = false,
-    const bool &positive = false,
-    const bool &intercept = false,
-    const bool &debias = true,
-    const int &lead_time = 0,
-    const int initial_window = 30,
-    Rcpp::NumericVector rolling_window = Rcpp::NumericVector::create(),
-    const std::string loss_function = "quantile",
-    const double &loss_parameter = 1,
-    Rcpp::NumericVector basis_knot_distance = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector basis_knot_distance_power = Rcpp::NumericVector::create(1),
-    Rcpp::NumericVector basis_deg = Rcpp::NumericVector::create(1),
-    Rcpp::NumericVector forget = Rcpp::NumericVector::create(0),
-    Rcpp::NumericVector soft_threshold = Rcpp::NumericVector::create(-1 / 0),
-    Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create(-1 / 0),
-    Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(0),
-    Rcpp::NumericVector p_smooth_lambda = Rcpp::NumericVector::create(-1 / 0),
-    Rcpp::NumericVector p_smooth_knot_distance = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector p_smooth_knot_distance_power = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector p_smooth_deg = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector p_smooth_ndiff = Rcpp::NumericVector::create(1.5),
-    const int parametergrid_max_combinations = 100,
-    Rcpp::Nullable<Rcpp::NumericMatrix> parametergrid = R_NilValue,
-    const double &forget_past_performance = 0,
-    bool allow_quantile_crossing = false,
-    const bool trace = true)
+    vec tau, // We don't pass by reference here since tau may be modified
+    const bool &affine,
+    const bool &positive,
+    const bool &intercept,
+    const bool &debias,
+    const int &lead_time,
+    const int initial_window,
+    const int rolling_window,
+    const std::string loss_function,
+    const double &loss_parameter,
+    const vec &basis_knot_distance,
+    const vec &basis_knot_distance_power,
+    const vec &basis_deg,
+    const vec &forget,
+    const vec &soft_threshold,
+    const vec &hard_threshold,
+    const vec &fixed_share,
+    const vec &p_smooth_lambda,
+    const vec &p_smooth_knot_distance,
+    const vec &p_smooth_knot_distance_power,
+    const vec &p_smooth_deg,
+    const vec &p_smooth_ndiff,
+    const int parametergrid_max_combinations,
+    const mat &parametergrid,
+    const double &forget_past_performance,
+    bool allow_quantile_crossing,
+    const bool trace)
 {
 
     if (intercept)
@@ -154,53 +79,34 @@ Rcpp::List batch(
         y = repmat(y, 1, P);
     }
 
-    // Set default value to tau and / or expand if necessary
-    vec tau_vec(tau);
-    if (tau_vec.size() == 0)
+    // Set expand if necessary
+    if (tau.n_elem == 1)
     {
-        tau_vec.resize(P);
-        tau_vec = arma::regspace(1, P) / (P + 1);
-    }
-    else if (tau_vec.size() == 1)
-    {
-        tau_vec.resize(P);
-        tau_vec.fill(tau_vec(0));
+        tau.resize(P);
+        tau.fill(tau(0));
     }
 
-    int rolling_window_int;
-    if (rolling_window.size() == 0)
-    {
-        rolling_window_int = initial_window;
-    }
-    else
-    {
-        vec tmp = rolling_window;
-        rolling_window_int = tmp(0);
-    }
-
-    if (initial_window > rolling_window_int)
+    if (initial_window > rolling_window)
         Rcpp::stop("Initial estimation window bigger than rolling_window.");
 
-    vec basis_knot_distance_vec = set_default(basis_knot_distance, 1 / (double(P) + 1));
-
     bool inh_deg = false;
-    if (p_smooth_deg.size() == 0)
+    if (p_smooth_deg.n_elem == 0)
         inh_deg = true;
 
     bool inh_kstep = false;
-    if (p_smooth_knot_distance.size() == 0)
+    if (p_smooth_knot_distance.n_elem == 0)
         inh_kstep = true;
 
     bool inh_kstep_p = false;
-    if (p_smooth_knot_distance_power.size() == 0)
+    if (p_smooth_knot_distance_power.n_elem == 0)
         inh_kstep_p = true;
 
     // Init parametergrid
     mat param_grid;
 
-    if (parametergrid.isNotNull())
+    if (parametergrid.n_rows != 0)
     {
-        param_grid = Rcpp::as<arma::mat>(parametergrid);
+        param_grid = parametergrid;
         if (param_grid.n_cols != 12)
             Rcpp::stop("Please provide a parametergrid with 12 columns.");
     }
@@ -208,7 +114,7 @@ Rcpp::List batch(
     {
         // Init parametergrid
         param_grid =
-            get_combinations(basis_knot_distance_vec,                                            // Index 0
+            get_combinations(basis_knot_distance,                                                // Index 0
                              basis_knot_distance_power);                                         // Index 1
         param_grid = get_combinations(param_grid, basis_deg);                                    // index 2
         param_grid = get_combinations(param_grid, forget);                                       // index 3
@@ -259,7 +165,7 @@ Rcpp::List batch(
     field<mat> hat_mats(param_grid.n_rows);
     vec spline_basis_x = arma::regspace(1, P) / (P + 1);
 
-    // Only if smoothing is possible (tau_vec.size > 1)
+    // Only if smoothing is possible (tau.size > 1)
     if (P > 1)
     {
         // Init hat matrix field
@@ -344,7 +250,7 @@ Rcpp::List batch(
 
     for (unsigned int t = (0 + initial_window + lead_time); t < T; t++)
     {
-        if (t >= rolling_window_int)
+        if (t >= rolling_window)
         {
             start += 1;
         }
@@ -376,7 +282,7 @@ Rcpp::List batch(
                                                  predictions_tmp(t - lead_time, p, x),
                                                  9999,           // where evaluate gradient
                                                  loss_function,  // method
-                                                 tau_vec(p),     // tau_vec
+                                                 tau(p),         // tau
                                                  loss_parameter, // alpha
                                                  false);
 
@@ -393,7 +299,7 @@ Rcpp::List batch(
                         intercept,
                         debias,
                         loss_function,
-                        tau_vec(p),
+                        tau(p),
                         param_grid(x, 3), // Forget
                         loss_parameter);
 
@@ -425,7 +331,7 @@ Rcpp::List batch(
                     intercept,
                     debias,
                     loss_function,
-                    tau_vec,
+                    tau,
                     param_grid(x, 3), // Forget
                     loss_parameter,
                     basis_mats(x),
@@ -516,7 +422,7 @@ Rcpp::List batch(
                          experts(t, p, k),
                          9999,           // where to evaluate the gradient
                          loss_function,  // method
-                         tau_vec(p),     // tau_vec
+                         tau(p),         // tau
                          loss_parameter, // alpha
                          false);         // gradient
             }
@@ -524,7 +430,7 @@ Rcpp::List batch(
                                   predictions_final(t, p),
                                   9999,           // where to evaluate the gradient
                                   loss_function,  // method
-                                  tau_vec(p),     // tau_vec
+                                  tau(p),         // tau
                                   loss_parameter, // alpha
                                   false);         // gradient;
         }
@@ -559,7 +465,7 @@ Rcpp::List batch(
     Rcpp::List model_data = Rcpp::List::create(
         Rcpp::Named("y") = y,
         Rcpp::Named("experts") = experts,
-        Rcpp::Named("tau") = tau_vec);
+        Rcpp::Named("tau") = tau);
 
     Rcpp::List model_parameters = Rcpp::List::create(
         Rcpp::Named("lead_time") = lead_time,

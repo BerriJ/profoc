@@ -21,7 +21,7 @@ void online_learning_core(
     const int &lead_time,
     const mat &y,
     const cube &experts,
-    const vec &tau_vec,
+    const vec &tau,
     const std::string loss_function,
     const std::string method,
     const double &loss_parameter,
@@ -49,8 +49,8 @@ void online_learning_core(
     const bool &allow_quantile_crossing,
     mat &loss_for,
     cube &loss_exp,
-    cube &loss_cube,
-    cube &regret_cube,
+    cube &loss_array,
+    cube &regret_array,
     Progress &prog)
 {
   for (unsigned int t = start; t < T; t++)
@@ -91,7 +91,7 @@ void online_learning_core(
                                          predictions_tmp(t - lead_time, p, x),
                                          9999,           // where evaluate loss_gradient
                                          loss_function,  // method
-                                         tau_vec(p),     // tau_vec
+                                         tau(p),         // tau
                                          loss_parameter, // alpha
                                          false);
 
@@ -101,27 +101,27 @@ void online_learning_core(
                             experts(t, p, k),
                             predictions_tmp(t - lead_time, p, x), // where evaluate loss_gradient
                             loss_function,                        // method
-                            tau_vec(p),                           // tau_vec
+                            tau(p),                               // tau
                             loss_parameter,                       // alpha
                             loss_gradient);
         }
 
-        if (loss_cube.n_elem != 0)
+        if (loss_array.n_elem != 0)
         {
-          lexp.row(p) = vectorise(loss_cube.tube(t, p)).t();
+          lexp.row(p) = vectorise(loss_array.tube(t, p)).t();
         }
 
         lfor(p) = loss(y(t, p),
                        predictions_tmp(t - lead_time, p, x),
                        predictions_tmp(t - lead_time, p, x), // where to evaluate loss_gradient
                        loss_function,                        // method
-                       tau_vec(p),                           // tau_vec
+                       tau(p),                               // tau
                        loss_parameter,                       // alpha
                        loss_gradient);
       }
 
       mat Q_regret;
-      if (regret_cube.n_elem == 0)
+      if (regret_array.n_elem == 0)
       {
         Q_regret = (lfor - lexp.each_col()).t();
         Q_regret *= double(basis_mats(x).n_cols) / double(P);
@@ -129,7 +129,7 @@ void online_learning_core(
       }
       else
       {
-        Q_regret = regret_cube.row(t);
+        Q_regret = regret_array.row(t);
         Q_regret = Q_regret.t();
         Q_regret *= double(basis_mats(x).n_cols) / double(P);
         Q_regret *= basis_mats(x);
@@ -303,7 +303,7 @@ void online_learning_core(
                  experts(t, p, k),
                  9999,           // where to evaluate the loss_gradient
                  loss_function,  // method
-                 tau_vec(p),     // tau_vec
+                 tau(p),         // tau
                  loss_parameter, // alpha
                  false);         // loss_gradient
       }
@@ -311,7 +311,7 @@ void online_learning_core(
                             predictions(t, p),
                             9999,           // where to evaluate the loss_gradient
                             loss_function,  // method
-                            tau_vec(p),     // tau_vec
+                            tau(p),         // tau
                             loss_parameter, // alpha
                             false);         // loss_gradient;
     }
@@ -320,114 +320,37 @@ void online_learning_core(
   return;
 }
 
-//' @template function_online
-//'
-//' @template param_y
-//' @template param_experts
-//' @template param_tau
-//'
-//' @template param_lead_time
-//'
-//' @template param_loss_function
-//' @template param_loss_parameter
-//' @param loss_gradient Determines if a linearized version of the loss is used.
-//'
-//' @template param_method
-//'
-//' @template param_basis_knot_distance_online
-//' @template param_basis_knot_distance_power
-//' @template param_basis_deg_online
-//'
-//' @param forget_regret Share of past regret not to be considered, resp. to be
-//' forgotten in every iteration of the algorithm. Defaults to 0.
-//'
-//' @template param_soft_threshold
-//' @template param_hard_threshold
-//'
-//' @template param_fixed_share
-//'
-//' @template param_p_smooth_lambda
-//' @template param_p_smooth_knot_distance
-//' @template param_p_smooth_knot_distance_power
-//' @template param_p_smooth_deg
-//' @template param_p_smooth_ndiff
-//'
-//' @param gamma Scaling parameter for the learning rate.
-//'
-//' @template param_parametergrid_max_combinations
-//' @template param_parametergrid
-//' @template param_forget_past_performance
-//'
-//' @template param_allow_quantile_crossing
-//'
-//' @param init_weights Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P whereas specifiying a PxK matrix allows different starting weights for each P.
-//' @param loss_array User specified loss array. If specified, the loss will not be calculated by profoc.
-//' @param regret_array User specified regret array. If specifiec, the regret will not be calculated by profoc.
-//' @template param_trace
-//'
-//' @usage online(
-//' y,
-//' experts,
-//' tau,
-//' lead_time = 0,
-//' loss_function = "quantile",
-//' loss_parameter = 1,
-//' loss_gradient = TRUE,
-//' method = "bewa",
-//' basis_knot_distance = 1/(P+1),
-//' basis_knot_distance_power = 1,
-//' basis_deg = 1,
-//' forget_regret = 0,
-//' soft_threshold = -Inf,
-//' hard_threshold = -Inf,
-//' fixed_share = 0,
-//' p_smooth_lambda = -Inf,
-//' p_smooth_knot_distance = p_smooth_knot_distance,
-//' p_smooth_knot_distance_power = p_smooth_knot_distance_power,
-//' p_smooth_deg = basis_deg,
-//' p_smooth_ndiff = 1.5,
-//' gamma = 1,
-//' parametergrid_max_combinations = 100,
-//' parametergrid = NULL,
-//' forget_past_performance = 0,
-//' allow_quantile_crossing = FALSE,
-//' init_weights = NULL,
-//' loss_array = NULL,
-//' regret_array = NULL,
-//' trace = TRUE
-//' )
-//' @export
 // [[Rcpp::export]]
-Rcpp::List online(
+Rcpp::List online_rcpp(
     mat &y,
     cube &experts,
-    Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
-    const int &lead_time = 0,
-    const std::string loss_function = "quantile",
-    const double &loss_parameter = 1,
-    const bool &loss_gradient = true,
-    const std::string method = "bewa",
-    Rcpp::NumericVector basis_knot_distance = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector basis_knot_distance_power = Rcpp::NumericVector::create(1),
-    Rcpp::NumericVector basis_deg = Rcpp::NumericVector::create(1),
-    Rcpp::NumericVector forget_regret = Rcpp::NumericVector::create(0),
-    Rcpp::NumericVector soft_threshold = Rcpp::NumericVector::create(-1 / 0),
-    Rcpp::NumericVector hard_threshold = Rcpp::NumericVector::create(-1 / 0),
-    Rcpp::NumericVector fixed_share = Rcpp::NumericVector::create(0),
-    Rcpp::NumericVector p_smooth_lambda = Rcpp::NumericVector::create(-1 / 0),
-    Rcpp::NumericVector p_smooth_knot_distance = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector p_smooth_knot_distance_power = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector p_smooth_deg = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector p_smooth_ndiff = Rcpp::NumericVector::create(1.5),
-    Rcpp::NumericVector gamma = Rcpp::NumericVector::create(1),
-    const int parametergrid_max_combinations = 100,
-    Rcpp::Nullable<Rcpp::NumericMatrix> parametergrid = R_NilValue,
-    const double &forget_past_performance = 0,
-    bool allow_quantile_crossing = false,
-    Rcpp::Nullable<Rcpp::NumericMatrix> init_weights = R_NilValue,
-    Rcpp::NumericVector loss_array = Rcpp::NumericVector::create(),
-    Rcpp::NumericVector regret_array = Rcpp::NumericVector::create(),
-    const bool trace = true)
+    vec tau, // We don't pass by reference here since tau may be modified
+    const int &lead_time,
+    const std::string loss_function,
+    const double &loss_parameter,
+    const bool &loss_gradient,
+    const std::string method,
+    const vec &basis_knot_distance,
+    const vec &basis_knot_distance_power,
+    const vec &basis_deg,
+    const vec &forget_regret,
+    const vec &soft_threshold,
+    const vec &hard_threshold,
+    const vec &fixed_share,
+    const vec &p_smooth_lambda,
+    const vec &p_smooth_knot_distance,
+    const vec &p_smooth_knot_distance_power,
+    const vec &p_smooth_deg,
+    const vec &p_smooth_ndiff,
+    const vec &gamma,
+    const int &parametergrid_max_combinations,
+    const mat &parametergrid,
+    const double &forget_past_performance,
+    bool allow_quantile_crossing,
+    Rcpp::Nullable<Rcpp::NumericMatrix> init_weights,
+    cube loss_array,
+    cube regret_array,
+    const bool trace)
 {
 
   // Indexing Convention -> (T, P, K, X)
@@ -457,44 +380,33 @@ Rcpp::List online(
     y = repmat(y, 1, P);
   }
 
-  // Set default value to tau and / or expand if necessary
-  vec tau_vec(tau);
-  if (tau_vec.size() == 0)
+  // Set expand if necessary
+  if (tau.n_elem == 1)
   {
-    tau_vec.resize(P);
-    tau_vec = regspace(1, P) / (P + 1);
-  }
-  else if (tau_vec.size() == 1)
-  {
-    tau_vec.resize(P);
-    tau_vec.fill(tau_vec(0));
+    tau.resize(P);
+    tau.fill(tau(0));
   }
 
   vec basis_knot_distance_vec = basis_knot_distance;
-  if (basis_knot_distance.size() == 0)
-  {
-    basis_knot_distance_vec.resize(1);
-    basis_knot_distance_vec(0) = 1 / (double(P) + 1);
-  }
 
   bool inh_deg = false;
-  if (p_smooth_deg.size() == 0)
+  if (p_smooth_deg.n_elem == 0)
     inh_deg = true;
 
   bool inh_kstep = false;
-  if (p_smooth_knot_distance.size() == 0)
+  if (p_smooth_knot_distance.n_elem == 0)
     inh_kstep = true;
 
   bool inh_kstep_p = false;
-  if (p_smooth_knot_distance_power.size() == 0)
+  if (p_smooth_knot_distance_power.n_elem == 0)
     inh_kstep_p = true;
 
   // Init parametergrid
   mat param_grid;
 
-  if (parametergrid.isNotNull())
+  if (parametergrid.n_rows != 0)
   {
-    param_grid = Rcpp::as<arma::mat>(parametergrid);
+    param_grid = parametergrid;
     if (param_grid.n_cols != 13)
       Rcpp::stop("Please provide a parametergrid with 13 columns.");
   }
@@ -570,23 +482,6 @@ Rcpp::List online(
   mat predictions(T + T_E_Y, P, fill::zeros);
   cube weights(T + 1, P, K, fill::zeros);
 
-  // Init loss array (if existent)
-  cube loss_cube;
-  if (loss_array.size() > 0)
-  {
-    vec dim = loss_array.attr("dim");
-    cube tmp_cube(loss_array.begin(), dim(0), dim(1), dim(2), false);
-    loss_cube = tmp_cube;
-  }
-  // Init regret array (if existent)
-  cube regret_cube;
-  if (regret_array.size() > 0)
-  {
-    vec dim = regret_array.attr("dim");
-    cube tmp_cube(regret_array.begin(), dim(0), dim(1), dim(2), false);
-    regret_cube = tmp_cube;
-  }
-
   // Learning parameters
   field<mat> hat_mats(X);
   field<sp_mat> basis_mats(X);
@@ -645,7 +540,7 @@ Rcpp::List online(
     R_CheckUserInterrupt();
   }
 
-  // Only if smoothing is possible (tau_vec.size > 1)
+  // Only if smoothing is possible (tau.size > 1)
   if (P > 1)
   {
     // Init hat matrix field
@@ -716,7 +611,7 @@ Rcpp::List online(
       lead_time,
       y,
       experts,
-      tau_vec,
+      tau,
       loss_function,
       method,
       loss_parameter,
@@ -744,8 +639,8 @@ Rcpp::List online(
       allow_quantile_crossing,
       loss_for,
       loss_exp,
-      loss_cube,
-      regret_cube,
+      loss_array,
+      regret_array,
       prog);
 
   // 1-Indexing for R-Output
@@ -781,7 +676,7 @@ Rcpp::List online(
   Rcpp::List model_data = Rcpp::List::create(
       Rcpp::Named("y") = y,
       Rcpp::Named("experts") = experts,
-      Rcpp::Named("tau") = tau_vec);
+      Rcpp::Named("tau") = tau);
 
   Rcpp::List model_parameters = Rcpp::List::create(
       Rcpp::Named("lead_time") = lead_time,
@@ -911,7 +806,7 @@ Rcpp::List update_online(
   if (T_E_Y < 0)
     Rcpp::stop("Number of provided expert predictions has to match or exceed observations.");
 
-  vec tau_vec = model_data["tau"];
+  vec tau = model_data["tau"];
   mat param_grid = object["parametergrid"];
   const int X = param_grid.n_rows;
   mat chosen_params = object["chosen_parameters"];
@@ -932,16 +827,16 @@ Rcpp::List update_online(
   cube predictions_tmp = model_objects["predictions_tmp"];
   predictions_tmp.resize(T, P, X);
 
-  cube loss_cube;
-  cube regret_cube;
+  // TODO Add loss_array and regret_array functionality
+
+  cube loss_array;
+  cube regret_array;
 
   // Output Objects
   mat predictions = object["predictions"];
   predictions.resize(T + T_E_Y, P);
   cube weights = object["weights"];
   weights.resize(T + 1, P, K);
-
-  // TODO Add loss_cube and regret_array functionality
 
   field<mat> hat_mats = model_objects["hat_matrices"];
   field<sp_mat> basis_mats = object["basis_matrices"];
@@ -978,7 +873,7 @@ Rcpp::List update_online(
       lead_time,
       y,
       experts,
-      tau_vec,
+      tau,
       loss_function,
       method,
       loss_parameter,
@@ -1006,8 +901,8 @@ Rcpp::List update_online(
       allow_quantile_crossing,
       loss_for,
       loss_exp,
-      loss_cube,
-      regret_cube,
+      loss_array,
+      regret_array,
       prog);
 
   // Update internal objects
