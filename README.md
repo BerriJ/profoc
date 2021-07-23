@@ -16,6 +16,14 @@ Print, plot, update, and predict methods are available.
 Installation
 ------------
 
+### Install from CRAN
+
+You can install the latest stable release from CRAN using:
+
+``` r
+install.packages("profoc")
+```
+
 ### Install from Github
 
 You can install the latest stable release from GitHub using:
@@ -31,10 +39,6 @@ You can install the latest development release from GitHub using:
 # install.packages("remotes")
 remotes::install_github("BerriJ/profoc@develop")
 ```
-
-### Install from CRAN
-
-A CRAN release is planned but yet to come.
 
 License
 -------

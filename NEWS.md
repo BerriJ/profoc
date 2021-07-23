@@ -3,11 +3,11 @@ profoc 0.8.0 (Release date: 2021-07-23) This date may change
 
 ## Changes:
 
+* First release on CRAN
 * The `profoc` function was renamed to `online` for consistency.
 * Added `batch` function to apply batch-learning.
 * Added `oracle` function to approximate the oracle.
 * Update, predict, plot, and print methods were added for `online` and `batch` objects.
-
 
 ### Interface:
 

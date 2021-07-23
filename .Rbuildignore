@@ -7,3 +7,4 @@
 ^pkgdown$
 ^man-roxygen
 src/test.cpp
+cran-comments.md
