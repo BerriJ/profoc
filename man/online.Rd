@@ -94,9 +94,9 @@ basis. Defaults to 1 / (dim(experts)[2] + 1), which means that one knot is creat
 for every quantile. Takes a vector with values >0 where values > .5 correspond to constant
 weights (only one single knot).}
 
-\item{basis_knot_distance_power}{Parameter which defines the symetrie of the
-basis reducing the probability space. Defaults to 1 which corresponds to
-equidistant knots. Values less than 1 create more knots in the center while
+\item{basis_knot_distance_power}{Parameter which defines the symmetry of the
+basis reducing the probability space. Defaults to 1, which corresponds to
+equidistant knots. Values less than 1 create more knots in the center, while
 values above 1 concentrate more knots in the tails.}
 
 \item{basis_deg}{Degree of the basis reducing the probability space.
@@ -161,11 +161,11 @@ combination. Defaults to 0.}
 
 \item{allow_quantile_crossing}{Shall quantile crossing be allowed? Defaults to false, which means that predictions are sorted in ascending order.}
 
-\item{init_weights}{Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P whereas specifiying a PxK matrix allows different starting weights for each P.}
+\item{init_weights}{Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P, whereas specifying a PxK matrix allows different starting weights for each P.}
 
 \item{loss_array}{User specified loss array. If specified, the loss will not be calculated by profoc.}
 
-\item{regret_array}{User specified regret array. If specifiec, the regret will not be calculated by profoc.}
+\item{regret_array}{User specified regret array. If specific, the regret will not be calculated by profoc.}
 
 \item{trace}{Print a progress bar to the console? Defaults to TRUE.}
 }

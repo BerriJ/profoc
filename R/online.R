@@ -38,9 +38,9 @@
 #'
 #' @template param_allow_quantile_crossing
 #'
-#' @param init_weights Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P whereas specifiying a PxK matrix allows different starting weights for each P.
+#' @param init_weights Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P, whereas specifying a PxK matrix allows different starting weights for each P.
 #' @param loss_array User specified loss array. If specified, the loss will not be calculated by profoc.
-#' @param regret_array User specified regret array. If specifiec, the regret will not be calculated by profoc.
+#' @param regret_array User specified regret array. If specific, the regret will not be calculated by profoc.
 #' @template param_trace
 #'
 #' @export

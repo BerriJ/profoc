@@ -73,7 +73,7 @@ If FALSE, the intercept is treated as an expert.}
 experts forecast t+1 at t. Setting this to h means experts predictions refer
 to t+1+h at time t. The weight updates delay accordingly.}
 
-\item{initial_window}{Defines the size of the initial estimaton window.}
+\item{initial_window}{Defines the size of the initial estimation window.}
 
 \item{rolling_window}{Defines the size of the rolling window. Defaults to
 the value of initial_window. Set it to the number of observations to receive
@@ -86,9 +86,9 @@ an expanding window.}
 \item{basis_knot_distance}{determines the distance of the knots in the probability
 basis. Defaults to 1 / (dim(experts)[2] + 1).}
 
-\item{basis_knot_distance_power}{Parameter which defines the symetrie of the
-basis reducing the probability space. Defaults to 1 which corresponds to
-equidistant knots. Values less than 1 create more knots in the center while
+\item{basis_knot_distance_power}{Parameter which defines the symmetry of the
+basis reducing the probability space. Defaults to 1, which corresponds to
+equidistant knots. Values less than 1 create more knots in the center, while
 values above 1 concentrate more knots in the tails.}
 
 \item{basis_deg}{Degree of the basis reducing the probability space.

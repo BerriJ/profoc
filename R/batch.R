@@ -9,7 +9,7 @@
 #' @template param_debias
 #' @template param_lead_time
 #'
-#' @param initial_window Defines the size of the initial estimaton window.
+#' @param initial_window Defines the size of the initial estimation window.
 #' @param rolling_window Defines the size of the rolling window. Defaults to
 #' the value of initial_window. Set it to the number of observations to receive
 #' an expanding window.
