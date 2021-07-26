@@ -155,7 +155,7 @@ internal::gd_basic_impl(
     // initialization
 
     if (! OPTIM_MATOPS_IS_FINITE(init_out_vals) ) {
-        printf("gd error: non-finite initial value(s).\n");
+        //("gd error: non-finite initial value(s).\n");
         return false;
     }
 

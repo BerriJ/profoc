@@ -1,4 +1,4 @@
-profoc 0.8.0 (Release date: 2021-07-23) This date may change
+profoc 0.8.0 (Release date: 2021-07-26) This date may change
 ==============
 
 ## Changes:

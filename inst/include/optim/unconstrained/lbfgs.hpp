@@ -193,7 +193,7 @@ internal::lbfgs_impl(
     Vec_t x = init_out_vals;
 
     if (! OPTIM_MATOPS_IS_FINITE(x) ) {
-        printf("lbfgs error: non-finite initial value(s).\n");
+        //("lbfgs error: non-finite initial value(s).\n");
         return false;
     }
 

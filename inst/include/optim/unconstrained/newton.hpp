@@ -116,7 +116,7 @@ internal::newton_impl(
     Vec_t x_p = x;
 
     if (! OPTIM_MATOPS_IS_FINITE(x) ) {
-        printf("newton error: non-finite initial value(s).\n");
+        //("newton error: non-finite initial value(s).\n");
         return false;
     }
 

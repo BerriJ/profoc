@@ -8,29 +8,15 @@
 
 ❯ checking installed package size ... **NOTE**
 
-    installed size is 29.1Mb
+    installed size is 29.0Mb
     sub-directories of 1Mb or more:
-      libs  28.5Mb
+      libs  28.4Mb
 
-❯ checking compiled code ... **NOTE**
-
-    File ‘profoc/libs/profoc.so’:
-    Found ‘_ZSt4cout’, possibly from ‘//std::cout’ (C++)
-        Object: ‘oracle.o’
-    Found ‘putchar’, possibly from ‘putchar’ (C)
-        Object: ‘oracle.o’
-    Found ‘puts’, possibly from ‘printf’ (C), ‘puts’ (C)
-        Object: ‘oracle.o’
-
-0 errors ✔ | 0 warnings ✔ | 2 notes ✖
+0 errors ✔ | 0 warnings ✔ | 1 note ✖
 
 ### Note on the size
 
 The first Note is due to Rcpp, and we cannot solve this because it is caused by the way Rcpp handles header-only libraries.
-
-### Note on C++ and C calls
-
-The second Note is caused by code from the [optim C++ library](https://github.com/kthohr/optim). It's a header-only library that we use for numerical optimization. We are going to contact the maintainer to remove the respective parts, but we hope that you can accept profoc for now despite this Note.
 
 ## Downstream dependencies
 

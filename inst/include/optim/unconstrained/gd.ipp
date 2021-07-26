@@ -156,7 +156,7 @@ gd_update(const Vec_t& vals_inp,
 
         default:
         {
-            printf("gd error: unknown value for gd_settings.method");
+            //("gd error: unknown value for gd_settings.method");
             break;
         }
     }

@@ -50,13 +50,13 @@ error_reporting(Vec_t& out_vals,
         if (err <= err_tol && iter <= iter_max) {
             success = true;
         } else if (err > err_tol && iter < iter_max) {
-            printf("optim failure: iter_max not reached but algorithm stopped.\n");
-            printf("optim failure: returned best guess.\n");
+            //("optim failure: iter_max not reached but algorithm stopped.\n");
+            //("optim failure: returned best guess.\n");
             
             //std::cout << "iterations: " << iter << ". error: " << err << std::endl;
         } else {
-            printf("optim failure: iter_max reached before convergence could be achieved.\n");
-            printf("optim failure: returned best guess.\n");
+            //("optim failure: iter_max reached before convergence could be achieved.\n");
+            //("optim failure: returned best guess.\n");
             
             //std::cout << "iterations: " << iter << ". error: " << err << std::endl;
         }
@@ -65,14 +65,14 @@ error_reporting(Vec_t& out_vals,
             out_vals = x_p;
             success = true;
         } else {
-            printf("optim failure: iter_max reached before convergence could be achieved.\n");
-            printf("optim failure: best guess:\n");
+            //("optim failure: iter_max reached before convergence could be achieved.\n");
+            //("optim failure: best guess:\n");
 
             //OPTIM_MATOPS_COUT << OPTIM_MATOPS_TRANSPOSE_IN_PLACE(x_p) << "\n";
             //std::cout << "iterations: " << iter << ". error: " << err << std::endl;
         }
     } else {
-        printf("optim failure: unrecognized conv_failure_switch value.\n");
+        //("optim failure: unrecognized conv_failure_switch value.\n");
         success = false;
     }
     
@@ -100,7 +100,7 @@ error_reporting(Vec_t& out_vals,
             out_vals = x_p;
         }
     } else {
-        printf("optim failure: unrecognized conv_failure_switch value.\n");
+        //("optim failure: unrecognized conv_failure_switch value.\n");
         success = false;
     }
     
@@ -137,13 +137,13 @@ error_reporting(Vec_t& out_vals,
         if (err <= err_tol && iter <= iter_max) {
             success = true;
         } else if (err > err_tol && iter < iter_max) {
-            printf("optim failure: iter_max not reached but algorithm stopped.\n");
-            printf("optim failure: returned best guess.\n");
+            //("optim failure: iter_max not reached but algorithm stopped.\n");
+            //("optim failure: returned best guess.\n");
             
             //std::cout << "iterations: " << iter << ". error: " << err << std::endl;
         } else {
-            printf("optim failure: iter_max reached before convergence could be achieved.\n");
-            printf("optim failure: returned best guess.\n");
+            //("optim failure: iter_max reached before convergence could be achieved.\n");
+            //("optim failure: returned best guess.\n");
             
             //std::cout << "error: " << err << std::endl;
         }
@@ -152,20 +152,20 @@ error_reporting(Vec_t& out_vals,
             out_vals = x_p;
             success = true;
         } else if (err > err_tol && iter < iter_max) {
-            printf("optim failure: iter_max not reached but algorithm stopped.\n");
-            printf("optim failure: best guess:\n");
+            //("optim failure: iter_max not reached but algorithm stopped.\n");
+            //("optim failure: best guess:\n");
 
             //OPTIM_MATOPS_COUT << OPTIM_MATOPS_TRANSPOSE_IN_PLACE(x_p) << "\n";
             //std::cout << "error: " << err << std::endl;
         } else {
-            printf("optim failure: iter_max reached before convergence could be achieved.\n");
-            printf("optim failure: best guess:\n");
+            //("optim failure: iter_max reached before convergence could be achieved.\n");
+            //("optim failure: best guess:\n");
 
             //OPTIM_MATOPS_COUT << OPTIM_MATOPS_TRANSPOSE_IN_PLACE(x_p) << "\n";
             //std::cout << "error: " << err << std::endl;
         }
     } else {
-        printf("optim failure: unrecognized conv_failure_switch value.\n");
+        //("optim failure: unrecognized conv_failure_switch value.\n");
         success = false;
     }
 
