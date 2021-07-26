@@ -9,10 +9,15 @@ devtools::test()
 # Bump Version Number in Description
 # Update the Date field in Description
 # Update the Date in NEWS.md
-# Create a tagged commit
-# Merge develop into main, without squashing commits, wihtout extra merge commit
 
-devtools::load_all()
+# CRAN Release checklist:
+
+devtools::spell_check()
+devtools::check_rhub()
+devtools::release()
+
+# Merge submitted_to_cran into main, without squashing commits, wihtout extra merge commit
+# Create a tag on main
 
 # Potential library unload problems can be solved by specifying
 # CXXFLAGS=-fno-gnu-unique in ~/.R/Makevars
