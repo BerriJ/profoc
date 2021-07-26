@@ -5,6 +5,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #define RCPP_ARMADILLO_RETURN_ANYVEC_AS_VECTOR
 #define OPTIM_ENABLE_ARMA_WRAPPERS
+#define OPTIM_NO_TRACE
 #include <optim.hpp>
 
 #include <RcppArmadillo.h>

@@ -172,14 +172,14 @@ internal::nm_impl(
     // begin loop
 
     if (print_level > 0) {
-        std::cout << "\nNelder-Mead: beginning search...\n";
+        //std::cout << "\nNelder-Mead: beginning search...\n";
 
         if (print_level >= 3) {
-            std::cout << "  - Initialization Phase:\n";
-            std::cout << "    Objective function value at each vertex:\n";
-            OPTIM_MATOPS_COUT << OPTIM_MATOPS_TRANSPOSE(simplex_fn_vals) << "\n";
-            std::cout << "    Simplex matrix:\n"; 
-            OPTIM_MATOPS_COUT << simplex_points << "\n";
+            //std::cout << "  - Initialization Phase:\n";
+            //std::cout << "    Objective function value at each vertex:\n";
+            //OPTIM_MATOPS_COUT << OPTIM_MATOPS_TRANSPOSE(simplex_fn_vals) << "\n";
+            //std::cout << "    Simplex matrix:\n"; 
+            //OPTIM_MATOPS_COUT << simplex_points << "\n";
         }
     }
 
@@ -311,7 +311,7 @@ internal::nm_impl(
     }
 
     if (print_level > 0) {
-        std::cout << "Nelder-Mead: search completed.\n";
+        //std::cout << "Nelder-Mead: search completed.\n";
     }
 
     //

@@ -15,7 +15,7 @@
 ❯ checking compiled code ... **NOTE**
 
     File ‘profoc/libs/profoc.so’:
-    Found ‘_ZSt4cout’, possibly from ‘std::cout’ (C++)
+    Found ‘_ZSt4cout’, possibly from ‘//std::cout’ (C++)
         Object: ‘oracle.o’
     Found ‘putchar’, possibly from ‘putchar’ (C)
         Object: ‘oracle.o’
