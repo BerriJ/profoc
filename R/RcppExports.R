@@ -76,6 +76,24 @@ optimize_betas <- function(truth, experts, affine, positive, intercept, debias, 
 #' @usage oracle(y, experts, tau, affine = FALSE,
 #' positive = FALSE, intercept = FALSE, debias = TRUE,
 #' loss_function = "quantile", loss_parameter = 1, forget = 0)
+#' @examples
+#' T <- 50 # Observations
+#' N <- 2 # Experts
+#' P <- 9 # Quantiles
+#' prob_grid <- 1:P / (P + 1)
+#'
+#' y <- rnorm(n = T) # Realized
+#' experts <- array(dim = c(T, P, N)) # Predictions
+#' for (t in 1:T) {
+#'     experts[t, , 1] <- qnorm(prob_grid, mean = -1, sd = 1)
+#'     experts[t, , 2] <- qnorm(prob_grid, mean = 3, sd = sqrt(4))
+#' }
+#'
+#' model <- oracle(
+#'     y = matrix(y),
+#'     experts = experts
+#' )
+#'
 #' @export
 oracle <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, loss_function = "quantile", loss_parameter = 1, forget = 0) {
     .Call(`_profoc_oracle`, y, experts, tau, affine, positive, intercept, debias, loss_function, loss_parameter, forget)

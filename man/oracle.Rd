@@ -50,3 +50,22 @@ Returns predictions and weights calculated by numeric
 optimization. The optimization is done in hindsight.
 This means all observations are used.
 }
+\examples{
+T <- 50 # Observations
+N <- 2 # Experts
+P <- 9 # Quantiles
+prob_grid <- 1:P / (P + 1)
+
+y <- rnorm(n = T) # Realized
+experts <- array(dim = c(T, P, N)) # Predictions
+for (t in 1:T) {
+    experts[t, , 1] <- qnorm(prob_grid, mean = -1, sd = 1)
+    experts[t, , 2] <- qnorm(prob_grid, mean = 3, sd = sqrt(4))
+}
+
+model <- oracle(
+    y = matrix(y),
+    experts = experts
+)
+
+}

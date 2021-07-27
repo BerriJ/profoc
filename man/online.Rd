@@ -187,3 +187,35 @@ deg and knot_distance can be specified as numeric vectors containing
 parameters to consider. online will automatically try all possible
 combinations of values provide.
 }
+\examples{
+T <- 50 # Observations
+N <- 2 # Experts
+P <- 9 # Quantiles
+prob_grid <- 1:P / (P + 1)
+
+y <- rnorm(n = T) # Realized
+experts <- array(dim = c(T, P, N)) # Predictions
+for (t in 1:T) {
+    experts[t, , 1] <- qnorm(prob_grid, mean = -1, sd = 1)
+    experts[t, , 2] <- qnorm(prob_grid, mean = 3, sd = sqrt(4))
+}
+
+model <- online(
+    y = matrix(y),
+    experts = experts,
+    p_smooth_lambda = 10
+)
+
+print(model)
+plot(model)
+autoplot(model)
+
+new_y <- matrix(rnorm(1)) # Realized
+new_experts <- experts[T, , , drop = FALSE]
+
+# Update will update the model object, no need for new assignment
+update(model, new_y = new_y, new_experts = new_experts)
+
+# Use predict to combine new_experts, model$predictions will be extended
+predict(model, new_experts = new_experts)
+}
