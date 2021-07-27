@@ -56,7 +56,7 @@ plot_common <- function(x) {
 }
 
 autoplot_common <- function(object) {
-    if ("ggplot2" %in% installed.packages()) {
+    if (requireNamespace("ggplot2", quietly = TRUE)) {
         weights <- object$weights[nrow(object$weights), , ]
         p <- object$specification$data$tau
         weight <- matrix(weights)
