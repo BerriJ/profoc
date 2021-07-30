@@ -1,4 +1,13 @@
-profoc 0.8.0 (Release date: 2021-07-27) This date may change
+profoc 0.8.1 (Release date: 2021-10-15) This date may change
+==============
+
+## Changes:
+
+* The `profoc` function was extended:
+  * `regret` can now be passed as an array as before, or as a list, e.g. `list(regret = regret_array, share = 0.2)` if the provided regret should be mixed with the regret calculated by online.
+  * `loss` can also be provided as a list, see above.
+
+profoc 0.8.0 (Release date: 2021-07-27) 
 ==============
 
 ## Changes:

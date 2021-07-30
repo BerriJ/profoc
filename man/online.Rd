@@ -47,8 +47,8 @@ online(
   forget_past_performance = 0,
   allow_quantile_crossing = FALSE,
   init_weights = NULL,
-  loss_array = NULL,
-  regret_array = NULL,
+  loss = NULL,
+  regret = NULL,
   trace = TRUE
 )
 }
@@ -163,9 +163,16 @@ combination. Defaults to 0.}
 
 \item{init_weights}{Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P, whereas specifying a PxK matrix allows different starting weights for each P.}
 
-\item{loss_array}{User specified loss array. If specified, the loss will not be calculated by profoc.}
+\item{loss}{User specified loss array. Can also be a list with elements "loss_array"
+and "share", share mixes the provided loss with the loss calculated by
+profoc. 1 means, only the provided loss will be used. share can also be
+vector of shares to consider.}
 
-\item{regret_array}{User specified regret array. If specific, the regret will not be calculated by profoc.}
+\item{regret}{User specified regret array. If specific, the regret will
+ not be calculated by profoc. Can also be a list with elements "regret_array"
+and "share", share mixes the provided regret with the regret calculated by
+profoc. 1 means, only the provided regret will be used. share can also be
+vector of shares to consider.}
 
 \item{trace}{Print a progress bar to the console? Defaults to TRUE.}
 }
