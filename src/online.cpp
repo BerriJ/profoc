@@ -97,7 +97,7 @@ void online_learning_core(
                                          loss_parameter, // alpha
                                          false);
 
-        if (param_grid(x, 13) < 1)
+        if (param_grid(x, 13) != 1)
         {
           for (unsigned int k = 0; k < K; k++)
           {
@@ -114,7 +114,7 @@ void online_learning_core(
           {
             lexp.row(p) = lexp_int.row(p);
           }
-          else if (param_grid(x, 13) > 0)
+          else
           {
             lexp_ext.row(p) = arma::vectorise(loss_array.tube(t, p)).t();
             lexp.row(p) = (1 - param_grid(x, 13)) * lexp_int.row(p) + param_grid(x, 13) * lexp_ext.row(p);
@@ -139,7 +139,7 @@ void online_learning_core(
       mat regret_ext;
       mat regret;
 
-      if (param_grid(x, 14) < 1)
+      if (param_grid(x, 14) != 1)
       {
         regret_int = (lfor - lexp_int.each_col()).t();
         regret_int *= double(basis_mats(x).n_cols) / double(P);
@@ -148,7 +148,7 @@ void online_learning_core(
         {
           regret = regret_int;
         }
-        else if (param_grid(x, 14) > 0)
+        else
         {
           regret_ext = regret_array.row(t);
           regret_ext = regret_ext.t();

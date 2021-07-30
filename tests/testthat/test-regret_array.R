@@ -94,5 +94,3 @@ expect_true(
     all(model5$past_performance[, , 3]
     == model_lg_false$past_performance[, , 1])
 )
-
-
