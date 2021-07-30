@@ -23,3 +23,5 @@ devtools::release()
 # CXXFLAGS=-fno-gnu-unique in ~/.R/Makevars
 # or
 # PKG_CXXFLAGS=-fno-gnu-unique in src/Makevars
+
+devtools::load_all()

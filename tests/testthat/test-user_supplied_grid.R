@@ -42,7 +42,9 @@ grid <- expand.grid(
     1, # p_smooth_knot_distance_power
     3, # p_smooth_deg
     2, # p_smooth_ndiff
-    1 # gamma
+    1, # gamma
+    0, # loss_share
+    0 # regret_share
 )
 grid <- as.matrix(grid)
 # %%
@@ -66,19 +68,19 @@ expect_error(online(
     experts,
     parametergrid = grid[, -1],
     trace = FALSE
-), "Please provide a parametergrid with 13 columns.")
+), "Please provide a parametergrid with 15 columns.")
 # %%
 
 # %% Batch setting
 res <- batch(
     matrix(y),
     experts,
-    parametergrid = grid[, -13], # No gamma parameter in batch
+    parametergrid = grid[, 1:12], # No gamma parameter in batch
     trace = FALSE
 )
 
 expect_true(
-    all(res$parametergrid == grid[, -13])
+    all(res$parametergrid == grid[, 1:12])
 )
 # %%
 

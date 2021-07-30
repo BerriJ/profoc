@@ -49,8 +49,8 @@ void online_learning_core(
     const bool &allow_quantile_crossing,
     mat &loss_for,
     cube &loss_exp,
-    cube &loss_array,
-    cube &regret_array,
+    const cube &loss_array,
+    const cube &regret_array,
     Progress &prog)
 {
   for (unsigned int t = start; t < T; t++)
@@ -80,8 +80,10 @@ void online_learning_core(
     for (unsigned int x = 0; x < param_grid.n_rows; x++)
     {
 
-      mat lexp(P, K); // Experts loss
-      vec lfor(P);    // Forecasters loss
+      mat lexp_int(P, K); // Experts loss
+      mat lexp_ext(P, K); // Experts loss
+      mat lexp(P, K);     // Experts loss
+      vec lfor(P);        // Forecasters loss
 
       for (unsigned int p = 0; p < P; p++)
       {
@@ -95,20 +97,33 @@ void online_learning_core(
                                          loss_parameter, // alpha
                                          false);
 
-        for (unsigned int k = 0; k < K; k++)
+        if (param_grid(x, 13) < 1)
         {
-          lexp(p, k) = loss(y(t, p),
-                            experts(t, p, k),
-                            predictions_tmp(t - lead_time, p, x), // where evaluate loss_gradient
-                            loss_function,                        // method
-                            tau(p),                               // tau
-                            loss_parameter,                       // alpha
-                            loss_gradient);
-        }
+          for (unsigned int k = 0; k < K; k++)
+          {
+            lexp_int(p, k) = loss(y(t, p),
+                                  experts(t, p, k),
+                                  predictions_tmp(t - lead_time, p, x), // where evaluate loss_gradient
+                                  loss_function,                        // method
+                                  tau(p),                               // tau
+                                  loss_parameter,                       // alpha
+                                  loss_gradient);
+          }
 
-        if (loss_array.n_elem != 0)
+          if (param_grid(x, 13) == 0)
+          {
+            lexp.row(p) = lexp_int.row(p);
+          }
+          else if (param_grid(x, 13) > 0)
+          {
+            lexp_ext.row(p) = arma::vectorise(loss_array.tube(t, p)).t();
+            lexp.row(p) = (1 - param_grid(x, 13)) * lexp_int.row(p) + param_grid(x, 13) * lexp_ext.row(p);
+          }
+        }
+        else
         {
-          lexp.row(p) = vectorise(loss_array.tube(t, p)).t();
+          lexp_ext.row(p) = arma::vectorise(loss_array.tube(t, p)).t();
+          lexp.row(p) = lexp_ext.row(p);
         }
 
         lfor(p) = loss(y(t, p),
@@ -120,25 +135,41 @@ void online_learning_core(
                        loss_gradient);
       }
 
-      mat Q_regret;
-      if (regret_array.n_elem == 0)
+      mat regret_int;
+      mat regret_ext;
+      mat regret;
+
+      if (param_grid(x, 14) < 1)
       {
-        Q_regret = (lfor - lexp.each_col()).t();
-        Q_regret *= double(basis_mats(x).n_cols) / double(P);
-        Q_regret *= basis_mats(x);
+        regret_int = (lfor - lexp_int.each_col()).t();
+        regret_int *= double(basis_mats(x).n_cols) / double(P);
+
+        if (param_grid(x, 14) == 0)
+        {
+          regret = regret_int;
+        }
+        else if (param_grid(x, 14) > 0)
+        {
+          regret_ext = regret_array.row(t);
+          regret_ext = regret_ext.t();
+          regret_ext *= double(basis_mats(x).n_cols) / double(P);
+          regret = (1 - param_grid(x, 14)) * regret_int + param_grid(x, 14) * regret_ext;
+        }
       }
       else
       {
-        Q_regret = regret_array.row(t);
-        Q_regret = Q_regret.t();
-        Q_regret *= double(basis_mats(x).n_cols) / double(P);
-        Q_regret *= basis_mats(x);
+        regret_ext = regret_array.row(t);
+        regret_ext = regret_ext.t();
+        regret_ext *= double(basis_mats(x).n_cols) / double(P);
+        regret = regret_ext;
       }
 
-      for (unsigned int l = 0; l < Q_regret.n_cols; l++)
+      regret *= basis_mats(x);
+
+      for (unsigned int l = 0; l < regret.n_cols; l++)
       {
 
-        vec r = Q_regret.col(l);
+        vec r = regret.col(l);
 
         if (method == "ewa")
         {
@@ -348,8 +379,10 @@ Rcpp::List online_rcpp(
     const double &forget_past_performance,
     bool allow_quantile_crossing,
     Rcpp::Nullable<Rcpp::NumericMatrix> init_weights,
-    cube loss_array,
-    cube regret_array,
+    const cube &loss_array,
+    const vec &loss_share,
+    const cube &regret_array,
+    const vec &regret_share,
     const bool trace)
 {
 
@@ -407,8 +440,8 @@ Rcpp::List online_rcpp(
   if (parametergrid.n_rows != 0)
   {
     param_grid = parametergrid;
-    if (param_grid.n_cols != 13)
-      Rcpp::stop("Please provide a parametergrid with 13 columns.");
+    if (param_grid.n_cols != 15)
+      Rcpp::stop("Please provide a parametergrid with 15 columns.");
   }
   else
   {
@@ -426,6 +459,8 @@ Rcpp::List online_rcpp(
     param_grid = get_combinations(param_grid, p_smooth_deg, inh_deg, 2);                     // Index 10
     param_grid = get_combinations(param_grid, p_smooth_ndiff);                               // Index 11
     param_grid = get_combinations(param_grid, gamma);                                        // Index 12
+    param_grid = get_combinations(param_grid, loss_share);                                   // Index 13
+    param_grid = get_combinations(param_grid, regret_share);                                 // Index 14
   }
 
   if (param_grid.n_rows > parametergrid_max_combinations)
@@ -665,7 +700,9 @@ Rcpp::List online_rcpp(
                                     "p_smooth_knot_distance_power",
                                     "p_smooth_deg",
                                     "smooth_diff",
-                                    "gamma");
+                                    "gamma",
+                                    "loss_share",
+                                    "regret_share");
 
   Rcpp::NumericMatrix parametergrid_out = Rcpp::wrap(param_grid);
   Rcpp::colnames(parametergrid_out) = param_names;
@@ -935,7 +972,9 @@ Rcpp::List update_online(
                                     "p_smooth_knot_distance_power",
                                     "p_smooth_deg",
                                     "smooth_diff",
-                                    "gamma");
+                                    "gamma",
+                                    "loss_share",
+                                    "regret_share");
 
   Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
   Rcpp::colnames(chosen_parameters) = param_names;
