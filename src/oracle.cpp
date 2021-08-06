@@ -32,6 +32,7 @@ struct objective_data
     sp_mat basis;
     cube experts_cube;
     vec tau_vec;
+    bool qw_crps;
 };
 
 // Global decleration of objective val
@@ -113,6 +114,7 @@ double objective2(const vec &vals_inp, vec *grad_out, void *opt_data)
     double penalty_parameter = objfn_data->penalty_parameter;
     bool intercept = objfn_data->intercept;
     bool debias = objfn_data->debias;
+    bool qw_crps = objfn_data->qw_crps;
     sp_mat basis = objfn_data->basis;
     cube experts_cube = objfn_data->experts_cube;
 
@@ -120,39 +122,81 @@ double objective2(const vec &vals_inp, vec *grad_out, void *opt_data)
 
     mat weights = basis * beta;
 
-    mat loss_mat(experts_cube.n_rows, experts_cube.n_cols);
-
     mat experts;
-    vec pred;
+
+    vec loss_vec(experts_cube.n_rows);
 
     for (unsigned int t = 0; t < experts_cube.n_rows; t++)
     {
-        // Predict
-        experts = experts_cube.row(t);
-        pred = sum(weights % experts, 1);
 
-        for (unsigned int p = 0; p < experts_cube.n_cols; p++)
+        if (qw_crps == false)
         {
-            loss_mat(t, p) = loss(truth_mat(t, p),
-                                  pred(p),
-                                  0, // Only used when gradient = TRUE
-                                  loss_function,
-                                  tau_vec(p),
-                                  loss_scaling, // Scaling parameter
-                                  false);
-            loss_mat(t, p) *= std::pow(1 - forget, experts_cube.n_rows - (t + 1));
+            vec tmp_loss(experts_cube.n_cols);
+
+            // Predict
+            experts = experts_cube.row(t);
+            vec pred = sum(weights % experts, 1);
+
+            for (unsigned int p = 0; p < experts_cube.n_cols; p++)
+            {
+                tmp_loss(p) = loss(truth_mat(t, p),
+                                   pred(p),
+                                   0, // Only used when gradient = TRUE
+                                   loss_function,
+                                   tau_vec(p),
+                                   loss_scaling, // Scaling parameter
+                                   false);
+                tmp_loss(p) *= std::pow(1 - forget, experts_cube.n_rows - (t + 1));
+            }
+            loss_vec(t) = arma::accu(tmp_loss);
+        }
+        else
+        {
+            // Predict
+            experts = experts_cube.row(t);
+
+            mat loss_mat = beta * experts.t();
+
+            // if (t == 5)
+            // {
+            //     // arma::cout << "\n preds \n"
+            //     //            << loss_mat << arma::endl;
+            //     // arma::cout << "\n truth \n"
+            //     //            << truth_mat(t, 0) << arma::endl;
+            // }
+
+            for (unsigned int p = 0; p < loss_mat.n_cols; p++)
+            {
+                for (double &z : loss_mat.col(p))
+                {
+                    z = truth_mat(t, 0) - z;
+                    double cndtn = double(z < 0);
+                    z *= (tau_vec(p) - cndtn);
+                }
+            }
+
+            // if (t == 5)
+            // {
+            //     // arma::cout << "\n loss \n"
+            //     //            << errors << arma::endl;
+            //     // arma::cout << "\n basis.n_cols \n"
+            //     //            << basis.n_cols << arma::endl;
+            //     // arma::cout << "\n basis.n_rows \n"
+            //     //            << basis.n_rows << arma::endl;
+            // }
+
+            loss_vec(t) = accu(basis.t() % loss_mat);
         }
     }
 
     vec constraint_penalty_vec(beta.n_rows);
-
     for (unsigned int b = 0; b < beta.n_rows; b++)
     {
         vec betavec = beta.row(b).t();
         constraint_penalty_vec(b) = penalty_parameter * fabs(sum(betavec.subvec(debias * intercept, betavec.n_elem - 1)) - 1);
     }
 
-    obj_val = accu(loss_mat);
+    obj_val = accu(loss_vec);
 
     obj_val += sum(constraint_penalty_vec);
 
@@ -302,7 +346,8 @@ mat optimize_betas(const mat &truth,
                    const double &forget,
                    const double &loss_scaling,
                    const sp_mat &basis,
-                   const mat &beta)
+                   const mat &beta,
+                   const bool &qw_crps)
 {
 
     const int P = experts.n_cols;
@@ -320,6 +365,7 @@ mat optimize_betas(const mat &truth,
     opt_obj_data.debias = debias;
     opt_obj_data.basis = basis;
     opt_obj_data.experts_cube = std::move(experts);
+    opt_obj_data.qw_crps = qw_crps;
 
     // Iinit weights
     // vec initvals(K, fill::ones);
