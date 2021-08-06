@@ -154,16 +154,7 @@ double objective2(const vec &vals_inp, vec *grad_out, void *opt_data)
         {
             // Predict
             experts = experts_cube.row(t);
-
             mat loss_mat = beta * experts.t();
-
-            // if (t == 5)
-            // {
-            //     // arma::cout << "\n preds \n"
-            //     //            << loss_mat << arma::endl;
-            //     // arma::cout << "\n truth \n"
-            //     //            << truth_mat(t, 0) << arma::endl;
-            // }
 
             for (unsigned int p = 0; p < loss_mat.n_cols; p++)
             {
@@ -174,16 +165,6 @@ double objective2(const vec &vals_inp, vec *grad_out, void *opt_data)
                     z *= (tau_vec(p) - cndtn);
                 }
             }
-
-            // if (t == 5)
-            // {
-            //     // arma::cout << "\n loss \n"
-            //     //            << errors << arma::endl;
-            //     // arma::cout << "\n basis.n_cols \n"
-            //     //            << basis.n_cols << arma::endl;
-            //     // arma::cout << "\n basis.n_rows \n"
-            //     //            << basis.n_rows << arma::endl;
-            // }
 
             loss_vec(t) = accu(basis.t() % loss_mat);
         }
