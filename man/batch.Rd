@@ -84,6 +84,10 @@ an expanding window.}
 
 \item{loss_parameter}{Optional parameter scaling the power of the loss function.}
 
+\item{qw_crps}{Decides wether the sum of quantile scores (FALSE) or
+the quantile weighted crps (TRUE) should be minimized.
+Defaults to FALSE. Which corresponds to Berrisch & Ziel (2021)}
+
 \item{basis_knot_distance}{determines the distance of the knots in the probability
 basis. Defaults to 1 / (dim(experts)[2] + 1).}
 

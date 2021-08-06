@@ -17,6 +17,11 @@
 #' @template param_loss_function
 #' @template param_loss_parameter
 #'
+#' @param qw_crps Decides wether the sum of quantile scores (FALSE) or
+#' the quantile weighted crps (TRUE) should be minimized.
+#' Defaults to FALSE. Which corresponds to Berrisch & Ziel (2021)
+#'
+#'
 #' @template param_basis_knot_distance_batch
 #' @template param_basis_knot_distance_power
 #' @template param_basis_deg_batch
