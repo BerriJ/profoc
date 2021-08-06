@@ -20,6 +20,7 @@ batch(
   rolling_window = initial_window,
   loss_function = "quantile",
   loss_parameter = 1,
+  qw_crps = FALSE,
   basis_knot_distance = 1/(dim(experts)[2] + 1),
   basis_knot_distance_power = 1,
   basis_deg = 1,

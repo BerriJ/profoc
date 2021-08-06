@@ -24,6 +24,7 @@ Rcpp::List batch_rcpp(
     const int rolling_window,
     const std::string loss_function,
     const double &loss_parameter,
+    const bool &qw_crps,
     const vec &basis_knot_distance,
     const vec &basis_knot_distance_power,
     const vec &basis_deg,
@@ -335,7 +336,8 @@ Rcpp::List batch_rcpp(
                     param_grid(x, 3), // Forget
                     loss_parameter,
                     basis_mats(x),
-                    beta(x));
+                    beta(x),
+                    qw_crps);
 
                 for (unsigned int l = 0; l < beta(x).n_rows; l++)
                 {

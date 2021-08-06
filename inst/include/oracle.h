@@ -26,6 +26,7 @@ arma::mat optimize_betas(const arma::mat &truth,
                          const double &forget,
                          const double &loss_scaling,
                          const arma::sp_mat &basis,
-                         const arma::mat &beta);
+                         const arma::mat &beta,
+                         const bool &qw_crps);
 
 #endif
