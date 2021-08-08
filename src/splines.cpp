@@ -39,20 +39,19 @@ mat make_difference_matrix(const vec &knots, const int &bdiff, const int deg)
 // [[Rcpp::export]]
 mat make_hat_matrix(const vec &x, const double &kstep, const double &lambda, const double &bdiff, const int deg, const double &a)
 {
-    vec knots = make_knots(kstep, a, deg);
-    int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
 
-    vec boundary_knots({arma::min(knots), arma::max(knots)});
-
-    mat B = splines2_basis(x, knots, deg, boundary_knots);
-
-    mat P1(m + deg + 1, m + deg + 1);
-    mat P2(m + deg + 1, m + deg + 1);
-    mat P(m + deg + 1, m + deg + 1);
     mat H;
 
     if (kstep <= 0.5)
     {
+        vec knots = make_knots(kstep, a, deg);
+        int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
+
+        mat B = splines2_basis(x, knots, deg);
+
+        mat P1(m + deg + 1, m + deg + 1);
+        mat P2(m + deg + 1, m + deg + 1);
+        mat P(m + deg + 1, m + deg + 1);
 
         mat D1 = make_difference_matrix(knots, 1, deg);
         P1 = D1.t() * D1;
@@ -87,8 +86,7 @@ sp_mat make_basis_matrix(const vec &x, const double &kstep, const int deg, const
     if (kstep <= 0.5)
     {
         vec knots = make_knots(kstep, a, deg);
-        vec boundary_knots({arma::min(knots), arma::max(knots)});
-        B = splines2_basis(x, knots, deg, boundary_knots);
+        B = splines2_basis(x, knots, deg);
         // Remove columns without contribution
         B = B.cols(find(sum(B) >= 1E-6));
 
