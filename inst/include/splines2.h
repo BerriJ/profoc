@@ -5,7 +5,6 @@
 
 arma::mat splines2_basis(const arma::vec &x,
                          const arma::vec &knots,
-                         const unsigned int deg,
-                         const arma::vec &boundary_knots);
+                         const unsigned int deg);
 
 #endif

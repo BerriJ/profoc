@@ -14,9 +14,9 @@ knots <- make_knots(kstep = kstep, deg = deg, a = a)[, 1]
 old <- splines::splineDesign(knots, x, deg + 1, derivs = 0L, outer.ok = TRUE)
 
 # Create the b-spline basis using splines2
-new <- splines2_basis(x, knots, deg, range(knots))
+new <- splines2_basis(x, knots, deg)
 
-expect_equal(old, new, tolerance = 0.00001)
+expect_equal(old, new)
 
 kstep <- 0.1
 order <- 4
@@ -33,9 +33,9 @@ knots <- make_knots(kstep = kstep, deg = deg, a = a)[, 1]
 old <- splines::splineDesign(knots, x, deg + 1, derivs = 0L, outer.ok = TRUE)
 
 # Create the b-spline basis using splines2
-new <- splines2_basis(x, knots, deg, range(knots))
+new <- splines2_basis(x, knots, deg)
 
-expect_equal(old, new, tolerance = 0.00001)
+expect_equal(old, new)
 
 kstep <- 0.1
 order <- 3
@@ -51,6 +51,6 @@ knots <- make_knots(kstep = kstep, deg = deg, a = a)[, 1]
 old <- splines::splineDesign(knots, x, deg + 1, derivs = 0L, outer.ok = TRUE)
 
 # Create the b-spline basis using splines2
-new <- splines2_basis(x, knots, deg, range(knots))
+new <- splines2_basis(x, knots, deg)
 
-expect_equal(old, new, tolerance = 0.00001)
+expect_equal(old, new)
