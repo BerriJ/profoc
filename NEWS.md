@@ -10,7 +10,7 @@ profoc 0.8.3 (Release date: 2021-10-15) This date may change
 * The `batch` function can now minimize an alternative objection function using the quantile weighted CRPS
   * This weighting scheme can be activated by setting `qw_crps=TRUE`
   * It defaults to FALSE due to better performance
-
+  
 ### Internal changes
 
 * Changes to the splines2 package required some changes on our side. This affected the creation of the b-spline basis. See https://github.com/BerriJ/profoc/pull/3
