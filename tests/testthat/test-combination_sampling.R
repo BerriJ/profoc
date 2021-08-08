@@ -25,7 +25,7 @@ expect_warning(boa <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
-    basis_knot_distance = c(0.01, 0.05, 0.5),
+    basis_knot_distance = c(0.01, 0.05, 0.5, 1),
     basis_deg = c(1, 2),
     p_smooth_lambda = c(1:2),
     parametergrid_max_combinations = 10,
