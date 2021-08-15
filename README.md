@@ -24,7 +24,7 @@ You can install the latest stable release from CRAN using:
 install.packages("profoc")
 ```
 
-### Install from Github
+### Install from GitHub
 
 You can install the latest stable release from GitHub using:
 
@@ -49,4 +49,3 @@ You are also very welcome to contribute to profoc. Please base your pull request
 ## License
 
 [GNU General Public License](https://www.gnu.org/licenses/) (≥ 3)
-
