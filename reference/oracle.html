@@ -74,7 +74,7 @@ This means all observations are used." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">profoc</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.8.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.8.3</span>
       </span>
     </div>
 
@@ -191,7 +191,8 @@ It is possible to calculate the best convex combination
 of weights by setting affine and positive to TRUE.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='cn'>T</span> <span class='op'>&lt;-</span> <span class='fl'>50</span> <span class='co'># Observations</span>
+    <pre class="examples"><div class='input'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>{</span>
+<span class='cn'>T</span> <span class='op'>&lt;-</span> <span class='fl'>50</span> <span class='co'># Observations</span>
 <span class='va'>N</span> <span class='op'>&lt;-</span> <span class='fl'>2</span> <span class='co'># Experts</span>
 <span class='va'>P</span> <span class='op'>&lt;-</span> <span class='fl'>9</span> <span class='co'># Quantiles</span>
 <span class='va'>prob_grid</span> <span class='op'>&lt;-</span> <span class='fl'>1</span><span class='op'>:</span><span class='va'>P</span> <span class='op'>/</span> <span class='op'>(</span><span class='va'>P</span> <span class='op'>+</span> <span class='fl'>1</span><span class='op'>)</span>
@@ -207,6 +208,7 @@ of weights by setting affine and positive to TRUE.</p>
     y <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/matrix.html'>matrix</a></span><span class='op'>(</span><span class='va'>y</span><span class='op'>)</span>,
     experts <span class='op'>=</span> <span class='va'>experts</span>
 <span class='op'>)</span>
+<span class='op'>}</span>
 
 </div></pre>
   </div>
