@@ -51,6 +51,7 @@
 #' @template param_trace
 #'
 #' @examples
+#' \dontrun{
 #' T <- 50 # Observations
 #' N <- 2 # Experts
 #' P <- 9 # Quantiles
@@ -81,6 +82,7 @@
 #'
 #' # Use predict to combine new_experts, model$predictions will be extended
 #' predict(model, new_experts = new_experts)
+#' }
 #' @export
 online <- function(y, experts,
                    tau = 1:dim(experts)[2] / (dim(experts)[2] + 1),

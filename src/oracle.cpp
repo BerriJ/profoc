@@ -465,6 +465,7 @@ mat optimize_betas(const mat &truth,
 //' positive = FALSE, intercept = FALSE, debias = TRUE,
 //' loss_function = "quantile", loss_parameter = 1, forget = 0)
 //' @examples
+//' \dontrun{
 //' T <- 50 # Observations
 //' N <- 2 # Experts
 //' P <- 9 # Quantiles
@@ -481,6 +482,7 @@ mat optimize_betas(const mat &truth,
 //'     y = matrix(y),
 //'     experts = experts
 //' )
+//' }
 //'
 //' @export
 // [[Rcpp::export]]

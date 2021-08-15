@@ -48,6 +48,7 @@
 #' @template param_trace
 #'
 #' @examples
+#' \dontrun{
 #' T <- 50 # Observations
 #' N <- 2 # Experts
 #' P <- 9 # Quantiles
@@ -69,6 +70,7 @@
 #' print(model)
 #' plot(model)
 #' autoplot(model)
+#' }
 #' @export
 batch <- function(y,
                   experts,

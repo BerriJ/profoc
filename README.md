@@ -39,3 +39,14 @@ You can install the latest development release from GitHub using:
 # install.packages("remotes")
 remotes::install_github("BerriJ/profoc@develop")
 ```
+
+## Contributions and Issues
+
+Feel free to [raise an issue](https://github.com/BerriJ/profoc/issues/new) if you find something not working properly.
+
+You are also very welcome to contribute to profoc. Please base your pull requests on the develop branch.
+
+## License
+
+[GNU General Public License](https://www.gnu.org/licenses/) (≥ 3)
+

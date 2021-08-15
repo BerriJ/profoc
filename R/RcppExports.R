@@ -77,6 +77,7 @@ optimize_betas <- function(truth, experts, affine, positive, intercept, debias, 
 #' positive = FALSE, intercept = FALSE, debias = TRUE,
 #' loss_function = "quantile", loss_parameter = 1, forget = 0)
 #' @examples
+#' \dontrun{
 #' T <- 50 # Observations
 #' N <- 2 # Experts
 #' P <- 9 # Quantiles
@@ -93,6 +94,7 @@ optimize_betas <- function(truth, experts, affine, positive, intercept, debias, 
 #'     y = matrix(y),
 #'     experts = experts
 #' )
+#' }
 #'
 #' @export
 oracle <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, loss_function = "quantile", loss_parameter = 1, forget = 0) {

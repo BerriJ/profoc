@@ -51,6 +51,7 @@ optimization. The optimization is done in hindsight.
 This means all observations are used.
 }
 \examples{
+\dontrun{
 T <- 50 # Observations
 N <- 2 # Experts
 P <- 9 # Quantiles
@@ -67,5 +68,6 @@ model <- oracle(
     y = matrix(y),
     experts = experts
 )
+}
 
 }
