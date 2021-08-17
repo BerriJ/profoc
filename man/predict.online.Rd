@@ -2,10 +2,7 @@
 % Please edit documentation in R/methods_online.R
 \name{predict.online}
 \alias{predict.online}
-\title{Predict method for online models
-Calculates predictions based on new expert advice.
-This does not update weights. If new observations are available
-use update instead. The latter updates and computes predictions.}
+\title{Predict method for online models}
 \usage{
 \method{predict}{online}(object, new_experts, ...)
 }
@@ -20,7 +17,6 @@ use update instead. The latter updates and computes predictions.}
 \code{predict.online} produces an updated model object.
 }
 \description{
-Predict method for online models
 Calculates predictions based on new expert advice.
 This does not update weights. If new observations are available
 use update instead. The latter updates and computes predictions.

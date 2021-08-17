@@ -9,6 +9,7 @@ print.online <- function(x, ...) {
 }
 
 #' Predict method for online models
+#'
 #' Calculates predictions based on new expert advice.
 #' This does not update weights. If new observations are available
 #' use update instead. The latter updates and computes predictions.
