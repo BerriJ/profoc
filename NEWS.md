@@ -1,3 +1,8 @@
+profoc 0.8.4 (Release date: 2021-09-15)
+==============
+
+* Remove unused C++17 dependency
+
 profoc 0.8.3 (Release date: 2021-08-15)
 ==============
 
