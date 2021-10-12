@@ -13,12 +13,12 @@ using namespace arma;
 // TODO Move core objects into a struct
 
 void online_learning_core(
-    const int &T,
-    const int &P,
-    const int &K,
-    const int &T_E_Y,
-    const int &start,
-    const int &lead_time,
+    const unsigned int &T,
+    const unsigned int &P,
+    const unsigned int &K,
+    const unsigned int &T_E_Y,
+    const unsigned int &start,
+    const unsigned int &lead_time,
     const mat &y,
     const cube &experts,
     const vec &tau,
@@ -356,7 +356,7 @@ Rcpp::List online_rcpp(
     mat &y,
     cube &experts,
     vec tau, // We don't pass by reference here since tau may be modified
-    const int &lead_time,
+    const unsigned int &lead_time,
     const std::string loss_function,
     const double &loss_parameter,
     const bool &loss_gradient,
@@ -374,7 +374,7 @@ Rcpp::List online_rcpp(
     const vec &p_smooth_deg,
     const vec &p_smooth_ndiff,
     const vec &gamma,
-    const int &parametergrid_max_combinations,
+    const unsigned int &parametergrid_max_combinations,
     const mat &parametergrid,
     const double &forget_past_performance,
     bool allow_quantile_crossing,
@@ -393,10 +393,10 @@ Rcpp::List online_rcpp(
   // X number of parameter combinations to consider
 
   // Object Dimensions
-  const int T = y.n_rows;
-  const int P = experts.n_cols;
-  const int K = experts.n_slices;
-  const int T_E_Y = experts.n_rows - y.n_rows;
+  const unsigned int T = y.n_rows;
+  const unsigned int P = experts.n_cols;
+  const unsigned int K = experts.n_slices;
+  const unsigned int T_E_Y = experts.n_rows - y.n_rows;
 
   if (T_E_Y < 0)
     Rcpp::stop("Number of provided expert predictions has to match or exceed observations.");
@@ -471,7 +471,7 @@ Rcpp::List online_rcpp(
     param_grid = param_grid.rows(tmp_index);
   }
 
-  const int X = param_grid.n_rows;
+  const unsigned int X = param_grid.n_rows;
   mat chosen_params(T, param_grid.n_cols);
   vec opt_index(T + 1, fill::zeros);
   cube past_performance(T, P, X, fill::zeros);
