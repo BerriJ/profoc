@@ -18,7 +18,7 @@ using optim::Vec_t;
 // additional data for objective function
 struct objective_data
 {
-    int K;
+    unsigned int K;
     vec truth;
     mat truth_mat;
     mat experts;
@@ -105,7 +105,6 @@ double objective2(const vec &vals_inp, vec *grad_out, void *opt_data)
 {
     objective_data *objfn_data = reinterpret_cast<objective_data *>(opt_data);
 
-    int K = objfn_data->K;
     mat truth_mat = objfn_data->truth_mat;
     std::string loss_function = objfn_data->loss_function;
     vec tau_vec = objfn_data->tau_vec;
@@ -331,7 +330,6 @@ mat optimize_betas(const mat &truth,
                    const bool &qw_crps)
 {
 
-    const int P = experts.n_cols;
     const int K = experts.n_slices;
 
     // Prepare additional data for objective
