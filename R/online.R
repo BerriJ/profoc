@@ -111,25 +111,6 @@ online <- function(y, experts,
                    loss = NULL,
                    regret = NULL,
                    trace = TRUE) {
-
-    # Ensure that online_rcpp does not expand a grid for basis_knot_distance
-    # and p_smooth_knot_distance etc.
-    if (missing(p_smooth_knot_distance)) {
-        p_smooth_knot_distance <- as.numeric(c())
-    }
-
-    if (missing(p_smooth_knot_distance_power)) {
-        p_smooth_knot_distance_power <- as.numeric(c())
-    }
-
-    if (missing(p_smooth_deg)) {
-        p_smooth_deg <- as.numeric(c())
-    }
-
-    if (is.null(parametergrid)) {
-        parametergrid <- matrix(ncol = 0, nrow = 0)
-    }
-
     if (is.null(loss)) {
         loss_array <- array(, dim = c(0, 0, 0))
         loss_share <- 0
@@ -152,6 +133,60 @@ online <- function(y, experts,
         regret_share <- regret$share
     }
 
+    if (is.null(parametergrid)) {
+        if (missing(p_smooth_knot_distance)) {
+            p_smooth_knot_distance <- 0
+            inh_kstep <- TRUE
+        } else {
+            inh_kstep <- FALSE
+        }
+
+        if (missing(p_smooth_knot_distance_power)) {
+            p_smooth_knot_distance_power <- 0
+            inh_kstep_p <- TRUE
+        } else {
+            inh_kstep_p <- FALSE
+        }
+
+        if (missing(p_smooth_deg)) {
+            p_smooth_deg <- 0
+            inh_deg <- TRUE
+        } else {
+            inh_deg <- FALSE
+        }
+
+        grid <- expand.grid(
+            basis_knot_distance,
+            basis_knot_distance_power,
+            basis_deg,
+            forget_regret,
+            soft_threshold,
+            hard_threshold,
+            fixed_share,
+            p_smooth_lambda,
+            p_smooth_knot_distance,
+            p_smooth_knot_distance_power,
+            p_smooth_deg,
+            p_smooth_ndiff,
+            gamma,
+            loss_share,
+            regret_share
+        )
+
+        if (inh_kstep) {
+            grid[, 9] <- grid[, 1]
+        }
+
+        if (inh_kstep_p) {
+            grid[, 10] <- grid[, 2]
+        }
+
+        if (inh_deg) {
+            grid[, 11] <- grid[, 3]
+        }
+
+        parametergrid <- as.matrix(grid)
+    }
     model <- online_rcpp(
         y = y, experts = experts, tau = tau,
         lead_time = lead_time,
