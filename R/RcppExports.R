@@ -41,8 +41,8 @@ mat2vec <- function(x) {
     .Call(`_profoc_mat2vec`, x)
 }
 
-online_rcpp <- function(y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, basis_knot_distance, basis_knot_distance_power, basis_deg, forget_regret, soft_threshold, hard_threshold, fixed_share, p_smooth_lambda, p_smooth_knot_distance, p_smooth_knot_distance_power, p_smooth_deg, p_smooth_ndiff, gamma, parametergrid_max_combinations, parametergrid, forget_past_performance, allow_quantile_crossing, init_weights, loss_array, loss_share, regret_array, regret_share, trace) {
-    .Call(`_profoc_online_rcpp`, y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, basis_knot_distance, basis_knot_distance_power, basis_deg, forget_regret, soft_threshold, hard_threshold, fixed_share, p_smooth_lambda, p_smooth_knot_distance, p_smooth_knot_distance_power, p_smooth_deg, p_smooth_ndiff, gamma, parametergrid_max_combinations, parametergrid, forget_past_performance, allow_quantile_crossing, init_weights, loss_array, loss_share, regret_array, regret_share, trace)
+online_rcpp <- function(y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, parametergrid_max_combinations, param_grid, forget_past_performance, allow_quantile_crossing, init_weights, loss_array, regret_array, trace) {
+    .Call(`_profoc_online_rcpp`, y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, parametergrid_max_combinations, param_grid, forget_past_performance, allow_quantile_crossing, init_weights, loss_array, regret_array, trace)
 }
 
 predict_online <- function(object, new_experts) {
