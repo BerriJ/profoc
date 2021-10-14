@@ -137,14 +137,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // vec2mat
-mat vec2mat(const vec& x, const int& matrows, const int& matcols);
+mat vec2mat(const vec& x, const unsigned int& matrows, const unsigned int& matcols);
 RcppExport SEXP _profoc_vec2mat(SEXP xSEXP, SEXP matrowsSEXP, SEXP matcolsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const int& >::type matrows(matrowsSEXP);
-    Rcpp::traits::input_parameter< const int& >::type matcols(matcolsSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type matrows(matrowsSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type matcols(matcolsSEXP);
     rcpp_result_gen = Rcpp::wrap(vec2mat(x, matrows, matcols));
     return rcpp_result_gen;
 END_RCPP

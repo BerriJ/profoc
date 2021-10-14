@@ -174,11 +174,9 @@ void online_learning_core(
         if (method == "ewa")
         {
           // Update the cumulative regret used by eta
-          R(x).row(l) *= (1 - param_grid(x, 3));
-          R(x).row(l) += r.t();
+          R(x).row(l) = R(x).row(l) * (1 - param_grid(x, 3)) + r.t();
           eta(x).row(l).fill(param_grid(x, 12));
-          beta(x).row(l) = beta0field(x).row(l) * K % exp(param_grid(x, 12) * R(x).row(l));
-          beta(x).row(l) /= accu(beta(x).row(l));
+          beta(x).row(l) = beta0field(x).row(l) * K % softmax_r(param_grid(x, 12) * R(x).row(l));
         }
         else if (method == "ml_poly")
         {
@@ -218,19 +216,12 @@ void online_learning_core(
           if (method == "boa")
           {
             // Wintenberger
-            beta(x).row(l) =
-                param_grid(x, 12) * eta(x).row(l) % exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l)) % beta0field(x).row(l);
-
-            beta(x).row(l) /=
-                mean(param_grid(x, 12) * eta(x).row(l) % exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l)));
+            beta(x).row(l) = beta0field(x).row(l) * K % softmax_r(log(param_grid(x, 12) * eta(x).row(l)) + param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
           }
           else
           {
             // Gaillard
-            beta(x).row(l) =
-                beta0field(x).row(l) * K % exp(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
-            beta(x).row(l) = pmin_arma(pmax_arma(beta(x).row(l), exp(-700)), exp(700));
-            beta(x).row(l) /= accu(beta(x).row(l));
+            beta(x).row(l) = beta0field(x).row(l) * K % softmax_r(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
           }
         }
         else
