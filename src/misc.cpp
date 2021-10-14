@@ -105,15 +105,15 @@ double threshold_soft(double &x,
 
 // [[Rcpp::export]]
 mat vec2mat(const vec &x,
-            const int &matrows,
-            const int &matcols)
+            const unsigned int &matrows,
+            const unsigned int &matcols)
 {
 
     mat outmat(matrows, matcols);
     int i = 0;
-    for (int row = 0; row < matrows; row++)
+    for (unsigned int row = 0; row < matrows; row++)
     {
-        for (int col = 0; col < matcols; col++)
+        for (unsigned int col = 0; col < matcols; col++)
         {
             outmat(row, col) = x(i);
             i += 1;
@@ -127,13 +127,29 @@ vec mat2vec(const mat &x)
 {
     vec outvec(x.n_rows * x.n_cols);
     int i = 0;
-    for (int row = 0; row < x.n_rows; row++)
+    for (unsigned int row = 0; row < x.n_rows; row++)
     {
-        for (int col = 0; col < x.n_cols; col++)
+        for (unsigned int col = 0; col < x.n_cols; col++)
         {
             outvec(i) = x(row, col);
             i += 1;
         }
     }
     return outvec;
+}
+
+rowvec softmax_r(rowvec x)
+{
+    rowvec expvec = exp(x);
+    expvec = pmin_arma(pmax_arma(expvec, exp(-700)), exp(700));
+    expvec /= sum(expvec);
+    return expvec;
+}
+
+colvec softmax_c(colvec x)
+{
+    colvec expvec = exp(x);
+    expvec = pmin_arma(pmax_arma(expvec, exp(-700)), exp(700));
+    expvec /= sum(expvec);
+    return expvec;
 }

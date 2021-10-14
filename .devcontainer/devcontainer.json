@@ -1,5 +1,5 @@
 {
-    "name": "Profoc",
+    "name": "DevEnv",
     "image": "ghcr.io/berrij/devenv:dev",
     // Grant xhost access to root user in order to start x11 devices (r plots)
     "initializeCommand": "docker pull ghcr.io/berrij/devenv:dev",
@@ -14,10 +14,14 @@
     // The first line mounts $HOME/USER/git into /workspaces together with the
     // current workspace. Uncomment or edit as you like.
     "mounts": [
+        // Mount local volume to store extensions between container runs
+        "source=extensions_cache,target=/home/vscode/.vscode-server/extensions,type=volume",
+        // And/or for VS Code Insiders
+        "source=extensions_cache_insiders,target=/home/vscode/.vscode-server-insiders/extensions,type=volume"
         // Mount git folder into /workspaces - vscode will also mount the current workspace there
-        "source=${localEnv:HOME}${localEnv:USERPROFILE}/git,target=/workspaces,type=bind,consistency=cached",
+        //"source=${localEnv:HOME}${localEnv:USERPROFILE}/git,target=/workspaces,type=bind,consistency=cached",
         // Mount x11 into container -> to display R/Python graphics devices locally
-        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
+        //"source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
     ],
     // Extensions will get installed automatically
     "extensions": [
@@ -35,14 +39,18 @@
         // Latex
         "james-yu.latex-workshop",
         "znck.grammarly",
-        // Hide .gitignored files from folder tree
+        // Git
         "npxms.hide-gitignored",
+        "eamodio.gitlens",
+        "github.vscode-pull-request-github",
         // Markdown
         "yzhang.markdown-all-in-one",
         // Preview HTML
         "daiyy.quick-html-previewer",
         // Make fancy screenshots
         "pnp.polacode",
+        // Live Share
+        "ms-vsliveshare.vsliveshare"
     ],
     // Set *default* container specific settings
     // Important for radian and latex
@@ -54,12 +62,14 @@
         },
         // Python
         // "python.dataScience.notebookFileRoot": "${workspaceFolder}/code",
+        "python.pythonPath": "/usr/bin/python3",
         "python.dataScience.interactiveWindowMode": "perFile",
         "python.dataScience.sendSelectionToInteractiveWindow": true,
         // R
         "r.rterm.linux": "/usr/local/bin/radian",
         "r.bracketedPaste": true,
         "r.sessionWatcher": true,
+        "r.plot.useHttpgd": true,
         // Latex
         // "latex-workshop.latex.recipe.default": "latexmk (lualatex)",
         "latex-workshop.view.pdf.viewer": "tab",
