@@ -102,23 +102,89 @@ batch <- function(y,
                   forget_past_performance = 0,
                   allow_quantile_crossing = FALSE,
                   trace = TRUE) {
-
-    # Ensure that batch_rcpp does not expand a grid for basis_knot_distance
-    # and p_smooth_knot_distance etc.
-    if (missing(p_smooth_knot_distance)) {
-        p_smooth_knot_distance <- as.numeric(c())
+    if (nrow(y) <= initial_window) {
+        stop("Initial estimation window greater or equal to input data.")
     }
 
-    if (missing(p_smooth_knot_distance_power)) {
-        p_smooth_knot_distance_power <- as.numeric(c())
+    if (initial_window > rolling_window) {
+        stop("Initial estimation window bigger than rolling_window.")
     }
 
-    if (missing(p_smooth_deg)) {
-        p_smooth_deg <- as.numeric(c())
+    if (nrow(experts) - nrow(y) < 0) {
+        stop("Number of provided expert predictions has to match or exceed observations.")
     }
 
+    if (ncol(y) > 1 & !allow_quantile_crossing) {
+        warning("Warning: allow_quantile_crossing set to true since multivariate prediction target was provided.")
+        # Bool is set inside C++
+    }
     if (is.null(parametergrid)) {
-        parametergrid <- matrix(ncol = 0, nrow = 0)
+        if (missing(p_smooth_knot_distance)) {
+            p_smooth_knot_distance <- 0
+            inh_kstep <- TRUE
+        } else {
+            inh_kstep <- FALSE
+        }
+
+        if (missing(p_smooth_knot_distance_power)) {
+            p_smooth_knot_distance_power <- 0
+            inh_kstep_p <- TRUE
+        } else {
+            inh_kstep_p <- FALSE
+        }
+
+        if (missing(p_smooth_deg)) {
+            p_smooth_deg <- 0
+            inh_deg <- TRUE
+        } else {
+            inh_deg <- FALSE
+        }
+
+        grid <- expand.grid(
+            basis_knot_distance,
+            basis_knot_distance_power,
+            basis_deg,
+            forget,
+            soft_threshold,
+            hard_threshold,
+            fixed_share,
+            p_smooth_lambda,
+            p_smooth_knot_distance,
+            p_smooth_knot_distance_power,
+            p_smooth_deg,
+            p_smooth_ndiff
+        )
+
+        if (inh_kstep) {
+            grid[, 9] <- grid[, 1]
+        }
+
+        if (inh_kstep_p) {
+            grid[, 10] <- grid[, 2]
+        }
+
+        if (inh_deg) {
+            grid[, 11] <- grid[, 3]
+        }
+
+        parametergrid <- as.matrix(grid)
+    } else if (ncol(parametergrid) != 12) {
+        stop("Please provide a parametergrid with 12 columns.")
+    }
+
+
+    if (nrow(parametergrid) > parametergrid_max_combinations) {
+        warning(
+            paste(
+                "Warning: Too many parameter combinations possible.",
+                parametergrid_max_combinations,
+                "combinations were randomly sampled. Results may depend on sampling."
+            )
+        )
+        parametergrid <- parametergrid[sample(
+            x = 1:nrow(parametergrid),
+            size = parametergrid_max_combinations
+        ), ]
     }
 
     model <- batch_rcpp(
@@ -135,20 +201,7 @@ batch <- function(y,
         loss_function = loss_function,
         loss_parameter = loss_parameter,
         qw_crps = qw_crps,
-        basis_knot_distance = basis_knot_distance,
-        basis_knot_distance_power = basis_knot_distance_power,
-        basis_deg = basis_deg,
-        forget = forget,
-        soft_threshold = soft_threshold,
-        hard_threshold = hard_threshold,
-        fixed_share = fixed_share,
-        p_smooth_lambda = p_smooth_lambda,
-        p_smooth_knot_distance = p_smooth_knot_distance,
-        p_smooth_knot_distance_power = p_smooth_knot_distance_power,
-        p_smooth_deg = p_smooth_deg,
-        p_smooth_ndiff = p_smooth_ndiff,
-        parametergrid_max_combinations = parametergrid_max_combinations,
-        parametergrid = parametergrid,
+        param_grid = parametergrid,
         forget_past_performance = forget_past_performance,
         allow_quantile_crossing = allow_quantile_crossing,
         trace = trace
