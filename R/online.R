@@ -186,7 +186,24 @@ online <- function(y, experts,
         }
 
         parametergrid <- as.matrix(grid)
+    } else if (ncol(parametergrid) != 15) {
+        stop("Please provide a parametergrid with 15 columns.")
     }
+
+    if (nrow(parametergrid) > parametergrid_max_combinations) {
+        warning(
+            paste(
+                "Warning: Too many parameter combinations possible.",
+                parametergrid_max_combinations,
+                "combinations were randomly sampled. Results may depend on sampling."
+            )
+        )
+        parametergrid <- parametergrid[sample(
+            x = 1:nrow(parametergrid),
+            size = parametergrid_max_combinations
+        ), ]
+    }
+
     model <- online_rcpp(
         y = y, experts = experts, tau = tau,
         lead_time = lead_time,
@@ -194,28 +211,12 @@ online <- function(y, experts,
         loss_parameter = loss_parameter,
         loss_gradient = loss_gradient,
         method = method,
-        basis_knot_distance = basis_knot_distance,
-        basis_knot_distance_power = basis_knot_distance_power,
-        basis_deg = basis_deg,
-        forget_regret = forget_regret,
-        soft_threshold = soft_threshold,
-        hard_threshold = hard_threshold,
-        fixed_share = fixed_share,
-        p_smooth_lambda = p_smooth_lambda,
-        p_smooth_knot_distance = p_smooth_knot_distance,
-        p_smooth_knot_distance_power = p_smooth_knot_distance_power,
-        p_smooth_deg = p_smooth_deg,
-        p_smooth_ndiff = p_smooth_ndiff,
-        gamma = gamma,
-        parametergrid_max_combinations = parametergrid_max_combinations,
-        parametergrid = parametergrid,
+        param_grid = parametergrid,
         forget_past_performance = forget_past_performance,
         allow_quantile_crossing = allow_quantile_crossing,
         init_weights = init_weights,
         loss_array = loss_array,
-        loss_share = loss_share,
         regret_array = regret_array,
-        regret_share = regret_share,
         trace = trace
     )
 

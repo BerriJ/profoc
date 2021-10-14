@@ -32,7 +32,7 @@ void online_learning_core(
     mat &predictions,
     cube &past_performance,
     vec &opt_index,
-    mat &param_grid,
+    const mat &param_grid,
     mat &chosen_params,
     field<mat> &R,
     field<mat> &R_reg,
@@ -361,28 +361,12 @@ Rcpp::List online_rcpp(
     const double &loss_parameter,
     const bool &loss_gradient,
     const std::string method,
-    const vec &basis_knot_distance,
-    const vec &basis_knot_distance_power,
-    const vec &basis_deg,
-    const vec &forget_regret,
-    const vec &soft_threshold,
-    const vec &hard_threshold,
-    const vec &fixed_share,
-    const vec &p_smooth_lambda,
-    const vec &p_smooth_knot_distance,
-    const vec &p_smooth_knot_distance_power,
-    const vec &p_smooth_deg,
-    const vec &p_smooth_ndiff,
-    const vec &gamma,
-    const unsigned int &parametergrid_max_combinations,
-    const mat &parametergrid,
+    const mat &param_grid,
     const double &forget_past_performance,
     bool allow_quantile_crossing,
     Rcpp::Nullable<Rcpp::NumericMatrix> init_weights,
     const cube &loss_array,
-    const vec &loss_share,
     const cube &regret_array,
-    const vec &regret_share,
     const bool trace)
 {
 
@@ -420,57 +404,6 @@ Rcpp::List online_rcpp(
     tau.fill(tau(0));
   }
 
-  vec basis_knot_distance_vec = basis_knot_distance;
-
-  bool inh_deg = false;
-  if (p_smooth_deg.n_elem == 0)
-    inh_deg = true;
-
-  bool inh_kstep = false;
-  if (p_smooth_knot_distance.n_elem == 0)
-    inh_kstep = true;
-
-  bool inh_kstep_p = false;
-  if (p_smooth_knot_distance_power.n_elem == 0)
-    inh_kstep_p = true;
-
-  // Init parametergrid
-  mat param_grid;
-
-  if (parametergrid.n_rows != 0)
-  {
-    param_grid = parametergrid;
-    if (param_grid.n_cols != 15)
-      Rcpp::stop("Please provide a parametergrid with 15 columns.");
-  }
-  else
-  {
-    param_grid =
-        get_combinations(basis_knot_distance_vec,                                            // Index 0
-                         basis_knot_distance_power);                                         // Index 1
-    param_grid = get_combinations(param_grid, basis_deg);                                    // index 2
-    param_grid = get_combinations(param_grid, forget_regret);                                // index 3
-    param_grid = get_combinations(param_grid, soft_threshold);                               // index 4
-    param_grid = get_combinations(param_grid, hard_threshold);                               // index 5
-    param_grid = get_combinations(param_grid, fixed_share);                                  // index 6
-    param_grid = get_combinations(param_grid, p_smooth_lambda);                              // index 7
-    param_grid = get_combinations(param_grid, p_smooth_knot_distance, inh_kstep, 0);         // Index 8
-    param_grid = get_combinations(param_grid, p_smooth_knot_distance_power, inh_kstep_p, 1); // Index 9
-    param_grid = get_combinations(param_grid, p_smooth_deg, inh_deg, 2);                     // Index 10
-    param_grid = get_combinations(param_grid, p_smooth_ndiff);                               // Index 11
-    param_grid = get_combinations(param_grid, gamma);                                        // Index 12
-    param_grid = get_combinations(param_grid, loss_share);                                   // Index 13
-    param_grid = get_combinations(param_grid, regret_share);                                 // Index 14
-  }
-
-  if (param_grid.n_rows > parametergrid_max_combinations)
-  {
-    Rcpp::warning("Warning: Too many parameter combinations possible. %m combinations were randomly sampled. Results may depend on sampling.", parametergrid_max_combinations);
-    uvec tmp_index = randperm(param_grid.n_rows, parametergrid_max_combinations);
-    tmp_index = sort(tmp_index);
-    param_grid = param_grid.rows(tmp_index);
-  }
-
   const unsigned int X = param_grid.n_rows;
   mat chosen_params(T, param_grid.n_cols);
   vec opt_index(T + 1, fill::zeros);
@@ -480,7 +413,6 @@ Rcpp::List online_rcpp(
   Progress prog(T * X + X, trace);
 
   // Init weight objects
-
   mat w0;
   // Populate uniform weights if w0 was not specified
   if (init_weights.isNotNull())
