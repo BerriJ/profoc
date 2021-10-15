@@ -60,7 +60,7 @@ Rcpp::List batch_rcpp(
         y = repmat(y, 1, P);
     }
 
-    // Set expand if necessary
+    // Expand tau if necessary
     if (tau.n_elem == 1)
     {
         tau.resize(P);
@@ -74,8 +74,6 @@ Rcpp::List batch_rcpp(
     vec tmp_performance(X, fill::zeros);
     vec cum_performance(X, fill::zeros);
     Progress prog((T - initial_window) * X + X, trace);
-
-    // Populate uniform weights
 
     // Init object holding temp. weights, resp. ex-ante
     cube weights_tmp(P, K, X);

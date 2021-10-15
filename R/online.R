@@ -217,6 +217,27 @@ online <- function(y, experts,
         ), ]
     }
 
+    if (is.null(init_weights)) {
+        init_weights <- matrix(
+            1 / dim(experts)[[3]],
+            nrow = dim(experts)[[2]],
+            ncol = dim(experts)[[3]]
+        )
+    } else if (nrow(init_weights) == 1) {
+        init_weights <- matrix(init_weights,
+            nrow = dim(experts)[[2]],
+            ncol = dim(experts)[[3]],
+            byrow = TRUE
+        )
+    } else if (
+        (nrow(init_weights) != 1 &
+            nrow(init_weights) != dim(experts)[[2]]) |
+            ncol(init_weights) != dim(experts)[[3]]) {
+        stop("Either a 1xK or PxK matrix of initial weights must be supplied.")
+    }
+    init_weights <- pmax(init_weights, exp(-350))
+    init_weights <- init_weights / rowSums(init_weights)
+
     model <- online_rcpp(
         y = y, experts = experts, tau = tau,
         lead_time = lead_time,
@@ -227,7 +248,7 @@ online <- function(y, experts,
         param_grid = parametergrid,
         forget_past_performance = forget_past_performance,
         allow_quantile_crossing = allow_quantile_crossing,
-        init_weights = init_weights,
+        w0 = init_weights,
         loss_array = loss_array,
         regret_array = regret_array,
         trace = trace
