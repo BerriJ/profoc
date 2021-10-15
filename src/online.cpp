@@ -373,12 +373,8 @@ Rcpp::List online_rcpp(
   const unsigned int K = experts.n_slices;
   const unsigned int T_E_Y = experts.n_rows - y.n_rows;
 
-  if (T_E_Y < 0)
-    Rcpp::stop("Number of provided expert predictions has to match or exceed observations.");
-
   if (y.n_cols > 1 && !allow_quantile_crossing)
   {
-    Rcpp::warning("Warning: allow_quantile_crossing set to true since multivariate prediction target was provided.");
     allow_quantile_crossing = true;
   }
 
@@ -531,9 +527,6 @@ Rcpp::List online_rcpp(
       prog.increment(); // Update progress
     }
   }
-
-  if (T <= lead_time)
-    Rcpp::stop("Number of expert predictions need to exceed lead_time.");
 
   // Predictions at t < lead_time using initial weights
   for (unsigned int t = 0; t < lead_time; t++)
