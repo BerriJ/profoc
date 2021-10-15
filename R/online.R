@@ -111,6 +111,19 @@ online <- function(y, experts,
                    loss = NULL,
                    regret = NULL,
                    trace = TRUE) {
+    if (ncol(y) > 1 & !allow_quantile_crossing) {
+        warning("Warning: allow_quantile_crossing set to true since multivariate prediction target was provided.")
+        # Bool is set inside C++
+    }
+
+    if (nrow(experts) - nrow(y) < 0) {
+        stop("Number of provided expert predictions has to match or exceed observations.")
+    }
+
+    if (nrow(y) <= lead_time) {
+        stop("Number of expert predictions need to exceed lead_time.")
+    }
+
     if (is.null(loss)) {
         loss_array <- array(, dim = c(0, 0, 0))
         loss_share <- 0
