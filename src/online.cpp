@@ -10,8 +10,6 @@
 
 using namespace arma;
 
-// TODO Move core objects into a struct
-
 void online_learning_core(
     const unsigned int &T,
     const unsigned int &P,
@@ -181,8 +179,7 @@ void online_learning_core(
         else if (method == "ml_poly")
         {
           // Update the cumulative regret used by ML_Poly
-          R(x).row(l) *= (1 - param_grid(x, 3));
-          R(x).row(l) += r.t();
+          R(x).row(l) = R(x).row(l) * (1 - param_grid(x, 3)) + r.t();
 
           // Update the learning rate
           eta(x).row(l) = 1 / (1 / eta(x).row(l) + square(r.t()));
@@ -195,11 +192,9 @@ void online_learning_core(
         else if (method == "boa" || method == "bewa")
         {
 
-          V(x).row(l) *= (1 - param_grid(x, 3));
-          V(x).row(l) += square(r.t());
+          V(x).row(l) = V(x).row(l) * (1 - param_grid(x, 3)) + square(r.t());
 
-          E(x).row(l) =
-              max(E(x).row(l) * (1 - param_grid(x, 3)), abs(r.t()));
+          E(x).row(l) = max(E(x).row(l) * (1 - param_grid(x, 3)), abs(r.t()));
 
           eta(x).row(l) =
               pmin_arma(
@@ -355,7 +350,7 @@ Rcpp::List online_rcpp(
     const mat &param_grid,
     const double &forget_past_performance,
     bool allow_quantile_crossing,
-    Rcpp::Nullable<Rcpp::NumericMatrix> init_weights,
+    const mat w0,
     const cube &loss_array,
     const cube &regret_array,
     const bool trace)
@@ -384,7 +379,7 @@ Rcpp::List online_rcpp(
     y = repmat(y, 1, P);
   }
 
-  // Set expand if necessary
+  // Expand tau if necessary
   if (tau.n_elem == 1)
   {
     tau.resize(P);
@@ -399,34 +394,7 @@ Rcpp::List online_rcpp(
   vec cum_performance(X, fill::zeros);
   Progress prog(T * X + X, trace);
 
-  // Init weight objects
-  mat w0;
-  // Populate uniform weights if w0 was not specified
-  if (init_weights.isNotNull())
-  {
-    w0 = Rcpp::as<arma::mat>(init_weights);
-    if ((w0.n_rows != 1 && w0.n_rows != P) || w0.n_cols != K)
-      Rcpp::stop("Either a 1xK or PxK matrix of initial weights must be supplied.");
-  }
-  else
-  {
-    w0.set_size(1, K);
-    w0.fill(1 / double(K));
-  }
-
-  // Expand w0 if necessary
-  if (w0.n_rows == 1)
-  {
-    w0 = repmat(w0, P, 1);
-  }
-
-  // Truncate from below
-  w0 = pmax_arma(w0, exp(-350));
-
-  // Normalize weights
-  w0.each_col() /= sum(w0, 1);
-
-  // Init object holding weights
+  // Init objects holding weights
   cube weights_tmp(P, K, X);
   weights_tmp.each_slice() = w0;
 
