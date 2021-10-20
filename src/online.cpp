@@ -452,6 +452,8 @@ Rcpp::List online_rcpp(
       eta(x) = eta_;
     }
 
+    // TODO Fill with provided R0
+
     R_reg(x).zeros(L, K);
     R(x).zeros(L, K);
 

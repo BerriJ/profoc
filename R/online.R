@@ -38,7 +38,7 @@
 #'
 #' @template param_allow_quantile_crossing
 #'
-#' @param init_weights Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P, whereas specifying a PxK matrix allows different starting weights for each P.
+#' @param init A named list containing "init_weights": Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P, whereas specifying a PxK matrix allows different starting weights for each P. "regret" a matrix of dimension PxK used as starting regret.
 #' @param loss User specified loss array. Can also be a list with elements "loss_array"
 #' and "share", share mixes the provided loss with the loss calculated by
 #' profoc. 1 means, only the provided loss will be used. share can also be
@@ -100,14 +100,15 @@ online <- function(y, experts,
                    fixed_share = 0,
                    p_smooth_lambda = -Inf,
                    p_smooth_knot_distance = basis_knot_distance,
-                   p_smooth_knot_distance_power = basis_knot_distance_power, p_smooth_deg = basis_deg,
+                   p_smooth_knot_distance_power = basis_knot_distance_power, 
+                   p_smooth_deg = basis_deg,
                    p_smooth_ndiff = 1.5,
                    gamma = 1,
                    parametergrid_max_combinations = 100,
                    parametergrid = NULL,
                    forget_past_performance = 0,
                    allow_quantile_crossing = FALSE,
-                   init_weights = NULL,
+                   init = NULL,
                    loss = NULL,
                    regret = NULL,
                    trace = TRUE) {
@@ -217,26 +218,26 @@ online <- function(y, experts,
         ), ]
     }
 
-    if (is.null(init_weights)) {
-        init_weights <- matrix(
+    if (is.null(init$init_weights)) {
+        init$init_weights <- matrix(
             1 / dim(experts)[[3]],
             nrow = dim(experts)[[2]],
             ncol = dim(experts)[[3]]
         )
-    } else if (nrow(init_weights) == 1) {
-        init_weights <- matrix(init_weights,
+    } else if (nrow(init$init_weights) == 1) {
+        init$init_weights <- matrix(init$init_weights,
             nrow = dim(experts)[[2]],
             ncol = dim(experts)[[3]],
             byrow = TRUE
         )
     } else if (
-        (nrow(init_weights) != 1 &
-            nrow(init_weights) != dim(experts)[[2]]) |
-            ncol(init_weights) != dim(experts)[[3]]) {
+        (nrow(init$init_weights) != 1 &
+            nrow(init$init_weights) != dim(experts)[[2]]) |
+            ncol(init$init_weights) != dim(experts)[[3]]) {
         stop("Either a 1xK or PxK matrix of initial weights must be supplied.")
     }
-    init_weights <- pmax(init_weights, exp(-350))
-    init_weights <- init_weights / rowSums(init_weights)
+    init$init_weights <- pmax(init$init_weights, exp(-350))
+    init$init_weights <- init$init_weights / rowSums(init$init_weights)
 
     model <- online_rcpp(
         y = y, experts = experts, tau = tau,
@@ -248,7 +249,7 @@ online <- function(y, experts,
         param_grid = parametergrid,
         forget_past_performance = forget_past_performance,
         allow_quantile_crossing = allow_quantile_crossing,
-        w0 = init_weights,
+        w0 = init$init_weights,
         loss_array = loss_array,
         regret_array = regret_array,
         trace = trace
