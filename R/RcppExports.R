@@ -41,8 +41,8 @@ mat2vec <- function(x) {
     .Call(`_profoc_mat2vec`, x)
 }
 
-online_rcpp <- function(y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, param_grid, forget_past_performance, allow_quantile_crossing, w0, loss_array, regret_array, trace) {
-    .Call(`_profoc_online_rcpp`, y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, param_grid, forget_past_performance, allow_quantile_crossing, w0, loss_array, regret_array, trace)
+online_rcpp <- function(y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, param_grid, forget_past_performance, allow_quantile_crossing, w0, R0, loss_array, regret_array, trace) {
+    .Call(`_profoc_online_rcpp`, y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, param_grid, forget_past_performance, allow_quantile_crossing, w0, R0, loss_array, regret_array, trace)
 }
 
 predict_online <- function(object, new_experts) {
