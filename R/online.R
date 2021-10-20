@@ -38,7 +38,7 @@
 #'
 #' @template param_allow_quantile_crossing
 #'
-#' @param init A named list containing "init_weights": Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P, whereas specifying a PxK matrix allows different starting weights for each P. "regret" a matrix of dimension PxK used as starting regret.
+#' @param init A named list containing "init_weights": Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P, whereas specifying a PxK matrix allows different starting weights for each P. "R0" a matrix of dimension PxK or 1xK used as starting regret.
 #' @param loss User specified loss array. Can also be a list with elements "loss_array"
 #' and "share", share mixes the provided loss with the loss calculated by
 #' profoc. 1 means, only the provided loss will be used. share can also be
@@ -100,7 +100,7 @@ online <- function(y, experts,
                    fixed_share = 0,
                    p_smooth_lambda = -Inf,
                    p_smooth_knot_distance = basis_knot_distance,
-                   p_smooth_knot_distance_power = basis_knot_distance_power, 
+                   p_smooth_knot_distance_power = basis_knot_distance_power,
                    p_smooth_deg = basis_deg,
                    p_smooth_ndiff = 1.5,
                    gamma = 1,
@@ -239,6 +239,24 @@ online <- function(y, experts,
     init$init_weights <- pmax(init$init_weights, exp(-350))
     init$init_weights <- init$init_weights / rowSums(init$init_weights)
 
+    if (is.null(init$R0)) {
+        init$R0 <- matrix(0,
+            nrow = dim(experts)[[2]],
+            ncol = dim(experts)[[3]],
+        )
+    } else if (nrow(init$R0) == 1) {
+        init$R0 <- matrix(init$R0,
+            nrow = dim(experts)[[2]],
+            ncol = dim(experts)[[3]],
+            byrow = TRUE
+        )
+    } else if (
+        (nrow(init$R0) != 1 &
+            nrow(init$R0) != dim(experts)[[2]]) |
+            ncol(init$R0) != dim(experts)[[3]]) {
+        stop("R0 must be 1xK or PxK.")
+    }
+
     model <- online_rcpp(
         y = y, experts = experts, tau = tau,
         lead_time = lead_time,
@@ -250,6 +268,7 @@ online <- function(y, experts,
         forget_past_performance = forget_past_performance,
         allow_quantile_crossing = allow_quantile_crossing,
         w0 = init$init_weights,
+        R0 = init$R0,
         loss_array = loss_array,
         regret_array = regret_array,
         trace = trace
