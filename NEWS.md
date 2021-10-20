@@ -1,3 +1,16 @@
+profoc 0.8.5 (Release date: tdb)
+==============
+
+## Changes:
+
+* `initial_weights` argument is replaces by `init`
+  * `init` takes a named list and currently `intial_weights` and `R0` the initial weights and the initial cumulative regret can be provided. They have to be PxK or 1xK. 
+
+### Internal changes
+
+* Internal changes to improve readability
+* Resolve C++ compilation warnings
+
 profoc 0.8.4 (Release date: 2021-09-15)
 ==============
 
