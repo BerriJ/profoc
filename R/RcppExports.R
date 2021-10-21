@@ -101,24 +101,20 @@ oracle <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive 
     .Call(`_profoc_oracle`, y, experts, tau, affine, positive, intercept, debias, loss_function, loss_parameter, forget)
 }
 
-make_knots <- function(kstep, a = 1, deg = 3L) {
-    .Call(`_profoc_make_knots`, kstep, a, deg)
+make_knots <- function(kstep, a = 1, deg = 3L, even = FALSE) {
+    .Call(`_profoc_make_knots`, kstep, a, deg, even)
 }
 
 make_difference_matrix <- function(knots, bdiff, deg) {
     .Call(`_profoc_make_difference_matrix`, knots, bdiff, deg)
 }
 
-make_hat_matrix <- function(x, kstep, lambda, bdiff, deg, a) {
-    .Call(`_profoc_make_hat_matrix`, x, kstep, lambda, bdiff, deg, a)
+make_hat_matrix <- function(x, kstep, lambda, bdiff, deg, a, even) {
+    .Call(`_profoc_make_hat_matrix`, x, kstep, lambda, bdiff, deg, a, even)
 }
 
-make_basis_matrix <- function(x, kstep, deg, a) {
-    .Call(`_profoc_make_basis_matrix`, x, kstep, deg, a)
-}
-
-spline_fit <- function(y, x, lambda = 1, ndiff = 1L, deg = 3L, knot_distance = 0.1, knot_distance_power = 1) {
-    .Call(`_profoc_spline_fit`, y, x, lambda, ndiff, deg, knot_distance, knot_distance_power)
+make_basis_matrix <- function(x, kstep, deg, a, even) {
+    .Call(`_profoc_make_basis_matrix`, x, kstep, deg, a, even)
 }
 
 splines2_basis <- function(x, knots, deg) {
