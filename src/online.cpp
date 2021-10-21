@@ -351,6 +351,7 @@ Rcpp::List online_rcpp(
     const double &forget_past_performance,
     bool allow_quantile_crossing,
     const mat w0,
+    const mat R0,
     const cube &loss_array,
     const cube &regret_array,
     const bool trace)
@@ -452,8 +453,8 @@ Rcpp::List online_rcpp(
       eta(x) = eta_;
     }
 
-    R_reg(x).zeros(L, K);
-    R(x).zeros(L, K);
+    R_reg(x) = basis_mats(x).t() * R0;
+    R(x) = basis_mats(x).t() * R0;
 
     beta(x) = (w0.t() * pinv(mat(basis_mats(x))).t()).t();
 

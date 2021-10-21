@@ -30,7 +30,7 @@ online(
   parametergrid = NULL,
   forget_past_performance = 0,
   allow_quantile_crossing = FALSE,
-  init_weights = NULL,
+  init = NULL,
   loss = NULL,
   regret = NULL,
   trace = TRUE
@@ -134,7 +134,7 @@ combination. Defaults to 0.}
 
 \item{allow_quantile_crossing}{Shall quantile crossing be allowed? Defaults to false, which means that predictions are sorted in ascending order.}
 
-\item{init_weights}{Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P, whereas specifying a PxK matrix allows different starting weights for each P.}
+\item{init}{A named list containing "init_weights": Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P, whereas specifying a PxK matrix allows different starting weights for each P. "R0" a matrix of dimension PxK or 1xK used as starting regret.}
 
 \item{loss}{User specified loss array. Can also be a list with elements "loss_array"
 and "share", share mixes the provided loss with the loss calculated by

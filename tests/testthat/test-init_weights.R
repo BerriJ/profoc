@@ -35,7 +35,7 @@ init_weights <- matrix(c(0.3, 0.7), ncol = N)
 model <- online(
     y = matrix(y),
     experts = experts,
-    init_weights = init_weights,
+    init = list(init_weights = init_weights),
     trace = FALSE
 )
 
@@ -50,7 +50,7 @@ init_weights[, 2] <- 9:1 / 10
 model <- online(
     y = matrix(y),
     experts = experts,
-    init_weights = init_weights,
+    init = list(init_weights = init_weights),
     trace = FALSE
 )
 
@@ -67,7 +67,7 @@ init_weights[6:9, ] <- init_weights[6:9, ] / 3
 model <- online(
     y = matrix(y),
     experts = experts,
-    init_weights = init_weights,
+    init = list(init_weights = init_weights),
     trace = FALSE
 )
 
@@ -79,6 +79,6 @@ init_weights <- matrix(c(0.3, 0.7), nrow = N)
 expect_error(online(
     y = matrix(y),
     experts = experts,
-    init_weights = init_weights,
+    init = list(init_weights = init_weights),
     trace = FALSE
 ), "Either a 1xK or PxK matrix of initial weights must be supplied.")
