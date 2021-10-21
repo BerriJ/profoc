@@ -118,8 +118,8 @@ Rcpp::List batch_rcpp(
                                                   param_grid(x, 7),  // lambda
                                                   param_grid(x, 11), // differences
                                                   param_grid(x, 10), // degree
-                                                  param_grid(x, 9)   // uneven grid
-                    );
+                                                  param_grid(x, 9),  // uneven grid
+                                                  P % 2 == 0);       // even
             }
             R_CheckUserInterrupt();
             prog.increment(); // Update progress
@@ -144,9 +144,10 @@ Rcpp::List batch_rcpp(
         else
         {
             basis_mats(x) = make_basis_matrix(spline_basis_x,
-                                              param_grid(x, 0),  // kstep
-                                              param_grid(x, 2),  // degree
-                                              param_grid(x, 1)); // uneven grid
+                                              param_grid(x, 0), // kstep
+                                              param_grid(x, 2), // degree
+                                              param_grid(x, 1), // uneven grid
+                                              P % 2 == 0);      // even
         }
 
         beta(x) = (weights_tmp.slice(x).t() * pinv(mat(basis_mats(x))).t()).t();
@@ -243,7 +244,7 @@ Rcpp::List batch_rcpp(
                         threshold_hard(e, param_grid(x, 5));
                     }
 
-                    //Add fixed_share
+                    // Add fixed_share
                     weights_tmp(span(p), span(intercept * debias, K - 1), span(x)) *= (1 - param_grid(x, 6));
                     weights_tmp(span(p), span(intercept * debias, K - 1), span(x)) += (param_grid(x, 6) / (K - intercept * debias));
                 }
@@ -280,7 +281,7 @@ Rcpp::List batch_rcpp(
                         threshold_hard(e, param_grid(x, 5));
                     }
 
-                    //Add fixed_share
+                    // Add fixed_share
                     beta(x).row(l) =
                         (1 - param_grid(x, 6)) * beta(x).row(l) +
                         (param_grid(x, 6) / K);

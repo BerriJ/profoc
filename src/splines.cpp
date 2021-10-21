@@ -9,11 +9,26 @@
 using namespace arma;
 
 // [[Rcpp::export]]
-vec make_knots(const double &kstep, const double &a = 1, const int deg = 3)
+vec make_knots(const double &kstep, const double &a = 1, const int deg = 3, const bool &even = false)
 {
-    vec x = arma::linspace(0 - deg * 2 * kstep, 1, 1 / (2 * kstep) + deg + 1);
-    vec xa = sign(x) % pow(arma::abs(x), a) / 2;
-    vec xb = 1 - reverse(xa.subvec(0, xa.n_elem - 2));
+
+    vec x;
+    vec xa;
+    vec xb;
+
+    if (even)
+    {
+        x = arma::linspace((0 - deg * 2 * kstep), 1 - kstep, (1 / (2 * kstep) - 0.5) + deg + 1);
+        xa = sign(x) % pow(arma::abs(x), a) / 2;
+        xb = 1 - reverse(xa.subvec(0, xa.n_elem - 1));
+    }
+    else
+    {
+        x = arma::linspace(0 - deg * 2 * kstep, 1, 1 / (2 * kstep) + deg + 1);
+        xa = sign(x) % pow(arma::abs(x), a) / 2;
+        xb = 1 - reverse(xa.subvec(0, xa.n_elem - 2));
+    }
+
     return join_cols(xa, xb);
 }
 
@@ -37,14 +52,14 @@ mat make_difference_matrix(const vec &knots, const int &bdiff, const int deg)
 }
 
 // [[Rcpp::export]]
-mat make_hat_matrix(const vec &x, const double &kstep, const double &lambda, const double &bdiff, const int deg, const double &a)
+mat make_hat_matrix(const vec &x, const double &kstep, const double &lambda, const double &bdiff, const int deg, const double &a, const bool &even)
 {
 
     mat H;
 
     if (kstep <= 0.5)
     {
-        vec knots = make_knots(kstep, a, deg);
+        vec knots = make_knots(kstep, a, deg, even);
         int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
 
         mat B = splines2_basis(x, knots, deg);
@@ -78,14 +93,14 @@ mat make_hat_matrix(const vec &x, const double &kstep, const double &lambda, con
 }
 
 // [[Rcpp::export]]
-sp_mat make_basis_matrix(const vec &x, const double &kstep, const int deg, const double &a)
+sp_mat make_basis_matrix(const vec &x, const double &kstep, const int deg, const double &a, const bool &even)
 {
     mat B;
 
     // Will be passed to make_hat_matrix
     if (kstep <= 0.5)
     {
-        vec knots = make_knots(kstep, a, deg);
+        vec knots = make_knots(kstep, a, deg, even);
         B = splines2_basis(x, knots, deg);
         // Remove columns without contribution
         B = B.cols(find(sum(B) >= 1E-6));
@@ -105,27 +120,4 @@ sp_mat make_basis_matrix(const vec &x, const double &kstep, const int deg, const
     sp_mat out(B);
 
     return out;
-}
-
-// [[Rcpp::export]]
-vec spline_fit(const vec &y,
-               const vec &x,
-               const double &lambda = 1,
-               const int &ndiff = 1,
-               const int &deg = 3,
-               const double &knot_distance = 0.1,
-               const double &knot_distance_power = 1)
-{
-
-    mat H = make_hat_matrix(x,
-                            knot_distance,
-                            lambda,
-                            ndiff,
-                            deg,
-                            knot_distance_power);
-
-    // Calculate fitted values
-    vec y_hat = H * y;
-
-    return y_hat;
 }

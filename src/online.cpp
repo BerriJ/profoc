@@ -251,7 +251,7 @@ void online_learning_core(
           }
         }
 
-        //Add fixed_share
+        // Add fixed_share
         beta(x).row(l) =
             (1 - param_grid(x, 6)) * beta(x).row(l) +
             (param_grid(x, 6) / K);
@@ -435,9 +435,10 @@ Rcpp::List online_rcpp(
     {
 
       basis_mats(x) = make_basis_matrix(spline_basis_x,
-                                        param_grid(x, 0),  // kstep
-                                        param_grid(x, 2),  // degree
-                                        param_grid(x, 1)); // uneven grid
+                                        param_grid(x, 0), // kstep
+                                        param_grid(x, 2), // degree
+                                        param_grid(x, 1), // uneven grid
+                                        P % 2 == 0);      // even
     }
 
     int L = basis_mats(x).n_cols;
@@ -487,8 +488,8 @@ Rcpp::List online_rcpp(
                                         param_grid(x, 7),  // lambda
                                         param_grid(x, 11), // differences
                                         param_grid(x, 10), // degree
-                                        param_grid(x, 9)   // uneven grid
-          );
+                                        param_grid(x, 9),  // uneven grid
+                                        P % 2 == 0);       // even
       }
       if (param_grid(x, 7) != -datum::inf)
         hat_mats(x) *= basis_mats(x);
