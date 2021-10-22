@@ -1,4 +1,4 @@
-profoc 0.8.5 (Release date: tdb)
+profoc 0.8.5 (Release date: 22.10.2021)
 ==============
 
 ## Changes:
