@@ -71,7 +71,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">profoc</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.8.4</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.8.5</span>
       </span>
     </div>
 
@@ -114,9 +114,35 @@
       <small>Source: <a href='https://github.com/BerriJ/profoc/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
+    <div id="profoc-085-release-date-22102021" class="section level1">
+<h1 class="page-header" data-toc-text="0.8.5">
+<a href="#profoc-085-release-date-22102021" class="anchor"></a>profoc 0.8.5 (Release date: 22.10.2021)<small> 2021-10-22 </small>
+</h1>
+<div id="changes" class="section level2">
+<h2 class="hasAnchor">
+<a href="#changes" class="anchor"></a>Changes:</h2>
+<ul>
+<li>
+<code>initial_weights</code> argument is replaces by <code>init</code>
+<ul>
+<li>
+<code>init</code> takes a named list and currently <code>intial_weights</code> and <code>R0</code> the initial weights and the initial cumulative regret can be provided. They have to be PxK or 1xK.</li>
+</ul>
+</li>
+</ul>
+<div id="internal-changes" class="section level3">
+<h3 class="hasAnchor">
+<a href="#internal-changes" class="anchor"></a>Internal changes</h3>
+<ul>
+<li>Internal changes to improve readability</li>
+<li>Resolve C++ compilation warnings</li>
+</ul>
+</div>
+</div>
+</div>
     <div id="profoc-084-release-date-2021-09-15" class="section level1">
 <h1 class="page-header" data-toc-text="0.8.4">
-<a href="#profoc-084-release-date-2021-09-15" class="anchor"></a>profoc 0.8.4 (Release date: 2021-09-15)<small> Unreleased </small>
+<a href="#profoc-084-release-date-2021-09-15" class="anchor"></a>profoc 0.8.4 (Release date: 2021-09-15)<small> 2021-09-15 </small>
 </h1>
 <ul>
 <li>Remove unused C++17 dependency</li>
@@ -126,9 +152,9 @@
 <h1 class="page-header" data-toc-text="0.8.3">
 <a href="#profoc-083-release-date-2021-08-15" class="anchor"></a>profoc 0.8.3 (Release date: 2021-08-15)<small> 2021-08-15 </small>
 </h1>
-<div id="changes" class="section level2">
+<div id="changes-1" class="section level2">
 <h2 class="hasAnchor">
-<a href="#changes" class="anchor"></a>Changes:</h2>
+<a href="#changes-1" class="anchor"></a>Changes:</h2>
 <ul>
 <li>The <code>profoc</code> function was extended:
 <ul>
@@ -146,9 +172,9 @@
 </ul>
 </li>
 </ul>
-<div id="internal-changes" class="section level3">
+<div id="internal-changes-1" class="section level3">
 <h3 class="hasAnchor">
-<a href="#internal-changes" class="anchor"></a>Internal changes</h3>
+<a href="#internal-changes-1" class="anchor"></a>Internal changes</h3>
 <ul>
 <li>Changes to the splines2 package required some changes on our side. This affected the creation of the b-spline basis. See <a href="https://github.com/BerriJ/profoc/pull/3" class="uri">https://github.com/BerriJ/profoc/pull/3</a>
 </li>
@@ -160,9 +186,9 @@
 <h1 class="page-header" data-toc-text="0.8.0">
 <a href="#profoc-080-release-date-2021-07-27" class="anchor"></a>profoc 0.8.0 (Release date: 2021-07-27)<small> 2021-07-28 </small>
 </h1>
-<div id="changes-1" class="section level2">
+<div id="changes-2" class="section level2">
 <h2 class="hasAnchor">
-<a href="#changes-1" class="anchor"></a>Changes:</h2>
+<a href="#changes-2" class="anchor"></a>Changes:</h2>
 <ul>
 <li>First release on CRAN</li>
 <li>The <code>profoc</code> function was renamed to <code>online</code> for consistency.</li>
@@ -177,9 +203,9 @@
 <li>Unfortunately, we decided to apply significant changes to the API. This likely breaks old code. Please refer to the respective function documentation for more information.</li>
 </ul>
 </div>
-<div id="internal-changes-1" class="section level3">
+<div id="internal-changes-2" class="section level3">
 <h3 class="hasAnchor">
-<a href="#internal-changes-1" class="anchor"></a>Internal changes:</h3>
+<a href="#internal-changes-2" class="anchor"></a>Internal changes:</h3>
 <ul>
 <li>The b-spline basis is now calculated using a fast C++ function imported from the <a href="https://github.com/wenjie2wang/splines2">splines2</a> R package.</li>
 <li>The source code is now distributed across different files.</li>
@@ -191,9 +217,9 @@
 <h1 class="page-header" data-toc-text="0.7.0">
 <a href="#profoc-070-release-date-2021-06-04" class="anchor"></a>profoc 0.7.0 (Release date: 2021-06-04)<small> Unreleased </small>
 </h1>
-<div id="changes-2" class="section level2">
+<div id="changes-3" class="section level2">
 <h2 class="hasAnchor">
-<a href="#changes-2" class="anchor"></a>Changes:</h2>
+<a href="#changes-3" class="anchor"></a>Changes:</h2>
 <p>The spline functions where rewritten to add the ability of using a non-equidistant knot sequence and a penalty term defined on the Sobolev space. This change induces breaking changes to small parts of the API.</p>
 <div id="interface-1" class="section level3">
 <h3 class="hasAnchor">
@@ -207,9 +233,9 @@
 <li>A new parameter <code>allow_quantile_crossing</code> defines if quantile crossing is allowed. Defaults to false, which means that predictions will be sorted.</li>
 </ul>
 </div>
-<div id="internal-changes-2" class="section level3">
+<div id="internal-changes-3" class="section level3">
 <h3 class="hasAnchor">
-<a href="#internal-changes-2" class="anchor"></a>Internal changes:</h3>
+<a href="#internal-changes-3" class="anchor"></a>Internal changes:</h3>
 <ul>
 <li>Functions for calculating the b-spline basis are now exported to R as internal functions of the package. They can be accessed using the <code>package:::function</code> notation.</li>
 </ul>
@@ -220,9 +246,9 @@
 <h1 class="page-header" data-toc-text="0.6.0">
 <a href="#profoc-060-release-date-2021-03-04" class="anchor"></a>profoc 0.6.0 (Release date: 2021-03-04)<small> Unreleased </small>
 </h1>
-<div id="changes-3" class="section level2">
+<div id="changes-4" class="section level2">
 <h2 class="hasAnchor">
-<a href="#changes-3" class="anchor"></a>Changes:</h2>
+<a href="#changes-4" class="anchor"></a>Changes:</h2>
 <div id="interface-2" class="section level3">
 <h3 class="hasAnchor">
 <a href="#interface-2" class="anchor"></a>Interface:</h3>
@@ -242,9 +268,9 @@
 <li>Add <code>lead_time</code> parameter. offset for expert forecasts. Defaults to 0 which means that experts predict t+1 at t. Setting this to h means experts’ predictions refer to t+1+h at time t. The weight updates delay accordingly.</li>
 </ul>
 </div>
-<div id="internal-changes-3" class="section level3">
+<div id="internal-changes-4" class="section level3">
 <h3 class="hasAnchor">
-<a href="#internal-changes-3" class="anchor"></a>Internal changes:</h3>
+<a href="#internal-changes-4" class="anchor"></a>Internal changes:</h3>
 <ul>
 <li>If more expert forecasts than observations are provided, the excessive expert forecasts are used for prediction using the most recent weights.</li>
 <li>
@@ -261,9 +287,9 @@
 <h1 class="page-header" data-toc-text="0.5.2">
 <a href="#profoc-052-release-date-2021-01-29" class="anchor"></a>profoc 0.5.2 (Release date: 2021-01-29)<small> Unreleased </small>
 </h1>
-<div id="changes-4" class="section level2">
+<div id="changes-5" class="section level2">
 <h2 class="hasAnchor">
-<a href="#changes-4" class="anchor"></a>Changes:</h2>
+<a href="#changes-5" class="anchor"></a>Changes:</h2>
 <ul>
 <li>Initial release on GitHub</li>
 </ul>

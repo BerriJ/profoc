@@ -73,7 +73,7 @@ using CRPS Learning." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">profoc</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.8.4</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.8.5</span>
       </span>
     </div>
 
@@ -148,7 +148,7 @@ using CRPS Learning.</p>
   parametergrid <span class='op'>=</span> <span class='cn'>NULL</span>,
   forget_past_performance <span class='op'>=</span> <span class='fl'>0</span>,
   allow_quantile_crossing <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  init_weights <span class='op'>=</span> <span class='cn'>NULL</span>,
+  init <span class='op'>=</span> <span class='cn'>NULL</span>,
   loss <span class='op'>=</span> <span class='cn'>NULL</span>,
   regret <span class='op'>=</span> <span class='cn'>NULL</span>,
   trace <span class='op'>=</span> <span class='cn'>TRUE</span>
@@ -305,8 +305,8 @@ combination. Defaults to 0.</p></td>
       <td><p>Shall quantile crossing be allowed? Defaults to false, which means that predictions are sorted in ascending order.</p></td>
     </tr>
     <tr>
-      <th>init_weights</th>
-      <td><p>Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P, whereas specifying a PxK matrix allows different starting weights for each P.</p></td>
+      <th>init</th>
+      <td><p>A named list containing "init_weights": Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P, whereas specifying a PxK matrix allows different starting weights for each P. "R0" a matrix of dimension PxK or 1xK used as starting regret.</p></td>
     </tr>
     <tr>
       <th>loss</th>
