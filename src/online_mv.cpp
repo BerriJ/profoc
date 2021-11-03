@@ -340,7 +340,7 @@ void online_learning_core_mv(
 // [[Rcpp::export]]
 Rcpp::List online_rcpp_mv(
     mat &y,
-    field<cube> &experts,
+    arma::field<cube> &experts,
     vec tau, // We don't pass by reference here since tau may be modified
     const unsigned int &lead_time,
     const std::string loss_function,
@@ -372,148 +372,174 @@ Rcpp::List online_rcpp_mv(
   const unsigned int T_E_Y = experts.n_rows - y.n_rows;
 
   // Expand y matrix if necessary
-  // if (y.n_cols == 1)
-  // {
-  //   y = repmat(y, 1, P);
-  // }
+  if (y.n_cols == 1)
+  {
+    y = repmat(y, 1, P);
+  }
 
-  // // Expand tau if necessary
-  // if (tau.n_elem == 1)
-  // {
-  //   tau.resize(P);
-  //   tau.fill(tau(0));
-  // }
+  // Expand tau if necessary
+  if (tau.n_elem == 1)
+  {
+    tau.resize(P);
+    tau.fill(tau(0));
+  }
 
-  // const unsigned int X = param_grid.n_rows;
-  // mat chosen_params(T, param_grid.n_cols);
-  // vec opt_index(T + 1, fill::zeros);
-  // cube past_performance(T, P, X, fill::zeros);
-  // vec tmp_performance(X, fill::zeros);
-  // vec cum_performance(X, fill::zeros);
-  // Progress prog(T * X + X, trace);
+  const unsigned int X = param_grid.n_rows;
+  mat chosen_params(T, param_grid.n_cols);
+  mat opt_index(D, T + 1, fill::zeros);
+  //   cube past_performance(D, P, X, fill::zeros);
+  arma::field<cube> past_performance(T); // TODO Init with correct cube dims
+  mat tmp_performance(D, X, fill::zeros);
+  mat cum_performance(D, X, fill::zeros);
+  Progress prog(T * X + X, trace);
 
-  // // Init objects holding weights
-  // cube weights_tmp(P, K, X);
-  // weights_tmp.each_slice() = w0;
+  // Init objects holding weights
+  arma::field<cube> weights_tmp(X);
 
-  // cube predictions_tmp(T, P, X);
+  // predictions_tmp(T,D P);
+  arma::field<cube> predictions_tmp(X);
 
   // // Output Objects
-  // mat predictions(T + T_E_Y, P, fill::zeros);
-  // cube weights(T + 1, P, K, fill::zeros);
+  cube predictions(T + T_E_Y, D, P, fill::zeros);
+  // weights(D, P, K, fill::zeros);
+  arma::field<cube> weights(T + 1);
 
   // // Learning parameters
-  // field<mat> hat_mats(X);
-  // field<sp_mat> basis_mats(X);
-  // field<mat> V(X);
-  // field<mat> E(X);
-  // field<mat> k(X);
-  // field<mat> eta(X);
-  // field<mat> R(X);
-  // field<mat> R_reg(X);
-  // field<mat> beta(X);
-  // field<mat> beta0field(X);
+  arma::field<mat> hat_mats(X);
+  arma::field<sp_mat> basis_mats(X);
+  arma::field<cube> V(X);
+  arma::field<cube> E(X);
+  arma::field<cube> k(X);
+  arma::field<cube> eta(X);
+  arma::field<cube> R(X);
+  arma::field<cube> R_reg(X);
+  arma::field<cube> beta(X);
+  arma::field<cube> beta0field(X);
 
-  // vec spline_basis_x = regspace(1, P) / (P + 1);
+  vec spline_basis_x = regspace(1, P) / (P + 1);
 
-  // // Init hat matrix field
-  // for (unsigned int x = 0; x < X; x++)
-  // {
+  // Init learning parameters and basis_matrices
+  for (unsigned int x = 0; x < X; x++)
+  {
 
-  //   // In second step: skip if recalc is not necessary:
-  //   if (x > 0 &&
-  //       param_grid(x, 2) == param_grid(x - 1, 2) &&
-  //       param_grid(x, 0) == param_grid(x - 1, 0) &&
-  //       param_grid(x, 1) == param_grid(x - 1, 1))
-  //   {
-  //     basis_mats(x) = basis_mats(x - 1);
-  //   }
-  //   else
-  //   {
+    // In second step: skip if recalc is not necessary:
+    if (x > 0 &&
+        param_grid(x, 2) == param_grid(x - 1, 2) &&
+        param_grid(x, 0) == param_grid(x - 1, 0) &&
+        param_grid(x, 1) == param_grid(x - 1, 1))
+    {
+      basis_mats(x) = basis_mats(x - 1);
+    }
+    else
+    {
 
-  //     basis_mats(x) = make_basis_matrix(spline_basis_x,
-  //                                       param_grid(x, 0), // kstep
-  //                                       param_grid(x, 2), // degree
-  //                                       param_grid(x, 1), // uneven grid
-  //                                       P % 2 == 0);      // even
-  //   }
+      basis_mats(x) = make_basis_matrix(spline_basis_x,
+                                        param_grid(x, 0), // kstep
+                                        param_grid(x, 2), // degree
+                                        param_grid(x, 1), // uneven grid
+                                        P % 2 == 0);      // even
+    }
 
-  //   int L = basis_mats(x).n_cols;
-  //   V(x).zeros(L, K);
-  //   E(x).zeros(L, K);
-  //   k(x).zeros(L, K);
+    int L = basis_mats(x).n_cols;
 
-  //   mat eta_(L, K, fill::zeros);
-  //   eta(x) = eta_;
-  //   if (method == "ml_poly")
-  //   {
-  //     eta_.fill(exp(350));
-  //     eta(x) = eta_;
-  //   }
+    // Learning parameters
+    V(x).zeros(D, L, K);
+    E(x).zeros(D, L, K);
+    k(x).zeros(D, L, K);
 
-  //   R_reg(x) = basis_mats(x).t() * R0;
-  //   R(x) = basis_mats(x).t() * R0;
+    arma::cube eta_(D, L, K, fill::zeros);
+    eta(x) = eta_;
+    if (method == "ml_poly")
+    {
+      eta_.fill(exp(350));
+      eta(x) = eta_;
+    }
 
-  //   beta(x) = (w0.t() * pinv(mat(basis_mats(x))).t()).t();
+    R(x).set_size(D, L, K);
+    R_reg(x).set_size(D, L, K);
+    beta(x).set_size(D, L, K);
+    weights_tmp(x).set_size(D, P, K);
+    predictions_tmp(x).set_size(T, D, P);
 
-  //   beta0field(x) = beta(x);
+    for (unsigned int d = 0; d < D; d++)
+    {
+      R(x).row(d) = basis_mats(x).t() * R0;
+      R_reg(x).row(d) = basis_mats(x).t() * R0;
+      beta(x).row(d) = (w0.t() * pinv(mat(basis_mats(x))).t()).t();
+      weights_tmp(x).row(d) = w0;
+    }
 
-  //   R_CheckUserInterrupt();
-  // }
+    beta0field(x) = beta(x);
 
-  // // Only if smoothing is possible (tau.size > 1)
-  // if (P > 1)
-  // {
-  //   // Init hat matrix field
-  //   for (unsigned int x = 0; x < X; x++)
-  //   {
-  //     // In second step: skip if recalc is not necessary:
-  //     if (x > 0 &&
-  //         param_grid(x, 7) == param_grid(x - 1, 7) &&
-  //         param_grid(x, 8) == param_grid(x - 1, 8) &&
-  //         param_grid(x, 10) == param_grid(x - 1, 10) &&
-  //         param_grid(x, 11) == param_grid(x - 1, 11) &&
-  //         param_grid(x, 9) == param_grid(x - 1, 9))
-  //     {
-  //       hat_mats(x) = hat_mats(x - 1);
-  //     }
-  //     else
-  //     {
-  //       if (param_grid(x, 7) != -datum::inf)
-  //         hat_mats(x) = make_hat_matrix(spline_basis_x,
-  //                                       param_grid(x, 8),  // kstep
-  //                                       param_grid(x, 7),  // lambda
-  //                                       param_grid(x, 11), // differences
-  //                                       param_grid(x, 10), // degree
-  //                                       param_grid(x, 9),  // uneven grid
-  //                                       P % 2 == 0);       // even
-  //     }
-  //     if (param_grid(x, 7) != -datum::inf)
-  //       hat_mats(x) *= basis_mats(x);
-  //     R_CheckUserInterrupt();
-  //     prog.increment(); // Update progress
-  //   }
-  // }
+    R_CheckUserInterrupt();
+  }
 
-  // // Predictions at t < lead_time using initial weights
-  // for (unsigned int t = 0; t < lead_time; t++)
-  // {
-  //   // Save final weights weights_tmp
-  //   weights.row(t) = weights_tmp.slice(opt_index(t));
+  // Only if smoothing is possible (tau.size > 1)
+  if (P > 1)
+  {
+    // Init hat matrix field
+    for (unsigned int x = 0; x < X; x++)
+    {
+      // In second step: skip if recalc is not necessary:
+      if (x > 0 &&
+          param_grid(x, 7) == param_grid(x - 1, 7) &&
+          param_grid(x, 8) == param_grid(x - 1, 8) &&
+          param_grid(x, 10) == param_grid(x - 1, 10) &&
+          param_grid(x, 11) == param_grid(x - 1, 11) &&
+          param_grid(x, 9) == param_grid(x - 1, 9))
+      {
+        hat_mats(x) = hat_mats(x - 1);
+      }
+      else
+      {
+        if (param_grid(x, 7) != -datum::inf)
+          hat_mats(x) = make_hat_matrix(spline_basis_x,
+                                        param_grid(x, 8),  // kstep
+                                        param_grid(x, 7),  // lambda
+                                        param_grid(x, 11), // differences
+                                        param_grid(x, 10), // degree
+                                        param_grid(x, 9),  // uneven grid
+                                        P % 2 == 0);       // even
+      }
+      if (param_grid(x, 7) != -datum::inf)
+        hat_mats(x) *= basis_mats(x);
+      R_CheckUserInterrupt();
+      prog.increment(); // Update progress
+    }
+  }
 
-  //   // Store expert predictions temporarily
-  //   mat experts_mat = experts.row(t);
+  // Predictions at t < lead_time using initial weights
+  for (unsigned int t = 0; t < lead_time; t++)
+  {
 
-  //   // Forecasters prediction
-  //   mat predictions_temp = sum(weights_tmp.each_slice() % experts_mat, 1);
-  //   predictions_tmp.row(t) = predictions_temp;
+    weights(t).set_size(D, P, K);
+    past_performance(t).set_size(D, P, X);
 
-  //   // Final prediction
-  //   predictions.row(t) =
-  //       vectorise(predictions_tmp(span(t), span::all, span(opt_index(t)))).t();
+    for (unsigned int d = 0; d < D; d++)
+    {
+      // Save final weights weights_tmp
+      weights(t).row(d) = weights_tmp(opt_index(d, t)).row(d);
 
-  //   past_performance.row(t).fill(datum::nan);
-  // }
+      // Store expert predictions temporarily
+      mat experts_mat = experts(t).row(d);
+
+      for (unsigned int x = 0; x < X; x++)
+      {
+
+        mat weights_temp = weights_tmp(x).row(d);
+
+        // Forecasters prediction
+        vec predictions_temp = sum(weights_temp % experts_mat, 1);
+
+        predictions_tmp(x).tube(t, d) = predictions_temp;
+      }
+
+      // // Final prediction
+      predictions.tube(t, d) = predictions_tmp(opt_index(t, d)).tube(t, d);
+    }
+
+    past_performance(t).fill(datum::nan);
+  }
 
   // mat loss_for(T, P, fill::zeros);
   // cube loss_exp(T, P, K, fill::zeros);
