@@ -4,7 +4,6 @@
 
 using namespace arma;
 
-// [[Rcpp::export]]
 mat pmin_arma(const mat &x, const double &bound)
 {
     mat out(x);
@@ -17,7 +16,6 @@ mat pmin_arma(const mat &x, const double &bound)
     return out;
 }
 
-// [[Rcpp::export]]
 mat pmax_arma(const mat &x, const double &bound)
 {
     mat out(x);
@@ -29,7 +27,6 @@ mat pmax_arma(const mat &x, const double &bound)
     return out;
 }
 
-// [[Rcpp::export]]
 vec diff_cpp(vec x, unsigned int lag, unsigned int differences)
 {
 
@@ -46,8 +43,6 @@ vec diff_cpp(vec x, unsigned int lag, unsigned int differences)
     return x;
 }
 
-// Like expand.grid but takes a matrix as first argument
-// [[Rcpp::export]]
 mat get_combinations(const mat &x, const vec &y, const bool &append_only, const int &append_col)
 {
     mat grid;
@@ -74,7 +69,6 @@ mat get_combinations(const mat &x, const vec &y, const bool &append_only, const 
     return (grid);
 }
 
-// [[Rcpp::export]]
 vec set_default(const vec &input,
                 const double &value)
 {
@@ -122,7 +116,6 @@ mat vec2mat(const vec &x,
     return outmat;
 }
 
-// [[Rcpp::export]]
 vec mat2vec(const mat &x)
 {
     vec outvec(x.n_rows * x.n_cols);
@@ -152,4 +145,24 @@ colvec softmax_c(colvec x)
     expvec = pmin_arma(pmax_arma(expvec, exp(-700)), exp(700));
     expvec /= sum(expvec);
     return expvec;
+}
+
+// [[Rcpp::export]]
+field<mat> fieldtest1()
+{
+    field<mat> out(5, 6, 5);
+    mat A(5, 5);
+    A.fill(5);
+    mat B(5, 10);
+    B.fill(40);
+    out(1, 1) = A;
+    out(1, 2) = B;
+
+    return out;
+}
+
+// [[Rcpp::export]]
+field<mat> fieldtest2(field<mat> x)
+{
+    return x;
 }
