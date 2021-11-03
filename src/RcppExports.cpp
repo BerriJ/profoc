@@ -211,6 +211,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// online_rcpp_mv
+Rcpp::List online_rcpp_mv(mat& y, field<cube>& experts, vec tau, const unsigned int& lead_time, const std::string loss_function, const double& loss_parameter, const bool& loss_gradient, const std::string method, const mat& param_grid, const double& forget_past_performance, bool allow_quantile_crossing, const mat w0, const mat R0, const cube& loss_array, const cube& regret_array, const bool trace);
+RcppExport SEXP _profoc_online_rcpp_mv(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP lead_timeSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP loss_gradientSEXP, SEXP methodSEXP, SEXP param_gridSEXP, SEXP forget_past_performanceSEXP, SEXP allow_quantile_crossingSEXP, SEXP w0SEXP, SEXP R0SEXP, SEXP loss_arraySEXP, SEXP regret_arraySEXP, SEXP traceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< mat& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< field<cube>& >::type experts(expertsSEXP);
+    Rcpp::traits::input_parameter< vec >::type tau(tauSEXP);
+    Rcpp::traits::input_parameter< const unsigned int& >::type lead_time(lead_timeSEXP);
+    Rcpp::traits::input_parameter< const std::string >::type loss_function(loss_functionSEXP);
+    Rcpp::traits::input_parameter< const double& >::type loss_parameter(loss_parameterSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type loss_gradient(loss_gradientSEXP);
+    Rcpp::traits::input_parameter< const std::string >::type method(methodSEXP);
+    Rcpp::traits::input_parameter< const mat& >::type param_grid(param_gridSEXP);
+    Rcpp::traits::input_parameter< const double& >::type forget_past_performance(forget_past_performanceSEXP);
+    Rcpp::traits::input_parameter< bool >::type allow_quantile_crossing(allow_quantile_crossingSEXP);
+    Rcpp::traits::input_parameter< const mat >::type w0(w0SEXP);
+    Rcpp::traits::input_parameter< const mat >::type R0(R0SEXP);
+    Rcpp::traits::input_parameter< const cube& >::type loss_array(loss_arraySEXP);
+    Rcpp::traits::input_parameter< const cube& >::type regret_array(regret_arraySEXP);
+    Rcpp::traits::input_parameter< const bool >::type trace(traceSEXP);
+    rcpp_result_gen = Rcpp::wrap(online_rcpp_mv(y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, param_grid, forget_past_performance, allow_quantile_crossing, w0, R0, loss_array, regret_array, trace));
+    return rcpp_result_gen;
+END_RCPP
+}
 // optimize_weights
 vec optimize_weights(const vec& truth, const mat& experts, const bool& affine, const bool& positive, const bool& intercept, const bool& debias, const std::string& loss_function, const double& tau, const double& forget, const double& loss_scaling);
 RcppExport SEXP _profoc_optimize_weights(SEXP truthSEXP, SEXP expertsSEXP, SEXP affineSEXP, SEXP positiveSEXP, SEXP interceptSEXP, SEXP debiasSEXP, SEXP loss_functionSEXP, SEXP tauSEXP, SEXP forgetSEXP, SEXP loss_scalingSEXP) {
@@ -361,6 +387,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_online_rcpp", (DL_FUNC) &_profoc_online_rcpp, 16},
     {"_profoc_predict_online", (DL_FUNC) &_profoc_predict_online, 2},
     {"_profoc_update_online", (DL_FUNC) &_profoc_update_online, 3},
+    {"_profoc_online_rcpp_mv", (DL_FUNC) &_profoc_online_rcpp_mv, 16},
     {"_profoc_optimize_weights", (DL_FUNC) &_profoc_optimize_weights, 10},
     {"_profoc_optimize_betas", (DL_FUNC) &_profoc_optimize_betas, 13},
     {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 10},
