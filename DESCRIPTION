@@ -22,7 +22,7 @@ Imports: Rcpp (>= 1.0.5), Matrix
 LinkingTo: Rcpp, RcppArmadillo, RcppProgress, splines2 (>= 0.4.4)
 URL: https://profoc.berrisch.biz/, https://github.com/BerriJ/profoc
 BugReports: https://github.com/BerriJ/profoc/issues
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Suggests: 
     testthat (>= 3.0.0),
     gamlss.dist,
