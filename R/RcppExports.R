@@ -13,32 +13,16 @@ loss_grad_wrt_w <- function(expert, pred, truth, tau, loss_function, a, w) {
     .Call(`_profoc_loss_grad_wrt_w`, expert, pred, truth, tau, loss_function, a, w)
 }
 
-pmin_arma <- function(x, bound) {
-    .Call(`_profoc_pmin_arma`, x, bound)
-}
-
-pmax_arma <- function(x, bound) {
-    .Call(`_profoc_pmax_arma`, x, bound)
-}
-
-diff_cpp <- function(x, lag, differences) {
-    .Call(`_profoc_diff_cpp`, x, lag, differences)
-}
-
-get_combinations <- function(x, y, append_only, append_col) {
-    .Call(`_profoc_get_combinations`, x, y, append_only, append_col)
-}
-
-set_default <- function(input, value) {
-    .Call(`_profoc_set_default`, input, value)
-}
-
 vec2mat <- function(x, matrows, matcols) {
     .Call(`_profoc_vec2mat`, x, matrows, matcols)
 }
 
-mat2vec <- function(x) {
-    .Call(`_profoc_mat2vec`, x)
+fieldtest1 <- function() {
+    .Call(`_profoc_fieldtest1`)
+}
+
+fieldtest2 <- function(x) {
+    .Call(`_profoc_fieldtest2`, x)
 }
 
 online_rcpp <- function(y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, param_grid, forget_past_performance, allow_quantile_crossing, w0, R0, loss_array, regret_array, trace) {

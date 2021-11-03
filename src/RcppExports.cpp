@@ -73,69 +73,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// pmin_arma
-mat pmin_arma(const mat& x, const double& bound);
-RcppExport SEXP _profoc_pmin_arma(SEXP xSEXP, SEXP boundSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const mat& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const double& >::type bound(boundSEXP);
-    rcpp_result_gen = Rcpp::wrap(pmin_arma(x, bound));
-    return rcpp_result_gen;
-END_RCPP
-}
-// pmax_arma
-mat pmax_arma(const mat& x, const double& bound);
-RcppExport SEXP _profoc_pmax_arma(SEXP xSEXP, SEXP boundSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const mat& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const double& >::type bound(boundSEXP);
-    rcpp_result_gen = Rcpp::wrap(pmax_arma(x, bound));
-    return rcpp_result_gen;
-END_RCPP
-}
-// diff_cpp
-vec diff_cpp(vec x, unsigned int lag, unsigned int differences);
-RcppExport SEXP _profoc_diff_cpp(SEXP xSEXP, SEXP lagSEXP, SEXP differencesSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< vec >::type x(xSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type lag(lagSEXP);
-    Rcpp::traits::input_parameter< unsigned int >::type differences(differencesSEXP);
-    rcpp_result_gen = Rcpp::wrap(diff_cpp(x, lag, differences));
-    return rcpp_result_gen;
-END_RCPP
-}
-// get_combinations
-mat get_combinations(const mat& x, const vec& y, const bool& append_only, const int& append_col);
-RcppExport SEXP _profoc_get_combinations(SEXP xSEXP, SEXP ySEXP, SEXP append_onlySEXP, SEXP append_colSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const mat& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const vec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const bool& >::type append_only(append_onlySEXP);
-    Rcpp::traits::input_parameter< const int& >::type append_col(append_colSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_combinations(x, y, append_only, append_col));
-    return rcpp_result_gen;
-END_RCPP
-}
-// set_default
-vec set_default(const vec& input, const double& value);
-RcppExport SEXP _profoc_set_default(SEXP inputSEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const vec& >::type input(inputSEXP);
-    Rcpp::traits::input_parameter< const double& >::type value(valueSEXP);
-    rcpp_result_gen = Rcpp::wrap(set_default(input, value));
-    return rcpp_result_gen;
-END_RCPP
-}
 // vec2mat
 mat vec2mat(const vec& x, const unsigned int& matrows, const unsigned int& matcols);
 RcppExport SEXP _profoc_vec2mat(SEXP xSEXP, SEXP matrowsSEXP, SEXP matcolsSEXP) {
@@ -149,14 +86,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// mat2vec
-vec mat2vec(const mat& x);
-RcppExport SEXP _profoc_mat2vec(SEXP xSEXP) {
+// fieldtest1
+field<mat> fieldtest1();
+RcppExport SEXP _profoc_fieldtest1() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const mat& >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(mat2vec(x));
+    rcpp_result_gen = Rcpp::wrap(fieldtest1());
+    return rcpp_result_gen;
+END_RCPP
+}
+// fieldtest2
+field<mat> fieldtest2(field<mat> x);
+RcppExport SEXP _profoc_fieldtest2(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< field<mat> >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(fieldtest2(x));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -377,13 +324,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_batch_rcpp", (DL_FUNC) &_profoc_batch_rcpp, 17},
     {"_profoc_loss", (DL_FUNC) &_profoc_loss, 7},
     {"_profoc_loss_grad_wrt_w", (DL_FUNC) &_profoc_loss_grad_wrt_w, 7},
-    {"_profoc_pmin_arma", (DL_FUNC) &_profoc_pmin_arma, 2},
-    {"_profoc_pmax_arma", (DL_FUNC) &_profoc_pmax_arma, 2},
-    {"_profoc_diff_cpp", (DL_FUNC) &_profoc_diff_cpp, 3},
-    {"_profoc_get_combinations", (DL_FUNC) &_profoc_get_combinations, 4},
-    {"_profoc_set_default", (DL_FUNC) &_profoc_set_default, 2},
     {"_profoc_vec2mat", (DL_FUNC) &_profoc_vec2mat, 3},
-    {"_profoc_mat2vec", (DL_FUNC) &_profoc_mat2vec, 1},
+    {"_profoc_fieldtest1", (DL_FUNC) &_profoc_fieldtest1, 0},
+    {"_profoc_fieldtest2", (DL_FUNC) &_profoc_fieldtest2, 1},
     {"_profoc_online_rcpp", (DL_FUNC) &_profoc_online_rcpp, 16},
     {"_profoc_predict_online", (DL_FUNC) &_profoc_predict_online, 2},
     {"_profoc_update_online", (DL_FUNC) &_profoc_update_online, 3},
