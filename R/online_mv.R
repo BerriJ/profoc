@@ -83,6 +83,7 @@
 #' # Use predict to combine new_experts, model$predictions will be extended
 #' predict(model, new_experts = new_experts)
 #' }
+#' @importFrom abind asub
 #' @export
 online_mv <- function(y, experts, tau,
                       lead_time = 0,
@@ -114,15 +115,15 @@ online_mv <- function(y, experts, tau,
     edim <- dim(experts)
     if (length(edim) == 3) {
         experts <- lapply(seq_len(edim[1]),
-            abind::asub,
+            asub,
             x = experts,
             dims = 1,
             drop = FALSE
         )
         dim(experts) <- c(edim[1], 1)
-    } else if (length(dim(experts)) == 4) {
+    } else if (length(edim) == 4) {
         experts <- lapply(seq_len(edim[1]),
-            abind::asub,
+            asub,
             x = experts,
             dims = 1,
             drop = TRUE
@@ -239,20 +240,20 @@ online_mv <- function(y, experts, tau,
 
     if (is.null(init$init_weights)) {
         init$init_weights <- matrix(
-            1 / dim(experts)[[3]],
-            nrow = dim(experts)[[2]],
-            ncol = dim(experts)[[3]]
+            1 / edim[3],
+            nrow = edim[2],
+            ncol = edim[3]
         )
     } else if (nrow(init$init_weights) == 1) {
         init$init_weights <- matrix(init$init_weights,
-            nrow = dim(experts)[[2]],
-            ncol = dim(experts)[[3]],
+            nrow = edim[2],
+            ncol = edim[3],
             byrow = TRUE
         )
     } else if (
         (nrow(init$init_weights) != 1 &
-            nrow(init$init_weights) != dim(experts)[[2]]) |
-            ncol(init$init_weights) != dim(experts)[[3]]) {
+            nrow(init$init_weights) != edim[2]) |
+            ncol(init$init_weights) != edim[3]) {
         stop("Either a 1xK or PxK matrix of initial weights must be supplied.")
     }
     init$init_weights <- pmax(init$init_weights, exp(-350))
@@ -260,19 +261,19 @@ online_mv <- function(y, experts, tau,
 
     if (is.null(init$R0)) {
         init$R0 <- matrix(0,
-            nrow = dim(experts)[[2]],
-            ncol = dim(experts)[[3]],
+            nrow = edim[2],
+            ncol = edim[3],
         )
     } else if (nrow(init$R0) == 1) {
         init$R0 <- matrix(init$R0,
-            nrow = dim(experts)[[2]],
-            ncol = dim(experts)[[3]],
+            nrow = edim[2],
+            ncol = edim[3],
             byrow = TRUE
         )
     } else if (
         (nrow(init$R0) != 1 &
-            nrow(init$R0) != dim(experts)[[2]]) |
-            ncol(init$R0) != dim(experts)[[3]]) {
+            nrow(init$R0) != edim[2]) |
+            ncol(init$R0) != edim[3]) {
         stop("R0 must be 1xK or PxK.")
     }
 
@@ -295,14 +296,14 @@ online_mv <- function(y, experts, tau,
         trace = trace
     )
 
-    dimnames(model$specification$data$y) <- dimnames(y)
+    # dimnames(model$specification$data$y) <- dimnames(y)
 
-    dimnames(model$specification$data$experts) <- dimnames(experts)
+    # dimnames(model$specification$data$experts) <- dimnames(experts)
 
-    if (is.null(dimnames(model$specification$data$experts)[[3]])) {
-        dimnames(model$specification$data$experts)[[3]] <-
-            paste0("E", 1:dim(experts)[[3]])
-    }
+    # if (is.null(dimnames(model$specification$data$experts)[[3]])) {
+    #     dimnames(model$specification$data$experts)[[3]] <-
+    #         paste0("E", 1:edim[3])
+    # }
 
     return(model)
 }
