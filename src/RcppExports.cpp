@@ -159,13 +159,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // online_rcpp_mv
-Rcpp::List online_rcpp_mv(mat& y, field<cube>& experts, vec tau, const unsigned int& lead_time, const std::string loss_function, const double& loss_parameter, const bool& loss_gradient, const std::string method, const mat& param_grid, const double& forget_past_performance, bool allow_quantile_crossing, const mat w0, const mat R0, const cube& loss_array, const cube& regret_array, const bool trace);
+Rcpp::List online_rcpp_mv(mat& y, arma::field<cube>& experts, vec tau, const unsigned int& lead_time, const std::string loss_function, const double& loss_parameter, const bool& loss_gradient, const std::string method, const mat& param_grid, const double& forget_past_performance, bool allow_quantile_crossing, const mat w0, const mat R0, const cube& loss_array, const cube& regret_array, const bool trace);
 RcppExport SEXP _profoc_online_rcpp_mv(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP lead_timeSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP loss_gradientSEXP, SEXP methodSEXP, SEXP param_gridSEXP, SEXP forget_past_performanceSEXP, SEXP allow_quantile_crossingSEXP, SEXP w0SEXP, SEXP R0SEXP, SEXP loss_arraySEXP, SEXP regret_arraySEXP, SEXP traceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< mat& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< field<cube>& >::type experts(expertsSEXP);
+    Rcpp::traits::input_parameter< arma::field<cube>& >::type experts(expertsSEXP);
     Rcpp::traits::input_parameter< vec >::type tau(tauSEXP);
     Rcpp::traits::input_parameter< const unsigned int& >::type lead_time(lead_timeSEXP);
     Rcpp::traits::input_parameter< const std::string >::type loss_function(loss_functionSEXP);

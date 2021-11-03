@@ -112,6 +112,7 @@ online_mv <- function(y, experts, tau,
                       loss = NULL,
                       regret = NULL,
                       trace = TRUE) {
+
     edim <- dim(experts)
     if (length(edim) == 3) {
         experts <- lapply(seq_len(edim[1]),
@@ -130,6 +131,7 @@ online_mv <- function(y, experts, tau,
         )
         dim(experts) <- c(edim[1], 1)
     }
+    exdim <- dim(experts[[1]])
 
     if (ncol(y) > 1 & !allow_quantile_crossing) {
         warning("Warning: allow_quantile_crossing set to true since multivariate prediction target was provided.")
@@ -240,20 +242,20 @@ online_mv <- function(y, experts, tau,
 
     if (is.null(init$init_weights)) {
         init$init_weights <- matrix(
-            1 / edim[3],
-            nrow = edim[2],
-            ncol = edim[3]
+            1 / exdim[3],
+            nrow = exdim[2],
+            ncol = exdim[3]
         )
     } else if (nrow(init$init_weights) == 1) {
         init$init_weights <- matrix(init$init_weights,
-            nrow = edim[2],
-            ncol = edim[3],
+            nrow = exdim[2],
+            ncol = exdim[3],
             byrow = TRUE
         )
     } else if (
         (nrow(init$init_weights) != 1 &
-            nrow(init$init_weights) != edim[2]) |
-            ncol(init$init_weights) != edim[3]) {
+            nrow(init$init_weights) != exdim[2]) |
+            ncol(init$init_weights) != exdim[3]) {
         stop("Either a 1xK or PxK matrix of initial weights must be supplied.")
     }
     init$init_weights <- pmax(init$init_weights, exp(-350))
@@ -261,19 +263,19 @@ online_mv <- function(y, experts, tau,
 
     if (is.null(init$R0)) {
         init$R0 <- matrix(0,
-            nrow = edim[2],
-            ncol = edim[3],
+            nrow = exdim[2],
+            ncol = exdim[3],
         )
     } else if (nrow(init$R0) == 1) {
         init$R0 <- matrix(init$R0,
-            nrow = edim[2],
-            ncol = edim[3],
+            nrow = exdim[2],
+            ncol = exdim[3],
             byrow = TRUE
         )
     } else if (
         (nrow(init$R0) != 1 &
-            nrow(init$R0) != edim[2]) |
-            ncol(init$R0) != edim[3]) {
+            nrow(init$R0) != exdim[2]) |
+            ncol(init$R0) != exdim[3]) {
         stop("R0 must be 1xK or PxK.")
     }
 
