@@ -616,84 +616,83 @@ Rcpp::List online_rcpp_mv(
       prog);
 
   // // 1-Indexing for R-Output
-  // opt_index = opt_index + 1;
+  opt_index = opt_index + 1;
 
-  // // Set unused values to NA
-  // if (lead_time > 0)
-  // {
-  //   chosen_params.rows(0, lead_time - 1).fill(datum::nan);
-  // }
+  // Set unused values to NA
+  if (lead_time > 0)
+  {
+    chosen_params.rows(0, lead_time - 1).fill(datum::nan);
+  }
 
-  // Rcpp::CharacterVector param_names =
-  //     Rcpp::CharacterVector::create("basis_knot_distance",
-  //                                   "basis_knot_distance_power",
-  //                                   "basis_deg",
-  //                                   "forget_regret",
-  //                                   "threshold_soft",
-  //                                   "threshold_hard",
-  //                                   "fixed_share",
-  //                                   "p_smooth_lambda",
-  //                                   "p_smooth_knot_distance",
-  //                                   "p_smooth_knot_distance_power",
-  //                                   "p_smooth_deg",
-  //                                   "smooth_diff",
-  //                                   "gamma",
-  //                                   "loss_share",
-  //                                   "regret_share");
+  Rcpp::CharacterVector param_names =
+      Rcpp::CharacterVector::create("basis_knot_distance",
+                                    "basis_knot_distance_power",
+                                    "basis_deg",
+                                    "forget_regret",
+                                    "threshold_soft",
+                                    "threshold_hard",
+                                    "fixed_share",
+                                    "p_smooth_lambda",
+                                    "p_smooth_knot_distance",
+                                    "p_smooth_knot_distance_power",
+                                    "p_smooth_deg",
+                                    "smooth_diff",
+                                    "gamma",
+                                    "loss_share",
+                                    "regret_share");
 
-  // Rcpp::NumericMatrix parametergrid_out = Rcpp::wrap(param_grid);
-  // Rcpp::colnames(parametergrid_out) = param_names;
+  Rcpp::NumericMatrix parametergrid_out = Rcpp::wrap(param_grid);
+  Rcpp::colnames(parametergrid_out) = param_names;
 
   // Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
   // Rcpp::colnames(chosen_parameters) = param_names;
 
-  // Rcpp::List model_data = Rcpp::List::create(
-  //     Rcpp::Named("y") = y,
-  //     Rcpp::Named("experts") = experts,
-  //     Rcpp::Named("tau") = tau);
+  Rcpp::List model_data = Rcpp::List::create(
+      Rcpp::Named("y") = y,
+      Rcpp::Named("experts") = experts,
+      Rcpp::Named("tau") = tau);
 
-  // Rcpp::List model_parameters = Rcpp::List::create(
-  //     Rcpp::Named("lead_time") = lead_time,
-  //     Rcpp::Named("loss_function") = loss_function,
-  //     Rcpp::Named("loss_parameter") = loss_parameter,
-  //     Rcpp::Named("loss_gradient") = loss_gradient,
-  //     Rcpp::Named("method") = method,
-  //     Rcpp::Named("forget_past_performance") = forget_past_performance,
-  //     Rcpp::Named("allow_quantile_crossing") = allow_quantile_crossing);
+  Rcpp::List model_parameters = Rcpp::List::create(
+      Rcpp::Named("lead_time") = lead_time,
+      Rcpp::Named("loss_function") = loss_function,
+      Rcpp::Named("loss_parameter") = loss_parameter,
+      Rcpp::Named("loss_gradient") = loss_gradient,
+      Rcpp::Named("method") = method,
+      Rcpp::Named("forget_past_performance") = forget_past_performance,
+      Rcpp::Named("allow_quantile_crossing") = allow_quantile_crossing);
 
-  // Rcpp::List model_objects = Rcpp::List::create(
-  //     Rcpp::Named("weights_tmp") = weights_tmp,
-  //     Rcpp::Named("predictions_tmp") = predictions_tmp,
-  //     Rcpp::Named("cum_performance") = cum_performance,
-  //     Rcpp::Named("hat_matrices") = hat_mats,
-  //     Rcpp::Named("V") = V,
-  //     Rcpp::Named("E") = E,
-  //     Rcpp::Named("k") = k,
-  //     Rcpp::Named("eta") = eta,
-  //     Rcpp::Named("R") = R,
-  //     Rcpp::Named("R_reg") = R_reg,
-  //     Rcpp::Named("beta") = beta,
-  //     Rcpp::Named("beta0field") = beta0field);
+  Rcpp::List model_objects = Rcpp::List::create(
+      Rcpp::Named("weights_tmp") = weights_tmp,
+      Rcpp::Named("predictions_tmp") = predictions_tmp,
+      Rcpp::Named("cum_performance") = cum_performance,
+      Rcpp::Named("hat_matrices") = hat_mats,
+      Rcpp::Named("V") = V,
+      Rcpp::Named("E") = E,
+      Rcpp::Named("k") = k,
+      Rcpp::Named("eta") = eta,
+      Rcpp::Named("R") = R,
+      Rcpp::Named("R_reg") = R_reg,
+      Rcpp::Named("beta") = beta,
+      Rcpp::Named("beta0field") = beta0field);
 
-  // Rcpp::List model_spec = Rcpp::List::create(
-  //     Rcpp::Named("data") = model_data,
-  //     Rcpp::Named("parameters") = model_parameters,
-  //     Rcpp::Named("objects") = model_objects);
+  Rcpp::List model_spec = Rcpp::List::create(
+      Rcpp::Named("data") = model_data,
+      Rcpp::Named("parameters") = model_parameters,
+      Rcpp::Named("objects") = model_objects);
 
-  // Rcpp::List out = Rcpp::List::create(
-  //     Rcpp::Named("predictions") = predictions,
-  //     Rcpp::Named("weights") = weights,
-  //     Rcpp::Named("forecaster_loss") = loss_for,
-  //     Rcpp::Named("experts_loss") = loss_exp,
-  //     Rcpp::Named("past_performance") = past_performance,
-  //     Rcpp::Named("chosen_parameters") = chosen_parameters,
-  //     Rcpp::Named("opt_index") = opt_index,
-  //     Rcpp::Named("parametergrid") = parametergrid_out,
-  //     Rcpp::Named("basis_matrices") = basis_mats,
-  //     Rcpp::Named("specification") = model_spec);
+  Rcpp::List out = Rcpp::List::create(
+      Rcpp::Named("predictions") = predictions,
+      Rcpp::Named("weights") = weights,
+      Rcpp::Named("forecaster_loss") = loss_for,
+      Rcpp::Named("experts_loss") = loss_exp,
+      Rcpp::Named("past_performance") = past_performance,
+      Rcpp::Named("chosen_parameters") = chosen_params,
+      Rcpp::Named("opt_index") = opt_index,
+      Rcpp::Named("parametergrid") = parametergrid_out,
+      Rcpp::Named("basis_matrices") = basis_mats,
+      Rcpp::Named("specification") = model_spec);
 
-  // out.attr("class") = "online";
-  Rcpp::List out;
+  out.attr("class") = "online";
 
   return out;
 }
