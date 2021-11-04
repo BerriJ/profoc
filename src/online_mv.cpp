@@ -236,115 +236,132 @@ void online_learning_core_mv(
           }
 
           //   // Apply thresholds
-          //   if (param_grid(x, 4) > 0)
-          //   {
-          //     int best_k = beta(x).row(l).index_max();
-          //     for (double &e : beta(x).row(l))
-          //     {
-          //       threshold_soft(e, param_grid(x, 4));
-          //     }
-          //     if (accu(beta(x).row(l)) == 0)
-          //     {
-          //       beta(x)(l, best_k) = 1;
-          //     }
-          //   }
+          if (param_grid(x, 4) > 0)
+          {
+            int best_k = beta(x).tube(d, l).index_max();
 
-          //   if (param_grid(x, 5) > 0)
-          //   {
-          //     int best_k = beta(x).row(l).index_max();
-          //     for (double &e : beta(x).row(l))
-          //     {
-          //       threshold_hard(e, param_grid(x, 5));
-          //     }
-          //     if (accu(beta(x).row(l)) == 0)
-          //     {
-          //       beta(x)(l, best_k) = 1;
-          //     }
-          //   }
+            for (double &e : beta(x).tube(d, l))
+            {
+              threshold_soft(e, param_grid(x, 4));
+            }
+            if (accu(beta(x).tube(d, l)) == 0)
+            {
+              beta(x)(d, l, best_k) = 1;
+            }
+          }
+
+          if (param_grid(x, 5) > 0)
+          {
+            int best_k = beta(x).tube(d, l).index_max();
+            for (double &e : beta(x).tube(d, l))
+            {
+              threshold_hard(e, param_grid(x, 5));
+            }
+            if (accu(beta(x).tube(d, l)) == 0)
+            {
+              beta(x)(d, l, best_k) = 1;
+            }
+          }
 
           //   // Add fixed_share
-          //   beta(x).row(l) =
-          //       (1 - param_grid(x, 6)) * beta(x).row(l) +
-          //       (param_grid(x, 6) / K);
-          // }
-
-          // // Smoothing
-          // if (param_grid(x, 7) != -datum::inf)
-          // {
-          //   // Note that hat was already mutliplied with basis so we can use it directly here
-          //   weights_tmp.slice(x) = hat_mats(x) * beta(x);
-          // }
-          // else
-          // {
-          //   weights_tmp.slice(x) = basis_mats(x) * beta(x);
-          // }
-
-          // // Enshure that constraints hold
-          // for (unsigned int p = 0; p < P; p++)
-          // {
-
-          //   // Positivity
-          //   weights_tmp(span(p), span::all, span(x)) =
-          //       pmax_arma(weights_tmp(span(p), span::all, span(x)), exp(-700));
-
-          //   // Affinity
-          //   weights_tmp(span(p), span::all, span(x)) /=
-          //       accu(weights_tmp(span(p), span::all, span(x)));
+          beta(x).tube(d, l) =
+              (1 - param_grid(x, 6)) * vectorise(beta(x).tube(d, l)) +
+              (param_grid(x, 6) / K);
         }
 
-        // tmp_performance(x) = accu(past_performance(span(t), span::all, span(x)));
-        // prog.increment(); // Update progress
-        // R_CheckUserInterrupt();
+        // // Smoothing
+        if (param_grid(x, 7) != -datum::inf)
+        {
+          // Note that hat was already mutliplied with basis so we can use it directly here
+          mat tmp = beta(x).row(d);
+          weights_tmp(x).row(d) = hat_mats(x) * tmp;
+        }
+        else
+        {
+          mat tmp = beta(x).row(d);
+          weights_tmp(x).row(d) = basis_mats(x) * tmp;
+        }
+
+        // Enshure that constraints hold
+        for (unsigned int p = 0; p < P; p++)
+        {
+
+          // Positivity
+          weights_tmp(x)(span(d), span(p), span::all) =
+              pmax_arma(weights_tmp(x)(span(d), span(p), span::all), exp(-700));
+
+          // // Affinity
+          weights_tmp(x)(span(d), span(p), span::all) /=
+              accu(weights_tmp(x)(span(d), span(p), span::all));
+
+          tmp_performance(d, x) = accu(past_performance(t)(span(d), span::all, span(x)));
+        }
       }
+      prog.increment(); // Update progress
+      R_CheckUserInterrupt();
     }
-    //   // Sum past_performance in each slice
-    //   cum_performance = (1 - forget_past_performance) * cum_performance + tmp_performance;
-    //   opt_index(t + 1) = cum_performance.index_min();
-    //   chosen_params.row(t) = param_grid.row(opt_index(t + 1));
-    // }
 
-    // // Save Weights and Prediction
-    // weights.row(T) = weights_tmp.slice(opt_index(T));
+    // Sum past_performance in each slice
+    cum_performance = (1 - forget_past_performance) * cum_performance + tmp_performance;
 
-    // // Predict residual expert forecasts if any are available
-    // for (unsigned int t = T; t < T + T_E_Y; t++)
-    // {
-    //   mat experts_mat = experts.row(t);
-    //   mat predictions_temp = sum(weights_tmp.slice(opt_index(T)) % experts_mat, 1);
-    //   // Sort predictions if quantile_crossing is prohibited
-    //   if (!allow_quantile_crossing)
-    //   {
-    //     predictions_temp = arma::sort(predictions_temp, "ascend", 0);
-    //   }
-    //   predictions.row(t) = vectorise(predictions_temp).t();
-    // }
-
-    // // Save losses suffered by forecaster and experts
-    // for (unsigned int t = 0; t < T; t++)
-    // {
-    //   for (unsigned int p = 0; p < P; p++)
-    //   {
-    //     for (unsigned int k = 0; k < K; k++)
-    //     {
-    //       loss_exp(t, p, k) =
-    //           loss(y(t, p),
-    //                experts(t, p, k),
-    //                9999,           // where to evaluate the loss_gradient
-    //                loss_function,  // method
-    //                tau(p),         // tau
-    //                loss_parameter, // alpha
-    //                false);         // loss_gradient
-    //     }
-    //     loss_for(t, p) = loss(y(t, p),
-    //                           predictions(t, p),
-    //                           9999,           // where to evaluate the loss_gradient
-    //                           loss_function,  // method
-    //                           tau(p),         // tau
-    //                           loss_parameter, // alpha
-    //                           false);         // loss_gradient;
-    //   }
+    for (unsigned int d = 0; d < D; d++)
+    {
+      opt_index(t + 1, d) = cum_performance.row(d).index_min();
+      chosen_params.tube(t, d) = param_grid.row(opt_index(t + 1, d));
+    }
   }
 
+  // Save Weights and Prediction
+  weights(T) = weights_tmp(opt_index(T));
+
+  // Predict residual expert forecasts if any are available
+  for (unsigned int t = T; t < T + T_E_Y; t++)
+  {
+    for (unsigned int d = 0; d < D; d++)
+    {
+      mat experts_mat = experts(t).row(d);
+      mat weights_temp = weights(T).row(d);
+      vec predictions_temp = sum(weights_temp % experts_mat, 1);
+
+      // Sort predictions if quantile_crossing is prohibited
+      if (!allow_quantile_crossing)
+      {
+        predictions_temp = arma::sort(predictions_temp, "ascend", 0);
+      }
+      predictions.tube(t, d) = predictions_temp;
+    }
+  }
+
+  // Save losses suffered by forecaster and experts
+  for (unsigned int t = 0; t < T; t++)
+  {
+    loss_exp(t).set_size(D, P, K);
+
+    for (unsigned int d = 0; d < D; d++)
+    {
+      for (unsigned int p = 0; p < P; p++)
+      {
+        for (unsigned int k = 0; k < K; k++)
+        {
+          loss_exp(t)(d, p, k) =
+              loss(y(t, d),
+                   experts(t)(d, p, k),
+                   9999,           // where to evaluate the loss_gradient
+                   loss_function,  // method
+                   tau(p),         // tau
+                   loss_parameter, // alpha
+                   false);         // loss_gradient
+        }
+        loss_for(t, d, p) = loss(y(t, d),
+                                 predictions(t, d, p),
+                                 9999,           // where to evaluate the loss_gradient
+                                 loss_function,  // method
+                                 tau(p),         // tau
+                                 loss_parameter, // alpha
+                                 false);         // loss_gradient;
+      }
+    }
+  }
   return;
 }
 
