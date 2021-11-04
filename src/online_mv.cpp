@@ -200,40 +200,40 @@ void online_learning_core_mv(
             beta(x).tube(d, l) = vectorise(beta0field(x).tube(d, l)).t() * K * param_grid(x, 12) % vectorise(eta(x).tube(d, l)).t() % pmax_arma(vectorise(R(x).tube(d, l)).t(), exp(-700));
             beta(x).tube(d, l) /= accu(beta(x).tube(d, l));
           }
-          //   else if (method == "boa" || method == "bewa")
-          //   {
+          else if (method == "boa" || method == "bewa")
+          {
 
-          //     V(x).row(l) = V(x).row(l) * (1 - param_grid(x, 3)) + square(r.t());
+            V(x).tube(d, l) = vectorise(V(x).tube(d, l)).t() * (1 - param_grid(x, 3)) + square(r.t());
 
-          //     E(x).row(l) = max(E(x).row(l) * (1 - param_grid(x, 3)), abs(r.t()));
+            E(x).tube(d, l) = max(vectorise(E(x).tube(d, l)).t() * (1 - param_grid(x, 3)), abs(r.t()));
 
-          //     eta(x).row(l) =
-          //         pmin_arma(
-          //             min(1 / (2 * E(x).row(l)),
-          //                 sqrt(-log(beta0field(x).row(l)) / V(x).row(l))),
-          //             exp(350));
+            eta(x).tube(d, l) =
+                pmin_arma(
+                    min(1 / (2 * vectorise(E(x).tube(d, l))),
+                        sqrt(-log(vectorise(beta0field(x).tube(d, l))) / vectorise(V(x).tube(d, l)))),
+                    exp(350));
 
-          //     vec r_reg = r - eta(x).row(l).t() % square(r);
+            vec r_reg = r - vectorise(eta(x).tube(d, l)) % square(r);
 
-          //     R_reg(x).row(l) *= (1 - param_grid(x, 3));
-          //     R_reg(x).row(l) +=
-          //         0.5 * (r_reg.t() + conv_to<colvec>::from(eta(x).row(l) % r.t() > 0.5).t() % (2 * E(x).row(l)));
+            R_reg(x).tube(d, l) *= (1 - param_grid(x, 3)); // forget
+            R_reg(x).tube(d, l) +=
+                0.5 * (r_reg + conv_to<colvec>::from(vectorise(eta(x).tube(d, l)) % r > 0.5) % (2 * vectorise(E(x).tube(d, l))));
 
-          //     if (method == "boa")
-          //     {
-          //       // Wintenberger
-          //       beta(x).row(l) = beta0field(x).row(l) * K % softmax_r(log(param_grid(x, 12) * eta(x).row(l)) + param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
-          //     }
-          //     else
-          //     {
-          //       // Gaillard
-          //       beta(x).row(l) = beta0field(x).row(l) * K % softmax_r(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
-          //     }
-          //   }
-          //   else
-          //   {
-          //     Rcpp::stop("Choose 'boa', 'bewa', 'ml_poly' or 'ewa' as method.");
-          //   }
+            if (method == "boa")
+            {
+              // Wintenberger
+              beta(x).tube(d, l) = vectorise(beta0field(x).tube(d, l)).t() * K % softmax_r(log(param_grid(x, 12) * vectorise(eta(x).tube(d, l)).t()) + param_grid(x, 12) * vectorise(eta(x).tube(d, l)).t() % vectorise(R_reg(x).tube(d, l)).t());
+            }
+            else
+            {
+              // Gaillard
+              beta(x).tube(d, l) = vectorise(beta0field(x).tube(d, l)).t() * K % softmax_r(param_grid(x, 12) * vectorise(eta(x).tube(d, l)).t() % vectorise(R_reg(x).tube(d, l)).t());
+            }
+          }
+          else
+          {
+            Rcpp::stop("Choose 'boa', 'bewa', 'ml_poly' or 'ewa' as method.");
+          }
 
           //   // Apply thresholds
           //   if (param_grid(x, 4) > 0)

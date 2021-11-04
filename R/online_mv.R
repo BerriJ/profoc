@@ -134,9 +134,9 @@ online_mv <- function(y, experts, tau,
     }
     exdim <- dim(experts[[1]])
 
-    if (ncol(y) > 1 & !allow_quantile_crossing) {
-        warning("Warning: allow_quantile_crossing set to true since multivariate prediction target was provided.")
-        allow_quantile_crossing <- TRUE
+    if (ncol(y) > 1 & !allow_quantile_crossing) { # TODO: can be removed since its obsolete
+        # warning("Warning: allow_quantile_crossing set to true since multivariate prediction target was provided.")
+        ## allow_quantile_crossing <- TRUE
         # Bool is set inside C++
     }
 
