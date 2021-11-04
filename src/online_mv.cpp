@@ -86,10 +86,12 @@ void online_learning_core_mv(
     for (unsigned int x = 0; x < param_grid.n_rows; x++)
     {
 
-      cube lexp_int(D, P, K); // Experts loss
-      cube lexp_ext(D, P, K); // Experts loss
-      cube lexp(D, P, K);     // Experts loss
-      mat lfor(D, P);         // Forecasters loss
+      mat lexp_int(P, K); // Experts loss
+      mat lexp_ext(P, K); // Experts loss
+      mat lexp(P, K);     // Experts loss
+      vec lfor(P);        // Forecasters loss
+      mat regret_tmp(P, K);
+      arma::field<mat> regret(D);
 
       for (unsigned int d = 0; d < D; d++)
       {
@@ -108,71 +110,68 @@ void online_learning_core_mv(
           {
             for (unsigned int k = 0; k < K; k++)
             {
-              lexp_int(d, p, k) = loss(y(t, d),
-                                       experts(t)(d, p, k),
-                                       predictions_tmp(x)(t - lead_time, d, p), // where evaluate loss_gradient
-                                       loss_function,                           // method
-                                       tau(p),                                  // tau
-                                       loss_parameter,                          // alpha
-                                       loss_gradient);
+              lexp_int(p, k) = loss(y(t, d),
+                                    experts(t)(d, p, k),
+                                    predictions_tmp(x)(t - lead_time, d, p), // where evaluate loss_gradient
+                                    loss_function,                           // method
+                                    tau(p),                                  // tau
+                                    loss_parameter,                          // alpha
+                                    loss_gradient);
             }
 
             if (param_grid(x, 13) == 0)
             {
-              lexp.tube(d, p) = lexp_int.tube(d, p);
+              lexp.row(p) = lexp_int.row(p);
             }
             else
             {
-              lexp_ext.tube(d, p) = arma::vectorise(loss_array.tube(t, p)).t();
-              lexp.tube(d, p) = (1 - param_grid(x, 13)) * lexp_int.tube(d, p) + param_grid(x, 13) * lexp_ext.tube(d, p);
+              lexp_ext.row(p) = arma::vectorise(loss_array.tube(t, p)).t();
+              lexp.row(p) = (1 - param_grid(x, 13)) * lexp_int.row(p) + param_grid(x, 13) * lexp_ext.row(p);
             }
           }
           else
           {
-            lexp_ext.tube(d, p) = arma::vectorise(loss_array.tube(t, p)).t();
-            lexp.tube(d, p) = lexp_ext.tube(d, p);
+            lexp_ext.row(p) = arma::vectorise(loss_array.tube(t, p)).t();
+            lexp.row(p) = lexp_ext.row(p);
           }
+          lfor(p) = loss(y(t, d),
+                         predictions_tmp(x)(t - lead_time, d, p),
+                         predictions_tmp(x)(t - lead_time, d, p), // where to evaluate loss_gradient
+                         loss_function,                           // method
+                         tau(p),                                  // tau
+                         loss_parameter,                          // alpha
+                         loss_gradient);
         }
 
-        // lfor(p) = loss(y(t, p),
-        //                predictions_tmp(t - lead_time, p, x),
-        //                predictions_tmp(t - lead_time, p, x), // where to evaluate loss_gradient
-        //                loss_function,                        // method
-        //                tau(p),                               // tau
-        //                loss_parameter,                       // alpha
-        //                loss_gradient);
+        mat regret_int(P, K);
+        mat regret_ext(P, K);
+
+        if (param_grid(x, 14) != 1)
+        {
+          regret_int = (lfor - lexp_int.each_col()).t();
+          regret_int *= double(basis_mats(x).n_cols) / double(P);
+
+          if (param_grid(x, 14) == 0)
+          {
+            regret_tmp = regret_int;
+          }
+          else
+          {
+            regret_ext = regret_array.row(t);
+            regret_ext = regret_ext.t();
+            regret_ext *= double(basis_mats(x).n_cols) / double(P);
+            regret_tmp = (1 - param_grid(x, 14)) * regret_int + param_grid(x, 14) * regret_ext;
+          }
+        }
+        else
+        {
+          regret_ext = regret_array.row(t);
+          regret_ext = regret_ext.t();
+          regret_ext *= double(basis_mats(x).n_cols) / double(P);
+          regret_tmp = regret_ext;
+        }
+        regret(d) = regret_tmp * basis_mats(x);
       }
-
-      // mat regret_int;
-      // mat regret_ext;
-      // mat regret;
-
-      // if (param_grid(x, 14) != 1)
-      // {
-      //   regret_int = (lfor - lexp_int.each_col()).t();
-      //   regret_int *= double(basis_mats(x).n_cols) / double(P);
-
-      //   if (param_grid(x, 14) == 0)
-      //   {
-      //     regret = regret_int;
-      //   }
-      //   else
-      //   {
-      //     regret_ext = regret_array.row(t);
-      //     regret_ext = regret_ext.t();
-      //     regret_ext *= double(basis_mats(x).n_cols) / double(P);
-      //     regret = (1 - param_grid(x, 14)) * regret_int + param_grid(x, 14) * regret_ext;
-      //   }
-      // }
-      // else
-      // {
-      //   regret_ext = regret_array.row(t);
-      //   regret_ext = regret_ext.t();
-      //   regret_ext *= double(basis_mats(x).n_cols) / double(P);
-      //   regret = regret_ext;
-      // }
-
-      // regret *= basis_mats(x);
 
       // for (unsigned int l = 0; l < regret.n_cols; l++)
       // {

@@ -91,7 +91,7 @@ online_mv <- function(y, experts, tau,
                       loss_parameter = 1,
                       loss_gradient = TRUE,
                       method = "bewa",
-                      basis_knot_distance = 1 / (dim(experts)[2] + 1),
+                      basis_knot_distance = 1 / (dim(experts)[3] + 1),
                       basis_knot_distance_power = 1,
                       basis_deg = 1,
                       forget_regret = 0,
@@ -112,9 +112,10 @@ online_mv <- function(y, experts, tau,
                       loss = NULL,
                       regret = NULL,
                       trace = TRUE) {
+    A <- basis_knot_distance # just a dummy to force eval of basis_knot_distance > TODO: fix
 
     edim <- dim(experts)
-    if (length(edim) == 3) {
+    if (length(edim) == 3) { # Think about this, how can we differ between prob and mv settings? Require a 4D array everytime?
         experts <- lapply(seq_len(edim[1]),
             asub,
             x = experts,
