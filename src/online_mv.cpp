@@ -173,128 +173,131 @@ void online_learning_core_mv(
         regret(d) = regret_tmp * basis_mats(x);
       }
 
-      // for (unsigned int l = 0; l < regret.n_cols; l++)
-      // {
+      for (unsigned int d = 0; d < D; d++)
+      { // This is subject to change if D will be reduces using another basis
 
-      //   vec r = regret.col(l);
+        for (unsigned int l = 0; l < regret(d).n_cols; l++)
+        {
 
-      //   if (method == "ewa")
-      //   {
-      //     // Update the cumulative regret used by eta
-      //     R(x).row(l) = R(x).row(l) * (1 - param_grid(x, 3)) + r.t();
-      //     eta(x).row(l).fill(param_grid(x, 12));
-      //     beta(x).row(l) = beta0field(x).row(l) * K % softmax_r(param_grid(x, 12) * R(x).row(l));
-      //   }
-      //   else if (method == "ml_poly")
-      //   {
-      //     // Update the cumulative regret used by ML_Poly
-      //     R(x).row(l) = R(x).row(l) * (1 - param_grid(x, 3)) + r.t();
+          vec r = regret(d).col(l);
 
-      //     // Update the learning rate
-      //     eta(x).row(l) = 1 / (1 / eta(x).row(l) + square(r.t()));
+          if (method == "ewa")
+          {
+            // Update the cumulative regret used by eta
+            R(x).tube(d, l) = vectorise(R(x).tube(d, l) * (1 - param_grid(x, 3))) + r;
+            eta(x).tube(d, l).fill(param_grid(x, 12));
+            beta(x).tube(d, l) = vectorise(beta0field(x).tube(d, l)).t() * K % softmax_r(param_grid(x, 12) * vectorise(R(x).tube(d, l)).t());
+          }
+          //   else if (method == "ml_poly")
+          //   {
+          //     // Update the cumulative regret used by ML_Poly
+          //     R(x).row(l) = R(x).row(l) * (1 - param_grid(x, 3)) + r.t();
 
-      //     // param_grid(x, 12) = gamma
-      //     beta(x).row(l) =
-      //         beta0field(x).row(l) * K * param_grid(x, 12) % eta(x).row(l) % pmax_arma(R(x).row(l), exp(-700));
-      //     beta(x).row(l) /= accu(beta(x).row(l));
-      //   }
-      //   else if (method == "boa" || method == "bewa")
-      //   {
+          //     // Update the learning rate
+          //     eta(x).row(l) = 1 / (1 / eta(x).row(l) + square(r.t()));
 
-      //     V(x).row(l) = V(x).row(l) * (1 - param_grid(x, 3)) + square(r.t());
+          //     // param_grid(x, 12) = gamma
+          //     beta(x).row(l) =
+          //         beta0field(x).row(l) * K * param_grid(x, 12) % eta(x).row(l) % pmax_arma(R(x).row(l), exp(-700));
+          //     beta(x).row(l) /= accu(beta(x).row(l));
+          //   }
+          //   else if (method == "boa" || method == "bewa")
+          //   {
 
-      //     E(x).row(l) = max(E(x).row(l) * (1 - param_grid(x, 3)), abs(r.t()));
+          //     V(x).row(l) = V(x).row(l) * (1 - param_grid(x, 3)) + square(r.t());
 
-      //     eta(x).row(l) =
-      //         pmin_arma(
-      //             min(1 / (2 * E(x).row(l)),
-      //                 sqrt(-log(beta0field(x).row(l)) / V(x).row(l))),
-      //             exp(350));
+          //     E(x).row(l) = max(E(x).row(l) * (1 - param_grid(x, 3)), abs(r.t()));
 
-      //     vec r_reg = r - eta(x).row(l).t() % square(r);
+          //     eta(x).row(l) =
+          //         pmin_arma(
+          //             min(1 / (2 * E(x).row(l)),
+          //                 sqrt(-log(beta0field(x).row(l)) / V(x).row(l))),
+          //             exp(350));
 
-      //     R_reg(x).row(l) *= (1 - param_grid(x, 3));
-      //     R_reg(x).row(l) +=
-      //         0.5 * (r_reg.t() + conv_to<colvec>::from(eta(x).row(l) % r.t() > 0.5).t() % (2 * E(x).row(l)));
+          //     vec r_reg = r - eta(x).row(l).t() % square(r);
 
-      //     if (method == "boa")
-      //     {
-      //       // Wintenberger
-      //       beta(x).row(l) = beta0field(x).row(l) * K % softmax_r(log(param_grid(x, 12) * eta(x).row(l)) + param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
-      //     }
-      //     else
-      //     {
-      //       // Gaillard
-      //       beta(x).row(l) = beta0field(x).row(l) * K % softmax_r(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
-      //     }
-      //   }
-      //   else
-      //   {
-      //     Rcpp::stop("Choose 'boa', 'bewa', 'ml_poly' or 'ewa' as method.");
-      //   }
+          //     R_reg(x).row(l) *= (1 - param_grid(x, 3));
+          //     R_reg(x).row(l) +=
+          //         0.5 * (r_reg.t() + conv_to<colvec>::from(eta(x).row(l) % r.t() > 0.5).t() % (2 * E(x).row(l)));
 
-      //   // Apply thresholds
-      //   if (param_grid(x, 4) > 0)
-      //   {
-      //     int best_k = beta(x).row(l).index_max();
-      //     for (double &e : beta(x).row(l))
-      //     {
-      //       threshold_soft(e, param_grid(x, 4));
-      //     }
-      //     if (accu(beta(x).row(l)) == 0)
-      //     {
-      //       beta(x)(l, best_k) = 1;
-      //     }
-      //   }
+          //     if (method == "boa")
+          //     {
+          //       // Wintenberger
+          //       beta(x).row(l) = beta0field(x).row(l) * K % softmax_r(log(param_grid(x, 12) * eta(x).row(l)) + param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
+          //     }
+          //     else
+          //     {
+          //       // Gaillard
+          //       beta(x).row(l) = beta0field(x).row(l) * K % softmax_r(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
+          //     }
+          //   }
+          //   else
+          //   {
+          //     Rcpp::stop("Choose 'boa', 'bewa', 'ml_poly' or 'ewa' as method.");
+          //   }
 
-      //   if (param_grid(x, 5) > 0)
-      //   {
-      //     int best_k = beta(x).row(l).index_max();
-      //     for (double &e : beta(x).row(l))
-      //     {
-      //       threshold_hard(e, param_grid(x, 5));
-      //     }
-      //     if (accu(beta(x).row(l)) == 0)
-      //     {
-      //       beta(x)(l, best_k) = 1;
-      //     }
-      //   }
+          //   // Apply thresholds
+          //   if (param_grid(x, 4) > 0)
+          //   {
+          //     int best_k = beta(x).row(l).index_max();
+          //     for (double &e : beta(x).row(l))
+          //     {
+          //       threshold_soft(e, param_grid(x, 4));
+          //     }
+          //     if (accu(beta(x).row(l)) == 0)
+          //     {
+          //       beta(x)(l, best_k) = 1;
+          //     }
+          //   }
 
-      //   // Add fixed_share
-      //   beta(x).row(l) =
-      //       (1 - param_grid(x, 6)) * beta(x).row(l) +
-      //       (param_grid(x, 6) / K);
-      // }
+          //   if (param_grid(x, 5) > 0)
+          //   {
+          //     int best_k = beta(x).row(l).index_max();
+          //     for (double &e : beta(x).row(l))
+          //     {
+          //       threshold_hard(e, param_grid(x, 5));
+          //     }
+          //     if (accu(beta(x).row(l)) == 0)
+          //     {
+          //       beta(x)(l, best_k) = 1;
+          //     }
+          //   }
 
-      // // Smoothing
-      // if (param_grid(x, 7) != -datum::inf)
-      // {
-      //   // Note that hat was already mutliplied with basis so we can use it directly here
-      //   weights_tmp.slice(x) = hat_mats(x) * beta(x);
-      // }
-      // else
-      // {
-      //   weights_tmp.slice(x) = basis_mats(x) * beta(x);
-      // }
+          //   // Add fixed_share
+          //   beta(x).row(l) =
+          //       (1 - param_grid(x, 6)) * beta(x).row(l) +
+          //       (param_grid(x, 6) / K);
+          // }
 
-      // // Enshure that constraints hold
-      // for (unsigned int p = 0; p < P; p++)
-      // {
+          // // Smoothing
+          // if (param_grid(x, 7) != -datum::inf)
+          // {
+          //   // Note that hat was already mutliplied with basis so we can use it directly here
+          //   weights_tmp.slice(x) = hat_mats(x) * beta(x);
+          // }
+          // else
+          // {
+          //   weights_tmp.slice(x) = basis_mats(x) * beta(x);
+          // }
 
-      //   // Positivity
-      //   weights_tmp(span(p), span::all, span(x)) =
-      //       pmax_arma(weights_tmp(span(p), span::all, span(x)), exp(-700));
+          // // Enshure that constraints hold
+          // for (unsigned int p = 0; p < P; p++)
+          // {
 
-      //   // Affinity
-      //   weights_tmp(span(p), span::all, span(x)) /=
-      //       accu(weights_tmp(span(p), span::all, span(x)));
-      // }
+          //   // Positivity
+          //   weights_tmp(span(p), span::all, span(x)) =
+          //       pmax_arma(weights_tmp(span(p), span::all, span(x)), exp(-700));
 
-      // tmp_performance(x) = accu(past_performance(span(t), span::all, span(x)));
-      // prog.increment(); // Update progress
-      // R_CheckUserInterrupt();
+          //   // Affinity
+          //   weights_tmp(span(p), span::all, span(x)) /=
+          //       accu(weights_tmp(span(p), span::all, span(x)));
+        }
+
+        // tmp_performance(x) = accu(past_performance(span(t), span::all, span(x)));
+        // prog.increment(); // Update progress
+        // R_CheckUserInterrupt();
+      }
     }
-
     //   // Sum past_performance in each slice
     //   cum_performance = (1 - forget_past_performance) * cum_performance + tmp_performance;
     //   opt_index(t + 1) = cum_performance.index_min();
