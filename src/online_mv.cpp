@@ -188,19 +188,18 @@ void online_learning_core_mv(
             eta(x).tube(d, l).fill(param_grid(x, 12));
             beta(x).tube(d, l) = vectorise(beta0field(x).tube(d, l)).t() * K % softmax_r(param_grid(x, 12) * vectorise(R(x).tube(d, l)).t());
           }
-          //   else if (method == "ml_poly")
-          //   {
-          //     // Update the cumulative regret used by ML_Poly
-          //     R(x).row(l) = R(x).row(l) * (1 - param_grid(x, 3)) + r.t();
+          else if (method == "ml_poly")
+          {
+            // Update the cumulative regret used by ML_Poly
+            R(x).tube(d, l) = vectorise(R(x).tube(d, l) * (1 - param_grid(x, 3))) + r;
 
-          //     // Update the learning rate
-          //     eta(x).row(l) = 1 / (1 / eta(x).row(l) + square(r.t()));
+            // Update the learning rate
+            eta(x).tube(d, l) = 1 / (1 / vectorise(eta(x).tube(d, l)).t() + square(r.t()));
 
-          //     // param_grid(x, 12) = gamma
-          //     beta(x).row(l) =
-          //         beta0field(x).row(l) * K * param_grid(x, 12) % eta(x).row(l) % pmax_arma(R(x).row(l), exp(-700));
-          //     beta(x).row(l) /= accu(beta(x).row(l));
-          //   }
+            // param_grid(x, 12) = gamma
+            beta(x).tube(d, l) = vectorise(beta0field(x).tube(d, l)).t() * K * param_grid(x, 12) % vectorise(eta(x).tube(d, l)).t() % pmax_arma(vectorise(R(x).tube(d, l)).t(), exp(-700));
+            beta(x).tube(d, l) /= accu(beta(x).tube(d, l));
+          }
           //   else if (method == "boa" || method == "bewa")
           //   {
 
