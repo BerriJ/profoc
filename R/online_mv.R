@@ -112,18 +112,34 @@ online_mv <- function(y, experts, tau,
                       loss = NULL,
                       regret = NULL,
                       trace = TRUE) {
-    A <- basis_knot_distance # just a dummy to force eval of basis_knot_distance > TODO: fix
+    force(basis_knot_distance)
 
     edim <- dim(experts)
-    if (length(edim) == 3) { # Think about this, how can we differ between prob and mv settings? Require a 4D array everytime?
-        experts <- lapply(seq_len(edim[1]),
-            asub,
-            x = experts,
-            dims = 1,
-            drop = FALSE
-        )
-        dim(experts) <- c(edim[1], 1)
-    } else if (length(edim) == 4) {
+
+    if(is.vector(y)){
+        y <- matrix(y)
+    }
+
+    if (length(edim) == 3) {
+        if (ncol(y) > 1) { # multivariate point
+            experts <- array(unlist(experts), dim = c(edim[1], edim[2], 1, edim[3]))
+            experts <- lapply(seq_len(edim[1]),
+                asub,
+                x = experts,
+                dims = 1,
+                drop = TRUE
+            )
+            dim(experts) <- c(edim[1], 1)
+        } else if (ncol(y) == 1) { # Probabilistic univariate
+            experts <- lapply(seq_len(edim[1]),
+                asub,
+                x = experts,
+                dims = 1,
+                drop = FALSE
+            )
+            dim(experts) <- c(edim[1], 1)
+        }
+    } else if (length(edim) == 4) { # multivariate probabilistic
         experts <- lapply(seq_len(edim[1]),
             asub,
             x = experts,
@@ -133,12 +149,6 @@ online_mv <- function(y, experts, tau,
         dim(experts) <- c(edim[1], 1)
     }
     exdim <- dim(experts[[1]])
-
-    if (ncol(y) > 1 & !allow_quantile_crossing) { # TODO: can be removed since its obsolete
-        # warning("Warning: allow_quantile_crossing set to true since multivariate prediction target was provided.")
-        ## allow_quantile_crossing <- TRUE
-        # Bool is set inside C++
-    }
 
     if (nrow(experts) - nrow(y) < 0) {
         stop("Number of provided expert predictions has to match or exceed observations.")
@@ -299,14 +309,35 @@ online_mv <- function(y, experts, tau,
         trace = trace
     )
 
-    # dimnames(model$specification$data$y) <- dimnames(y)
+    dimnames(model$specification$data$y) <- dimnames(y)
 
-    # dimnames(model$specification$data$experts) <- dimnames(experts)
+    model$weights <- array(unlist(model$weights),
+        dim = c(
+            nrow(model$weights), # T
+            dim(model$weights[[1]])[1], # D
+            dim(model$weights[[1]])[2], # P
+            dim(model$weights[[1]])[3] # K
+        )
+    )
 
-    # if (is.null(dimnames(model$specification$data$experts)[[3]])) {
-    #     dimnames(model$specification$data$experts)[[3]] <-
-    #         paste0("E", 1:edim[3])
-    # }
+    model$experts_loss <- array(unlist(model$experts_loss),
+        dim = c(
+            nrow(model$experts_loss), # T
+            dim(model$experts_loss[[1]])[1], # D
+            dim(model$experts_loss[[1]])[2], # P
+            dim(model$experts_loss[[1]])[3] # K
+        )
+    )
+
+    model$past_performance <- array(unlist(model$past_performance),
+        dim = c(
+            nrow(model$past_performance), # T
+            dim(model$past_performance[[1]])[1], # D
+            dim(model$past_performance[[1]])[2], # P
+            dim(model$past_performance[[1]])[3] # K
+        )
+    )
+
 
     return(model)
 }

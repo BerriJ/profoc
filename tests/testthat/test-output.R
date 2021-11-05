@@ -23,6 +23,7 @@ for (t in 1:T) {
 model <- online(
     y = matrix(y),
     experts = experts,
+    tau = prob_grid,
     trace = FALSE
 )
 

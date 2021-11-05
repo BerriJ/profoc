@@ -23,6 +23,7 @@ for (t in 1:T) {
 model <- online(
     y = matrix(y),
     experts = experts,
+    tau = prob_grid,
     method = "boa",
     trace = FALSE
 )
@@ -46,6 +47,7 @@ expect_true(all(!is.na(model$experts_loss)))
 model <- online(
     y = matrix(y),
     experts = experts,
+    tau = prob_grid,
     method = "bewa",
     trace = FALSE
 )
@@ -69,6 +71,7 @@ expect_true(all(!is.na(model$experts_loss)))
 model <- online(
     y = matrix(y),
     experts = experts,
+    tau = prob_grid,
     method = "ewa",
     gamma = 0.1,
     trace = FALSE
@@ -93,6 +96,7 @@ expect_true(all(!is.na(model$experts_loss)))
 model <- online(
     y = matrix(y),
     experts = experts,
+    tau = prob_grid,
     method = "ml_poly",
     trace = FALSE
 )

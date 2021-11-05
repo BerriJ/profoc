@@ -640,8 +640,8 @@ Rcpp::List online_rcpp_mv(
   Rcpp::NumericMatrix parametergrid_out = Rcpp::wrap(param_grid);
   Rcpp::colnames(parametergrid_out) = param_names;
 
-  // Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
-  // Rcpp::colnames(chosen_parameters) = param_names;
+  Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
+  Rcpp::colnames(chosen_parameters) = param_names;
 
   Rcpp::List model_data = Rcpp::List::create(
       Rcpp::Named("y") = y,
@@ -682,7 +682,7 @@ Rcpp::List online_rcpp_mv(
       Rcpp::Named("forecaster_loss") = loss_for,
       Rcpp::Named("experts_loss") = loss_exp,
       Rcpp::Named("past_performance") = past_performance,
-      Rcpp::Named("chosen_parameters") = chosen_params,
+      Rcpp::Named("chosen_parameters") = chosen_parameters,
       Rcpp::Named("opt_index") = opt_index,
       Rcpp::Named("parametergrid") = parametergrid_out,
       Rcpp::Named("basis_matrices") = basis_mats,
