@@ -30,9 +30,9 @@ void online_learning_core_mv(
     field<cube> &predictions_tmp,
     cube &predictions,
     field<cube> &past_performance,
-    mat &opt_index,
+    vec &opt_index,
     const mat &param_grid,
-    cube &chosen_params,
+    mat &chosen_params,
     field<cube> &R,
     field<cube> &R_reg,
     field<cube> &V,
@@ -60,7 +60,7 @@ void online_learning_core_mv(
     for (unsigned int d = 0; d < D; d++)
     {
       // Save final weights weights_tmp
-      weights(t).row(d) = weights_tmp(opt_index(t, d)).row(d);
+      weights(t).row(d) = weights_tmp(opt_index(t)).row(d);
 
       // Store expert predictions temporarily
       mat experts_mat = experts(t).row(d);
@@ -80,7 +80,7 @@ void online_learning_core_mv(
       }
 
       // Forecasters prediction
-      predictions.tube(t, d) = predictions_tmp(opt_index(t, d)).tube(t, d);
+      predictions.tube(t, d) = predictions_tmp(opt_index(t)).tube(t, d);
     }
 
     for (unsigned int x = 0; x < param_grid.n_rows; x++)
@@ -293,10 +293,10 @@ void online_learning_core_mv(
           // // Affinity
           weights_tmp(x)(span(d), span(p), span::all) /=
               accu(weights_tmp(x)(span(d), span(p), span::all));
-
-          tmp_performance(d, x) = accu(past_performance(t)(span(d), span::all, span(x)));
         }
       }
+
+      tmp_performance(x) = accu(past_performance(t).slice(x));
       prog.increment(); // Update progress
       R_CheckUserInterrupt();
     }
@@ -304,13 +304,9 @@ void online_learning_core_mv(
     // Sum past_performance in each slice
     cum_performance = (1 - forget_past_performance) * cum_performance + tmp_performance;
 
-    for (unsigned int d = 0; d < D; d++)
-    {
-      opt_index(t + 1, d) = cum_performance.row(d).index_min();
-      chosen_params.tube(t, d) = param_grid.row(opt_index(t + 1, d));
-    }
+    opt_index(t + 1) = cum_performance.index_min();
+    chosen_params.row(t) = param_grid.row(opt_index(t + 1));
   }
-
   // Save Weights and Prediction
   weights(T) = weights_tmp(opt_index(T));
 
@@ -413,11 +409,11 @@ Rcpp::List online_rcpp_mv(
   }
 
   const unsigned int X = param_grid.n_rows;
-  cube chosen_params(T, D, param_grid.n_cols);
-  mat opt_index(T + 1, D, fill::zeros);
+  mat chosen_params(T, param_grid.n_cols);
+  vec opt_index(T + 1, fill::zeros);
   arma::field<cube> past_performance(T);
-  mat tmp_performance(D, X, fill::zeros);
-  mat cum_performance(D, X, fill::zeros);
+  vec tmp_performance(X, fill::zeros);
+  vec cum_performance(X, fill::zeros);
   Progress prog(T * X + X, trace);
 
   // Init objects holding weights
@@ -545,7 +541,7 @@ Rcpp::List online_rcpp_mv(
     for (unsigned int d = 0; d < D; d++)
     {
       // Save final weights weights_tmp
-      weights(t).row(d) = weights_tmp(opt_index(t, d)).row(d);
+      weights(t).row(d) = weights_tmp(opt_index(t)).row(d);
 
       // Store expert predictions temporarily
       mat experts_mat = experts(t).row(d);
@@ -562,7 +558,7 @@ Rcpp::List online_rcpp_mv(
       }
 
       // // Final prediction
-      predictions.tube(t, d) = predictions_tmp(opt_index(t, d)).tube(t, d);
+      predictions.tube(t, d) = predictions_tmp(opt_index(t)).tube(t, d);
     }
 
     past_performance(t).fill(datum::nan);
