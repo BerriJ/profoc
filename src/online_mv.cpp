@@ -40,6 +40,7 @@ void online_learning_core_mv(
     field<cube> &eta,
     field<mat> &hat_mats,
     field<sp_mat> &basis_mats,
+    field<sp_mat> &basis_mats_mv,
     field<cube> &beta0field,
     field<cube> &beta,
     mat &cum_performance,
@@ -90,12 +91,11 @@ void online_learning_core_mv(
       mat lexp_ext(P, K); // Experts loss
       mat lexp(P, K);     // Experts loss
       vec lfor(P);        // Forecasters loss
-      mat regret_tmp(P, K);
-      arma::field<mat> regret(D);
+      cube regret_tmp(D, P, K);
+      cube regret(basis_mats_mv(x).n_cols, basis_mats(x).n_cols, K); // Dr x Pr x K
 
       for (unsigned int d = 0; d < D; d++)
       {
-
         for (unsigned int p = 0; p < P; p++)
         {
           // Evaluate the ex-post predictive performance
@@ -153,14 +153,14 @@ void online_learning_core_mv(
 
           if (param_grid(x, 14) == 0)
           {
-            regret_tmp = regret_int;
+            regret_tmp.row(d) = regret_int.t();
           }
           else
           {
             regret_ext = regret_array.row(t);
             regret_ext = regret_ext.t();
             regret_ext *= double(basis_mats(x).n_cols) / double(P);
-            regret_tmp = (1 - param_grid(x, 14)) * regret_int + param_grid(x, 14) * regret_ext;
+            regret_tmp.row(d) = ((1 - param_grid(x, 14)) * regret_int + param_grid(x, 14) * regret_ext).t();
           }
         }
         else
@@ -168,66 +168,71 @@ void online_learning_core_mv(
           regret_ext = regret_array.row(t);
           regret_ext = regret_ext.t();
           regret_ext *= double(basis_mats(x).n_cols) / double(P);
-          regret_tmp = regret_ext;
+          regret_tmp.row(d) = regret_ext.t();
         }
-        regret(d) = regret_tmp * basis_mats(x);
       }
 
-      for (unsigned int d = 0; d < D; d++)
+      for (unsigned int k = 0; k < K; k++)
+      {
+        mat tmp = (regret_tmp.slice(k) * basis_mats(x)).t() * basis_mats_mv(x);
+        regret.slice(k) = tmp.t();
+      }
+
+      for (unsigned int dr = 0; dr < regret.n_rows; dr++)
       { // This is subject to change if D will be reduces using another basis
 
-        for (unsigned int l = 0; l < regret(d).n_cols; l++)
+        for (unsigned int pr = 0; pr < regret.n_cols; pr++)
         {
 
-          vec r = regret(d).col(l);
+          vec r = regret.tube(dr, pr);
 
           if (method == "ewa")
           {
             // Update the cumulative regret used by eta
-            R(x).tube(d, l) = vectorise(R(x).tube(d, l) * (1 - param_grid(x, 3))) + r;
-            eta(x).tube(d, l).fill(param_grid(x, 12));
-            beta(x).tube(d, l) = vectorise(beta0field(x).tube(d, l)).t() * K % softmax_r(param_grid(x, 12) * vectorise(R(x).tube(d, l)).t());
+            R(x).tube(dr, pr) = vectorise(R(x).tube(dr, pr) * (1 - param_grid(x, 3))) + r;
+            eta(x).tube(dr, pr).fill(param_grid(x, 12));
+            beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(param_grid(x, 12) * vectorise(R(x).tube(dr, pr)).t());
           }
           else if (method == "ml_poly")
           {
             // Update the cumulative regret used by ML_Poly
-            R(x).tube(d, l) = vectorise(R(x).tube(d, l) * (1 - param_grid(x, 3))) + r;
+            R(x)
+                .tube(dr, pr) = vectorise(R(x).tube(dr, pr) * (1 - param_grid(x, 3))) + r;
 
             // Update the learning rate
-            eta(x).tube(d, l) = 1 / (1 / vectorise(eta(x).tube(d, l)).t() + square(r.t()));
+            eta(x).tube(dr, pr) = 1 / (1 / vectorise(eta(x).tube(dr, pr)).t() + square(r.t()));
 
             // param_grid(x, 12) = gamma
-            beta(x).tube(d, l) = vectorise(beta0field(x).tube(d, l)).t() * K * param_grid(x, 12) % vectorise(eta(x).tube(d, l)).t() % pmax_arma(vectorise(R(x).tube(d, l)).t(), exp(-700));
-            beta(x).tube(d, l) /= accu(beta(x).tube(d, l));
+            beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K * param_grid(x, 12) % vectorise(eta(x).tube(dr, pr)).t() % pmax_arma(vectorise(R(x).tube(dr, pr)).t(), exp(-700));
+            beta(x).tube(dr, pr) /= accu(beta(x).tube(dr, pr));
           }
           else if (method == "boa" || method == "bewa")
           {
+            V(x).tube(dr, pr) = vectorise(V(x).tube(dr, pr)).t() * (1 - param_grid(x, 3)) + square(r.t());
 
-            V(x).tube(d, l) = vectorise(V(x).tube(d, l)).t() * (1 - param_grid(x, 3)) + square(r.t());
+            E(x).tube(dr, pr) = max(vectorise(E(x).tube(dr, pr)).t() * (1 - param_grid(x, 3)), abs(r.t()));
 
-            E(x).tube(d, l) = max(vectorise(E(x).tube(d, l)).t() * (1 - param_grid(x, 3)), abs(r.t()));
-
-            eta(x).tube(d, l) =
+            eta(x).tube(dr, pr) =
                 pmin_arma(
-                    min(1 / (2 * vectorise(E(x).tube(d, l))),
-                        sqrt(-log(vectorise(beta0field(x).tube(d, l))) / vectorise(V(x).tube(d, l)))),
+                    min(1 / (2 * vectorise(E(x).tube(dr, pr))),
+                        sqrt(-log(vectorise(beta0field(x).tube(dr, pr))) / vectorise(V(x).tube(dr, pr)))),
                     exp(350));
 
-            vec r_reg = r - vectorise(eta(x).tube(d, l)) % square(r);
+            vec r_reg = r - vectorise(eta(x).tube(dr, pr)) % square(r);
 
-            R_reg(x).tube(d, l) *= (1 - param_grid(x, 3)); // forget
-            R_reg(x).tube(d, l) +=
-                0.5 * (r_reg + conv_to<colvec>::from(vectorise(eta(x).tube(d, l)) % r > 0.5) % (2 * vectorise(E(x).tube(d, l))));
+            R_reg(x).tube(dr, pr) *= (1 - param_grid(x, 3)); // forget
+            R_reg(x).tube(dr, pr) +=
+                0.5 * (r_reg + conv_to<colvec>::from(vectorise(eta(x).tube(dr, pr)) % r > 0.5) % (2 * vectorise(E(x).tube(dr, pr))));
 
             if (method == "boa")
             {
               // Wintenberger
-              beta(x).tube(d, l) = vectorise(beta0field(x).tube(d, l)).t() * K % softmax_r(log(param_grid(x, 12) * vectorise(eta(x).tube(d, l)).t()) + param_grid(x, 12) * vectorise(eta(x).tube(d, l)).t() % vectorise(R_reg(x).tube(d, l)).t());
+              beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(log(param_grid(x, 12) * vectorise(eta(x).tube(dr, pr)).t()) + param_grid(x, 12) * vectorise(eta(x).tube(dr, pr)).t() % vectorise(R_reg(x).tube(dr, pr)).t());
             }
             else
             {
               // Gaillard
-              beta(x).tube(d, l) = vectorise(beta0field(x).tube(d, l)).t() * K % softmax_r(param_grid(x, 12) * vectorise(eta(x).tube(d, l)).t() % vectorise(R_reg(x).tube(d, l)).t());
+              beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(param_grid(x, 12) * vectorise(eta(x).tube(dr, pr)).t() % vectorise(R_reg(x).tube(dr, pr)).t());
             }
           }
           else
@@ -238,54 +243,61 @@ void online_learning_core_mv(
           //   // Apply thresholds
           if (param_grid(x, 4) > 0)
           {
-            int best_k = beta(x).tube(d, l).index_max();
+            int best_k = beta(x).tube(dr, pr).index_max();
 
-            for (double &e : beta(x).tube(d, l))
+            for (double &e : beta(x).tube(dr, pr))
             {
               threshold_soft(e, param_grid(x, 4));
             }
-            if (accu(beta(x).tube(d, l)) == 0)
+            if (accu(beta(x).tube(dr, pr)) == 0)
             {
-              beta(x)(d, l, best_k) = 1;
+              beta(x)(dr, pr, best_k) = 1;
             }
           }
 
           if (param_grid(x, 5) > 0)
           {
-            int best_k = beta(x).tube(d, l).index_max();
-            for (double &e : beta(x).tube(d, l))
+            int best_k = beta(x).tube(dr, pr).index_max();
+            for (double &e : beta(x).tube(dr, pr))
             {
               threshold_hard(e, param_grid(x, 5));
             }
-            if (accu(beta(x).tube(d, l)) == 0)
+            if (accu(beta(x).tube(dr, pr)) == 0)
             {
-              beta(x)(d, l, best_k) = 1;
+              beta(x)(dr, pr, best_k) = 1;
             }
           }
 
-          //   // Add fixed_share
-          beta(x).tube(d, l) =
-              (1 - param_grid(x, 6)) * vectorise(beta(x).tube(d, l)) +
+          // Add fixed_share
+          beta(x).tube(dr, pr) =
+              (1 - param_grid(x, 6)) * vectorise(beta(x).tube(dr, pr)) +
               (param_grid(x, 6) / K);
-        }
+        } // pr
+      }   // dr
+
+      cube tmp(D, basis_mats(x).n_cols, K);
+
+      for (unsigned int k = 0; k < K; k++)
+      {
+        tmp.slice(k) = basis_mats_mv(x) * beta(x).slice(k);
 
         // // Smoothing
         if (param_grid(x, 7) != -datum::inf)
         {
           // Note that hat was already mutliplied with basis so we can use it directly here
-          mat tmp = beta(x).row(d);
-          weights_tmp(x).row(d) = hat_mats(x) * tmp;
+          weights_tmp(x).slice(k) = (hat_mats(x) * tmp.slice(k).t()).t();
         }
         else
         {
-          mat tmp = beta(x).row(d);
-          weights_tmp(x).row(d) = basis_mats(x) * tmp;
+          weights_tmp(x).slice(k) = (basis_mats(x) * tmp.slice(k).t()).t();
         }
+      }
+      // Enshure that constraints hold
+      for (unsigned int p = 0; p < P; p++)
+      {
 
-        // Enshure that constraints hold
-        for (unsigned int p = 0; p < P; p++)
+        for (unsigned int d = 0; d < D; d++)
         {
-
           // Positivity
           weights_tmp(x)(span(d), span(p), span::all) =
               pmax_arma(weights_tmp(x)(span(d), span(p), span::all), exp(-700));
@@ -295,7 +307,6 @@ void online_learning_core_mv(
               accu(weights_tmp(x)(span(d), span(p), span::all));
         }
       }
-
       tmp_performance(x) = accu(past_performance(t).slice(x));
       prog.increment(); // Update progress
       R_CheckUserInterrupt();
@@ -307,7 +318,7 @@ void online_learning_core_mv(
     opt_index(t + 1) = cum_performance.index_min();
     chosen_params.row(t) = param_grid.row(opt_index(t + 1));
   }
-  // Save Weights and Prediction
+  // Save Final Weights and Prediction
   weights(T) = weights_tmp(opt_index(T));
 
   // Predict residual expert forecasts if any are available
@@ -430,6 +441,7 @@ Rcpp::List online_rcpp_mv(
   // // Learning parameters
   arma::field<mat> hat_mats(X);
   arma::field<sp_mat> basis_mats(X);
+  arma::field<sp_mat> basis_mats_mv(X);
   arma::field<cube> V(X);
   arma::field<cube> E(X);
   arma::field<cube> k(X);
@@ -439,7 +451,8 @@ Rcpp::List online_rcpp_mv(
   arma::field<cube> beta(X);
   arma::field<cube> beta0field(X);
 
-  vec spline_basis_x = regspace(1, P) / (P + 1);
+  vec spline_basis_prob = regspace(1, P) / (P + 1);
+  vec spline_basis_mv = regspace(1, D) / (D + 1);
 
   // Init learning parameters and basis_matrices
   for (unsigned int x = 0; x < X; x++)
@@ -456,21 +469,40 @@ Rcpp::List online_rcpp_mv(
     else
     {
 
-      basis_mats(x) = make_basis_matrix(spline_basis_x,
+      basis_mats(x) = make_basis_matrix(spline_basis_prob,
                                         param_grid(x, 0), // kstep
                                         param_grid(x, 2), // degree
                                         param_grid(x, 1), // uneven grid
                                         P % 2 == 0);      // even
     }
 
-    int L = basis_mats(x).n_cols;
+    // In second step: skip if recalc is not necessary:
+    if (x > 0 &&
+        param_grid(x, 15) == param_grid(x - 1, 15) &&
+        param_grid(x, 16) == param_grid(x - 1, 16) &&
+        param_grid(x, 17) == param_grid(x - 1, 17))
+    {
+      basis_mats_mv(x) = basis_mats_mv(x - 1);
+    }
+    else
+    {
+
+      basis_mats_mv(x) = make_basis_matrix(spline_basis_mv,
+                                           param_grid(x, 15), // kstep
+                                           param_grid(x, 16), // degree
+                                           param_grid(x, 17), // uneven grid
+                                           D % 2 == 0);       // even
+    }
+
+    int Pr = basis_mats(x).n_cols;
+    int Dr = basis_mats_mv(x).n_cols;
 
     // Learning parameters
-    V(x).zeros(D, L, K);
-    E(x).zeros(D, L, K);
-    k(x).zeros(D, L, K);
+    V(x).zeros(Dr, Pr, K);
+    E(x).zeros(Dr, Pr, K);
+    k(x).zeros(Dr, Pr, K);
 
-    arma::cube eta_(D, L, K, fill::zeros);
+    arma::cube eta_(Dr, Pr, K, fill::zeros);
     eta(x) = eta_;
     if (method == "ml_poly")
     {
@@ -478,20 +510,23 @@ Rcpp::List online_rcpp_mv(
       eta(x) = eta_;
     }
 
-    R(x).set_size(D, L, K);
-    R_reg(x).set_size(D, L, K);
-    beta(x).set_size(D, L, K);
+    R(x).set_size(Dr, Pr, K);
+    R_reg(x).set_size(Dr, Pr, K);
+    beta(x).set_size(Dr, Pr, K);
     weights_tmp(x).set_size(D, P, K);
     predictions_tmp(x).set_size(T, D, P);
 
-    for (unsigned int d = 0; d < D; d++)
+    for (unsigned int dr = 0; dr < Dr; dr++)
     {
-      R(x).row(d) = basis_mats(x).t() * R0;
-      R_reg(x).row(d) = basis_mats(x).t() * R0;
-      beta(x).row(d) = (w0.t() * pinv(mat(basis_mats(x))).t()).t();
-      weights_tmp(x).row(d) = w0;
+      R(x).row(dr) = basis_mats(x).t() * R0;
+      R_reg(x).row(dr) = basis_mats(x).t() * R0;
+      beta(x).row(dr) = (w0.t() * pinv(mat(basis_mats(x))).t()).t();
     }
 
+    for (unsigned int d = 0; d < D; d++)
+    {
+      weights_tmp(x).row(d) = w0;
+    }
     beta0field(x) = beta(x);
 
     R_CheckUserInterrupt();
@@ -516,7 +551,7 @@ Rcpp::List online_rcpp_mv(
       else
       {
         if (param_grid(x, 7) != -datum::inf)
-          hat_mats(x) = make_hat_matrix(spline_basis_x,
+          hat_mats(x) = make_hat_matrix(spline_basis_prob,
                                         param_grid(x, 8),  // kstep
                                         param_grid(x, 7),  // lambda
                                         param_grid(x, 11), // differences
@@ -599,6 +634,7 @@ Rcpp::List online_rcpp_mv(
       eta,
       hat_mats,
       basis_mats,
+      basis_mats_mv,
       beta0field,
       beta,
       cum_performance,
@@ -635,7 +671,10 @@ Rcpp::List online_rcpp_mv(
                                     "smooth_diff",
                                     "gamma",
                                     "loss_share",
-                                    "regret_share");
+                                    "regret_share",
+                                    "mv_basis_knot_distance ",
+                                    "mv_basis_knot_distance_power",
+                                    "mv_basis_deg");
 
   Rcpp::NumericMatrix parametergrid_out = Rcpp::wrap(param_grid);
   Rcpp::colnames(parametergrid_out) = param_names;
@@ -688,6 +727,7 @@ Rcpp::List online_rcpp_mv(
       Rcpp::Named("basis_matrices") = basis_mats,
       Rcpp::Named("specification") = model_spec);
 
+  // Rcpp::List out;
   out.attr("class") = "online";
 
   return out;

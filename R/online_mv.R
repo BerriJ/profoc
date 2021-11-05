@@ -94,6 +94,9 @@ online_mv <- function(y, experts, tau,
                       basis_knot_distance = 1 / (P + 1),
                       basis_knot_distance_power = 1,
                       basis_deg = 1,
+                      mv_basis_knot_distance = 1 / (D + 1),
+                      mv_basis_knot_distance_power = 1,
+                      mv_basis_deg = 1,
                       forget_regret = 0,
                       soft_threshold = -Inf,
                       hard_threshold = -Inf,
@@ -220,7 +223,10 @@ online_mv <- function(y, experts, tau,
             p_smooth_ndiff,
             gamma,
             loss_share,
-            regret_share
+            regret_share,
+            mv_basis_knot_distance,
+            mv_basis_knot_distance_power,
+            mv_basis_deg
         )
 
         if (inh_kstep) {
