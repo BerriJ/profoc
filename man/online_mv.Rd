@@ -28,6 +28,11 @@ online_mv(
   p_smooth_knot_distance_power = basis_knot_distance_power,
   p_smooth_deg = basis_deg,
   p_smooth_ndiff = 1.5,
+  mv_p_smooth_lambda = -Inf,
+  mv_p_smooth_knot_distance = basis_knot_distance,
+  mv_p_smooth_knot_distance_power = basis_knot_distance_power,
+  mv_p_smooth_deg = basis_deg,
+  mv_p_smooth_ndiff = 1.5,
   gamma = 1,
   parametergrid_max_combinations = 100,
   parametergrid = NULL,
@@ -78,6 +83,12 @@ values above 1 concentrate more knots in the tails.}
 \item{basis_deg}{Degree of the basis reducing the probability space.
 Defaults to 1.}
 
+\item{mv_basis_knot_distance}{tbd}
+
+\item{mv_basis_knot_distance_power}{tbd}
+
+\item{mv_basis_deg}{tbd}
+
 \item{forget_regret}{Share of past regret not to be considered, resp. to be
 forgotten in every iteration of the algorithm. Defaults to 0.}
 
@@ -115,6 +126,16 @@ Defaults to the value of basis_deg.}
 1.5 (default) leads to shrinkage towards a constant. Can take values from 1 to 2.
 If a value in between is used, a weighted sum of the first and second
 differentiation matrix is calculated.}
+
+\item{mv_p_smooth_lambda}{tdb}
+
+\item{mv_p_smooth_knot_distance}{tdb}
+
+\item{mv_p_smooth_knot_distance_power}{tdb}
+
+\item{mv_p_smooth_deg}{tdb}
+
+\item{mv_p_smooth_ndiff}{tdb}
 
 \item{gamma}{Scaling parameter for the learning rate.}
 

@@ -15,6 +15,9 @@
 #' @template param_basis_knot_distance_online
 #' @template param_basis_knot_distance_power
 #' @template param_basis_deg_online
+#' @param mv_basis_knot_distance tbd
+#' @param mv_basis_knot_distance_power tbd
+#' @param mv_basis_deg tbd
 #'
 #' @param forget_regret Share of past regret not to be considered, resp. to be
 #' forgotten in every iteration of the algorithm. Defaults to 0.
@@ -29,6 +32,11 @@
 #' @template param_p_smooth_knot_distance_power
 #' @template param_p_smooth_deg
 #' @template param_p_smooth_ndiff
+#' @param  mv_p_smooth_lambda tdb
+#' @param  mv_p_smooth_knot_distance tdb
+#' @param  mv_p_smooth_knot_distance_power tdb
+#' @param  mv_p_smooth_deg tdb
+#' @param  mv_p_smooth_ndiff tdb
 #'
 #' @param gamma Scaling parameter for the learning rate.
 #'
@@ -106,6 +114,11 @@ online_mv <- function(y, experts, tau,
                       p_smooth_knot_distance_power = basis_knot_distance_power,
                       p_smooth_deg = basis_deg,
                       p_smooth_ndiff = 1.5,
+                      mv_p_smooth_lambda = -Inf,
+                      mv_p_smooth_knot_distance = basis_knot_distance,
+                      mv_p_smooth_knot_distance_power = basis_knot_distance_power,
+                      mv_p_smooth_deg = basis_deg,
+                      mv_p_smooth_ndiff = 1.5,
                       gamma = 1,
                       parametergrid_max_combinations = 100,
                       parametergrid = NULL,
@@ -226,7 +239,12 @@ online_mv <- function(y, experts, tau,
             regret_share,
             mv_basis_knot_distance,
             mv_basis_knot_distance_power,
-            mv_basis_deg
+            mv_basis_deg,
+            mv_p_smooth_lambda,
+            mv_p_smooth_knot_distance,
+            mv_p_smooth_knot_distance_power,
+            mv_p_smooth_deg,
+            mv_p_smooth_ndiff
         )
 
         if (inh_kstep) {
@@ -355,6 +373,35 @@ online_mv <- function(y, experts, tau,
     )
     for (i in seq_len(dim(model$experts_loss)[1])) tmp[i, , , ] <- model$experts_loss[[i]]
     model$experts_loss <- tmp
+
+    parnames <- c(
+        "basis_knot_distance",
+        "basis_knot_distance_power",
+        "basis_deg",
+        "forget_regret",
+        "threshold_soft",
+        "threshold_hard",
+        "fixed_share",
+        "p_smooth_lambda",
+        "p_smooth_knot_distance",
+        "p_smooth_knot_distance_power",
+        "p_smooth_deg",
+        "smooth_diff",
+        "gamma",
+        "loss_share",
+        "regret_share",
+        "mv_basis_knot_distance",
+        "mv_basis_knot_distance_power",
+        "mv_basis_deg",
+        "mv_p_smooth_lambda",
+        "mv_p_smooth_knot_distance",
+        "mv_p_smooth_knot_distance_power",
+        "mv_p_smooth_deg",
+        "mv_p_smooth_ndiff"
+    )
+
+    colnames(model$chosen_par) <- parnames
+    colnames(model$parametergrid) <- parnames
 
     return(model)
 }

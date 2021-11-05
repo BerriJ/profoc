@@ -39,6 +39,7 @@ void online_learning_core_mv(
     field<cube> &E,
     field<cube> &eta,
     field<mat> &hat_mats,
+    field<mat> &hat_mats_mv,
     field<sp_mat> &basis_mats,
     field<sp_mat> &basis_mats_mv,
     field<cube> &beta0field,
@@ -279,17 +280,20 @@ void online_learning_core_mv(
 
       for (unsigned int k = 0; k < K; k++)
       {
-        tmp.slice(k) = basis_mats_mv(x) * beta(x).slice(k);
+        weights_tmp(x).slice(k) = (basis_mats(x) * (basis_mats_mv(x) * beta(x).slice(k)).t()).t();
 
         // // Smoothing
-        if (param_grid(x, 7) != -datum::inf)
+        if (param_grid(x, 7) != -datum::inf && param_grid(x, 18) != -datum::inf)
         {
-          // Note that hat was already mutliplied with basis so we can use it directly here
-          weights_tmp(x).slice(k) = (hat_mats(x) * tmp.slice(k).t()).t();
+          weights_tmp(x).slice(k) = hat_mats_mv(x) * weights_tmp(x).slice(k) * hat_mats(x);
         }
-        else
+        else if (param_grid(x, 7) != -datum::inf)
         {
-          weights_tmp(x).slice(k) = (basis_mats(x) * tmp.slice(k).t()).t();
+          weights_tmp(x).slice(k) = weights_tmp(x).slice(k) * hat_mats(x);
+        }
+        else if (param_grid(x, 18) != -datum::inf)
+        {
+          weights_tmp(x).slice(k) = hat_mats_mv(x) * weights_tmp(x).slice(k);
         }
       }
       // Enshure that constraints hold
@@ -440,6 +444,7 @@ Rcpp::List online_rcpp_mv(
 
   // // Learning parameters
   arma::field<mat> hat_mats(X);
+  arma::field<mat> hat_mats_mv(X);
   arma::field<sp_mat> basis_mats(X);
   arma::field<sp_mat> basis_mats_mv(X);
   arma::field<cube> V(X);
@@ -494,8 +499,8 @@ Rcpp::List online_rcpp_mv(
                                            D % 2 == 0);       // even
     }
 
-    int Pr = basis_mats(x).n_cols;
-    int Dr = basis_mats_mv(x).n_cols;
+    unsigned int Pr = basis_mats(x).n_cols;
+    unsigned int Dr = basis_mats_mv(x).n_cols;
 
     // Learning parameters
     V(x).zeros(Dr, Pr, K);
@@ -559,8 +564,27 @@ Rcpp::List online_rcpp_mv(
                                         param_grid(x, 9),  // uneven grid
                                         P % 2 == 0);       // even
       }
-      if (param_grid(x, 7) != -datum::inf)
-        hat_mats(x) *= basis_mats(x);
+
+      if (x > 0 &&
+          param_grid(x, 18) == param_grid(x - 1, 18) &&
+          param_grid(x, 19) == param_grid(x - 1, 19) &&
+          param_grid(x, 20) == param_grid(x - 1, 20) &&
+          param_grid(x, 21) == param_grid(x - 1, 21) &&
+          param_grid(x, 22) == param_grid(x - 1, 22))
+      {
+        hat_mats_mv(x) = hat_mats_mv(x - 1);
+      }
+      else
+      {
+        if (param_grid(x, 18) != -datum::inf)
+          hat_mats_mv(x) = make_hat_matrix(spline_basis_mv,
+                                           param_grid(x, 19), // kstep
+                                           param_grid(x, 18), // lambda
+                                           param_grid(x, 22), // differences
+                                           param_grid(x, 21), // degree
+                                           param_grid(x, 20), // uneven grid
+                                           P % 2 == 0);       // even
+      }
       R_CheckUserInterrupt();
       prog.increment(); // Update progress
     }
@@ -633,6 +657,7 @@ Rcpp::List online_rcpp_mv(
       E,
       eta,
       hat_mats,
+      hat_mats_mv,
       basis_mats,
       basis_mats_mv,
       beta0field,
@@ -656,31 +681,9 @@ Rcpp::List online_rcpp_mv(
     chosen_params.rows(0, lead_time - 1).fill(datum::nan);
   }
 
-  Rcpp::CharacterVector param_names =
-      Rcpp::CharacterVector::create("basis_knot_distance",
-                                    "basis_knot_distance_power",
-                                    "basis_deg",
-                                    "forget_regret",
-                                    "threshold_soft",
-                                    "threshold_hard",
-                                    "fixed_share",
-                                    "p_smooth_lambda",
-                                    "p_smooth_knot_distance",
-                                    "p_smooth_knot_distance_power",
-                                    "p_smooth_deg",
-                                    "smooth_diff",
-                                    "gamma",
-                                    "loss_share",
-                                    "regret_share",
-                                    "mv_basis_knot_distance ",
-                                    "mv_basis_knot_distance_power",
-                                    "mv_basis_deg");
-
   Rcpp::NumericMatrix parametergrid_out = Rcpp::wrap(param_grid);
-  Rcpp::colnames(parametergrid_out) = param_names;
 
   Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
-  Rcpp::colnames(chosen_parameters) = param_names;
 
   Rcpp::List model_data = Rcpp::List::create(
       Rcpp::Named("y") = y,
