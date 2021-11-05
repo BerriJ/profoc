@@ -111,6 +111,11 @@ online <- function(y, experts, tau,
                    loss = NULL,
                    regret = NULL,
                    trace = TRUE) {
+
+    if(is.vector(y)){
+        y <- matrix(y)
+    }
+
     if (ncol(y) > 1 & !allow_quantile_crossing) {
         warning("Warning: allow_quantile_crossing set to true since multivariate prediction target was provided.")
         # Bool is set inside C++
