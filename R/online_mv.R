@@ -91,7 +91,7 @@ online_mv <- function(y, experts, tau,
                       loss_parameter = 1,
                       loss_gradient = TRUE,
                       method = "bewa",
-                      basis_knot_distance = 1 / (dim(experts)[3] + 1),
+                      basis_knot_distance = 1 / (P + 1),
                       basis_knot_distance_power = 1,
                       basis_deg = 1,
                       forget_regret = 0,
@@ -112,11 +112,9 @@ online_mv <- function(y, experts, tau,
                       loss = NULL,
                       regret = NULL,
                       trace = TRUE) {
-    force(basis_knot_distance)
-
     edim <- dim(experts)
 
-    if(is.vector(y)){
+    if (is.vector(y)) {
         y <- matrix(y)
     }
 
@@ -149,6 +147,11 @@ online_mv <- function(y, experts, tau,
         dim(experts) <- c(edim[1], 1)
     }
     exdim <- dim(experts[[1]])
+
+    T <- dim(experts)[1]
+    D <- dim(experts[[1]])[1]
+    P <- dim(experts[[1]])[2]
+    K <- dim(experts[[1]])[3]
 
     if (nrow(experts) - nrow(y) < 0) {
         stop("Number of provided expert predictions has to match or exceed observations.")
@@ -311,33 +314,41 @@ online_mv <- function(y, experts, tau,
 
     dimnames(model$specification$data$y) <- dimnames(y)
 
-    model$weights <- array(unlist(model$weights),
-        dim = c(
-            nrow(model$weights), # T
-            dim(model$weights[[1]])[1], # D
-            dim(model$weights[[1]])[2], # P
-            dim(model$weights[[1]])[3] # K
+    tmp <- array(
+        NA,
+        c(
+            dim(model$weights)[1],
+            dim(model$weights[[1]])[1],
+            dim(model$weights[[1]])[2],
+            dim(model$weights[[1]])[3]
         )
     )
+    for (i in seq_len(dim(model$weights)[1])) tmp[i, , , ] <- model$weights[[i]]
+    model$weights <- tmp
 
-    model$experts_loss <- array(unlist(model$experts_loss),
-        dim = c(
-            nrow(model$experts_loss), # T
-            dim(model$experts_loss[[1]])[1], # D
-            dim(model$experts_loss[[1]])[2], # P
-            dim(model$experts_loss[[1]])[3] # K
+    tmp <- array(
+        NA,
+        c(
+            dim(model$past)[1],
+            dim(model$past[[1]])[1],
+            dim(model$past[[1]])[2],
+            dim(model$past[[1]])[3]
         )
     )
+    for (i in seq_len(dim(model$past)[1])) tmp[i, , , ] <- model$past[[i]]
+    model$past <- tmp
 
-    model$past_performance <- array(unlist(model$past_performance),
-        dim = c(
-            nrow(model$past_performance), # T
-            dim(model$past_performance[[1]])[1], # D
-            dim(model$past_performance[[1]])[2], # P
-            dim(model$past_performance[[1]])[3] # K
+    tmp <- array(
+        NA,
+        c(
+            dim(model$experts_loss)[1],
+            dim(model$experts_loss[[1]])[1],
+            dim(model$experts_loss[[1]])[2],
+            dim(model$experts_loss[[1]])[3]
         )
     )
-
+    for (i in seq_len(dim(model$experts_loss)[1])) tmp[i, , , ] <- model$experts_loss[[i]]
+    model$experts_loss <- tmp
 
     return(model)
 }

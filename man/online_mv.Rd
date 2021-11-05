@@ -13,7 +13,7 @@ online_mv(
   loss_parameter = 1,
   loss_gradient = TRUE,
   method = "bewa",
-  basis_knot_distance = 1/(dim(experts)[3] + 1),
+  basis_knot_distance = 1/(P + 1),
   basis_knot_distance_power = 1,
   basis_deg = 1,
   forget_regret = 0,
