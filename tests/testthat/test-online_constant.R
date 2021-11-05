@@ -20,6 +20,7 @@ for (t in 1:T) {
 model <- online(
     y = matrix(y),
     experts = experts,
+    tau = prob_grid,
     basis_knot_distance = 1,
     trace = FALSE
 )

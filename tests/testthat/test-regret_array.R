@@ -23,6 +23,7 @@ for (t in 1:T) {
 model_lg_true <- online(
     y = matrix(y),
     experts = experts,
+    tau = prob_grid,
     loss_gradient = TRUE,
     trace = FALSE
 )
@@ -30,6 +31,7 @@ model_lg_true <- online(
 model_lg_false <- online(
     y = matrix(y),
     experts = experts,
+    tau = prob_grid,
     loss_gradient = FALSE,
     trace = FALSE
 )
@@ -44,6 +46,7 @@ regret <- sweep(
 model2 <- online(
     y = matrix(y),
     experts = experts,
+    tau = prob_grid,
     regret = regret,
     trace = FALSE
 )
@@ -59,6 +62,7 @@ expect_false(
 model3 <- online(
     y = matrix(y),
     experts = experts,
+    tau = prob_grid,
     regret = list(regret = regret, share = 1),
     trace = FALSE
 )
@@ -70,6 +74,7 @@ expect_true(
 model4 <- online(
     y = matrix(y),
     experts = experts,
+    tau = prob_grid,
     regret = list(regret = regret, share = 0),
     trace = FALSE
 )
@@ -81,6 +86,7 @@ expect_true(
 model5 <- online(
     y = matrix(y),
     experts = experts,
+    tau = prob_grid,
     regret = list(regret = regret, share = c(0, 0.5, 1)),
     trace = FALSE
 )

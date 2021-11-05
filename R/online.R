@@ -84,8 +84,7 @@
 #' predict(model, new_experts = new_experts)
 #' }
 #' @export
-online <- function(y, experts,
-                   tau = 1:dim(experts)[2] / (dim(experts)[2] + 1),
+online <- function(y, experts, tau,
                    lead_time = 0,
                    loss_function = "quantile",
                    loss_parameter = 1,

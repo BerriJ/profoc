@@ -53,6 +53,7 @@ grid <- as.matrix(grid)
 res <- online(
     matrix(y),
     experts,
+    tau = prob_grid,
     parametergrid = grid,
     trace = FALSE
 )

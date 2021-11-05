@@ -7,7 +7,7 @@
 online(
   y,
   experts,
-  tau = 1:dim(experts)[2]/(dim(experts)[2] + 1),
+  tau,
   lead_time = 0,
   loss_function = "quantile",
   loss_parameter = 1,
