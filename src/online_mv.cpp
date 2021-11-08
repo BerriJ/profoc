@@ -7,7 +7,9 @@
 
 #include <RcppArmadillo.h>
 #include <progress.hpp>
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 using namespace arma;
 
