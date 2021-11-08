@@ -93,7 +93,7 @@ void online_learning_core_mv(
       mat lexp(P, K);     // Experts loss
       vec lfor(P);        // Forecasters loss
       cube regret_tmp(D, P, K);
-      cube regret(basis_mats_mv(x).n_cols, basis_mats(x).n_cols, K); // Dr x Pr x K
+      cube regret(basis_mats_mv(x).n_rows, basis_mats(x).n_cols, K); // Dr x Pr x K
 
       for (unsigned int d = 0; d < D; d++)
       {
@@ -175,8 +175,7 @@ void online_learning_core_mv(
 
       for (unsigned int k = 0; k < K; k++)
       {
-        mat tmp = (regret_tmp.slice(k) * basis_mats(x)).t() * basis_mats_mv(x);
-        regret.slice(k) = tmp.t();
+        regret.slice(k) = basis_mats_mv(x) * regret_tmp.slice(k) * basis_mats(x);
       }
 
       for (unsigned int dr = 0; dr < regret.n_rows; dr++)
@@ -280,7 +279,7 @@ void online_learning_core_mv(
 
       for (unsigned int k = 0; k < K; k++)
       {
-        weights_tmp(x).slice(k) = (basis_mats(x) * (basis_mats_mv(x) * beta(x).slice(k)).t()).t();
+        weights_tmp(x).slice(k) = basis_mats_mv(x).t() * beta(x).slice(k) * basis_mats(x).t();
 
         // // Smoothing
         if (param_grid(x, 7) != -datum::inf && param_grid(x, 18) != -datum::inf)
@@ -487,7 +486,7 @@ Rcpp::List online_rcpp_mv(
         param_grid(x, 16) == param_grid(x - 1, 16) &&
         param_grid(x, 17) == param_grid(x - 1, 17))
     {
-      basis_mats_mv(x) = basis_mats_mv(x - 1);
+      basis_mats_mv(x) = basis_mats_mv(x - 1).t();
     }
     else
     {
@@ -496,11 +495,12 @@ Rcpp::List online_rcpp_mv(
                                            param_grid(x, 15), // kstep
                                            param_grid(x, 16), // degree
                                            param_grid(x, 17), // uneven grid
-                                           D % 2 == 0);       // even
+                                           D % 2 == 0)
+                             .t(); // even
     }
 
     unsigned int Pr = basis_mats(x).n_cols;
-    unsigned int Dr = basis_mats_mv(x).n_cols;
+    unsigned int Dr = basis_mats_mv(x).n_rows;
 
     // Learning parameters
     V(x).zeros(Dr, Pr, K);
