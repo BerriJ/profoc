@@ -7,6 +7,7 @@
 
 #include <RcppArmadillo.h>
 #include <progress.hpp>
+#include <omp.h>
 
 using namespace arma;
 
@@ -83,6 +84,7 @@ void online_learning_core(
       mat lexp(P, K);     // Experts loss
       vec lfor(P);        // Forecasters loss
 
+#pragma omp parallel for
       for (unsigned int p = 0; p < P; p++)
       {
 
@@ -164,6 +166,7 @@ void online_learning_core(
 
       regret *= basis_mats(x);
 
+#pragma omp parallel for
       for (unsigned int l = 0; l < regret.n_cols; l++)
       {
 
@@ -309,6 +312,7 @@ void online_learning_core(
   }
 
   // Save losses suffered by forecaster and experts
+#pragma omp parallel for collapse(2)
   for (unsigned int t = 0; t < T; t++)
   {
     for (unsigned int p = 0; p < P; p++)

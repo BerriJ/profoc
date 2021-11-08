@@ -7,6 +7,7 @@
 
 #include <RcppArmadillo.h>
 #include <progress.hpp>
+#include <omp.h>
 
 using namespace arma;
 
@@ -87,7 +88,6 @@ void online_learning_core_mv(
 
     for (unsigned int x = 0; x < param_grid.n_rows; x++)
     {
-
       mat lexp_int(P, K); // Experts loss
       mat lexp_ext(P, K); // Experts loss
       mat lexp(P, K);     // Experts loss
@@ -95,6 +95,7 @@ void online_learning_core_mv(
       cube regret_tmp(D, P, K);
       cube regret(basis_mats_mv(x).n_rows, basis_mats(x).n_cols, K); // Dr x Pr x K
 
+#pragma omp parallel for
       for (unsigned int d = 0; d < D; d++)
       {
         for (unsigned int p = 0; p < P; p++)
@@ -173,14 +174,15 @@ void online_learning_core_mv(
         }
       }
 
+#pragma omp parallel for
       for (unsigned int k = 0; k < K; k++)
       {
         regret.slice(k) = basis_mats_mv(x) * regret_tmp.slice(k) * basis_mats(x);
       }
 
+#pragma omp parallel for collapse(2)
       for (unsigned int dr = 0; dr < regret.n_rows; dr++)
       { // This is subject to change if D will be reduces using another basis
-
         for (unsigned int pr = 0; pr < regret.n_cols; pr++)
         {
 
@@ -275,8 +277,7 @@ void online_learning_core_mv(
         } // pr
       }   // dr
 
-      cube tmp(D, basis_mats(x).n_cols, K);
-
+#pragma omp parallel for
       for (unsigned int k = 0; k < K; k++)
       {
         weights_tmp(x).slice(k) = basis_mats_mv(x).t() * beta(x).slice(k) * basis_mats(x).t();
@@ -296,6 +297,7 @@ void online_learning_core_mv(
         }
       }
       // Enshure that constraints hold
+#pragma omp parallel for
       for (unsigned int p = 0; p < P; p++)
       {
 
@@ -343,6 +345,7 @@ void online_learning_core_mv(
   }
 
   // Save losses suffered by forecaster and experts
+#pragma omp parallel for
   for (unsigned int t = 0; t < T; t++)
   {
     loss_exp(t).set_size(D, P, K);
