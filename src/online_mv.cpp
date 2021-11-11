@@ -463,21 +463,25 @@ Rcpp::List online_rcpp_mv(
   vec spline_basis_prob = regspace(1, P) / (P + 1);
   vec spline_basis_mv = regspace(1, D) / (D + 1);
 
-  // Init learning parameters and basis_matrices
+  // Init hat and basis_matrices
+#pragma omp parallel for
   for (unsigned int x = 0; x < X; x++)
   {
 
     // In second step: skip if recalc is not necessary:
-    if (x > 0 &&
-        param_grid(x, 2) == param_grid(x - 1, 2) &&
-        param_grid(x, 0) == param_grid(x - 1, 0) &&
-        param_grid(x, 1) == param_grid(x - 1, 1))
+    if (x == 0)
     {
-      basis_mats(x) = basis_mats(x - 1);
+      basis_mats(x) = make_basis_matrix(spline_basis_prob,
+                                        param_grid(x, 0), // kstep
+                                        param_grid(x, 2), // degree
+                                        param_grid(x, 1), // uneven grid
+                                        P % 2 == 0);      // even
     }
-    else
+    else if (
+        param_grid(x, 2) != param_grid(x - 1, 2) ||
+        param_grid(x, 0) != param_grid(x - 1, 0) ||
+        param_grid(x, 1) != param_grid(x - 1, 1))
     {
-
       basis_mats(x) = make_basis_matrix(spline_basis_prob,
                                         param_grid(x, 0), // kstep
                                         param_grid(x, 2), // degree
@@ -486,16 +490,19 @@ Rcpp::List online_rcpp_mv(
     }
 
     // In second step: skip if recalc is not necessary:
-    if (x > 0 &&
-        param_grid(x, 15) == param_grid(x - 1, 15) &&
-        param_grid(x, 16) == param_grid(x - 1, 16) &&
-        param_grid(x, 17) == param_grid(x - 1, 17))
+    if (x == 0)
     {
-      basis_mats_mv(x) = basis_mats_mv(x - 1);
+      basis_mats_mv(x) = make_basis_matrix(spline_basis_mv,
+                                           param_grid(x, 15), // kstep
+                                           param_grid(x, 16), // degree
+                                           param_grid(x, 17), // uneven grid
+                                           D % 2 == 0)
+                             .t(); // even
     }
-    else
+    else if (param_grid(x, 15) != param_grid(x - 1, 15) ||
+             param_grid(x, 16) != param_grid(x - 1, 16) ||
+             param_grid(x, 17) != param_grid(x - 1, 17))
     {
-
       basis_mats_mv(x) = make_basis_matrix(spline_basis_mv,
                                            param_grid(x, 15), // kstep
                                            param_grid(x, 16), // degree
@@ -504,6 +511,98 @@ Rcpp::List online_rcpp_mv(
                              .t(); // even
     }
 
+    if (x == 0)
+    {
+      if (param_grid(x, 7) != -datum::inf)
+        hat_mats(x) = make_hat_matrix(spline_basis_prob,
+                                      param_grid(x, 8),  // kstep
+                                      param_grid(x, 7),  // lambda
+                                      param_grid(x, 11), // differences
+                                      param_grid(x, 10), // degree
+                                      param_grid(x, 9),  // uneven grid
+                                      P % 2 == 0);       // even
+    }
+    else if (
+        param_grid(x, 7) != param_grid(x - 1, 7) ||
+        param_grid(x, 8) != param_grid(x - 1, 8) ||
+        param_grid(x, 10) != param_grid(x - 1, 10) ||
+        param_grid(x, 11) != param_grid(x - 1, 11) ||
+        param_grid(x, 9) != param_grid(x - 1, 9))
+    {
+      if (param_grid(x, 7) != -datum::inf)
+        hat_mats(x) = make_hat_matrix(spline_basis_prob,
+                                      param_grid(x, 8),  // kstep
+                                      param_grid(x, 7),  // lambda
+                                      param_grid(x, 11), // differences
+                                      param_grid(x, 10), // degree
+                                      param_grid(x, 9),  // uneven grid
+                                      P % 2 == 0);       // even
+    }
+
+    if (x == 0 ||
+        param_grid(x, 18) != param_grid(x - 1, 18) ||
+        param_grid(x, 19) != param_grid(x - 1, 19) ||
+        param_grid(x, 20) != param_grid(x - 1, 20) ||
+        param_grid(x, 21) != param_grid(x - 1, 21) ||
+        param_grid(x, 22) != param_grid(x - 1, 22))
+    {
+      if (param_grid(x, 18) != -datum::inf)
+        hat_mats_mv(x) = make_hat_matrix(spline_basis_mv,
+                                         param_grid(x, 19), // kstep
+                                         param_grid(x, 18), // lambda
+                                         param_grid(x, 22), // differences
+                                         param_grid(x, 21), // degree
+                                         param_grid(x, 20), // uneven grid
+                                         P % 2 == 0);       // even
+    }
+  }
+
+  // Note that this can't be parralelized due to basis_mats(x - 1)
+  for (unsigned int x = 0; x < X; x++)
+  {
+    if (x > 0)
+    {
+      if (
+          param_grid(x, 2) == param_grid(x - 1, 2) &&
+          param_grid(x, 0) == param_grid(x - 1, 0) &&
+          param_grid(x, 1) == param_grid(x - 1, 1))
+      {
+        basis_mats(x) = basis_mats(x - 1);
+      }
+
+      if (
+          param_grid(x, 7) == param_grid(x - 1, 7) &&
+          param_grid(x, 8) == param_grid(x - 1, 8) &&
+          param_grid(x, 10) == param_grid(x - 1, 10) &&
+          param_grid(x, 11) == param_grid(x - 1, 11) &&
+          param_grid(x, 9) == param_grid(x - 1, 9))
+      {
+        hat_mats(x) = hat_mats(x - 1);
+      }
+
+      if (
+          param_grid(x, 15) == param_grid(x - 1, 15) &&
+          param_grid(x, 16) == param_grid(x - 1, 16) &&
+          param_grid(x, 17) == param_grid(x - 1, 17))
+      {
+        basis_mats_mv(x) = basis_mats_mv(x - 1);
+      }
+
+      if (
+          param_grid(x, 18) == param_grid(x - 1, 18) &&
+          param_grid(x, 19) == param_grid(x - 1, 19) &&
+          param_grid(x, 20) == param_grid(x - 1, 20) &&
+          param_grid(x, 21) == param_grid(x - 1, 21) &&
+          param_grid(x, 22) == param_grid(x - 1, 22))
+      {
+        hat_mats_mv(x) = hat_mats_mv(x - 1);
+      }
+    }
+  }
+
+#pragma omp parallel for
+  for (unsigned int x = 0; x < X; x++)
+  {
     unsigned int Pr = basis_mats(x).n_cols;
     unsigned int Dr = basis_mats_mv(x).n_rows;
 
@@ -538,62 +637,10 @@ Rcpp::List online_rcpp_mv(
       weights_tmp(x).row(d) = w0;
     }
     beta0field(x) = beta(x);
-
-    R_CheckUserInterrupt();
+    prog.increment(); // Update progress
   }
 
-  // Only if smoothing is possible (tau.size > 1)
-  if (P > 1)
-  {
-    // Init hat matrix field
-    for (unsigned int x = 0; x < X; x++)
-    {
-      // In second step: skip if recalc is not necessary:
-      if (x > 0 &&
-          param_grid(x, 7) == param_grid(x - 1, 7) &&
-          param_grid(x, 8) == param_grid(x - 1, 8) &&
-          param_grid(x, 10) == param_grid(x - 1, 10) &&
-          param_grid(x, 11) == param_grid(x - 1, 11) &&
-          param_grid(x, 9) == param_grid(x - 1, 9))
-      {
-        hat_mats(x) = hat_mats(x - 1);
-      }
-      else
-      {
-        if (param_grid(x, 7) != -datum::inf)
-          hat_mats(x) = make_hat_matrix(spline_basis_prob,
-                                        param_grid(x, 8),  // kstep
-                                        param_grid(x, 7),  // lambda
-                                        param_grid(x, 11), // differences
-                                        param_grid(x, 10), // degree
-                                        param_grid(x, 9),  // uneven grid
-                                        P % 2 == 0);       // even
-      }
-
-      if (x > 0 &&
-          param_grid(x, 18) == param_grid(x - 1, 18) &&
-          param_grid(x, 19) == param_grid(x - 1, 19) &&
-          param_grid(x, 20) == param_grid(x - 1, 20) &&
-          param_grid(x, 21) == param_grid(x - 1, 21) &&
-          param_grid(x, 22) == param_grid(x - 1, 22))
-      {
-        hat_mats_mv(x) = hat_mats_mv(x - 1);
-      }
-      else
-      {
-        if (param_grid(x, 18) != -datum::inf)
-          hat_mats_mv(x) = make_hat_matrix(spline_basis_mv,
-                                           param_grid(x, 19), // kstep
-                                           param_grid(x, 18), // lambda
-                                           param_grid(x, 22), // differences
-                                           param_grid(x, 21), // degree
-                                           param_grid(x, 20), // uneven grid
-                                           P % 2 == 0);       // even
-      }
-      R_CheckUserInterrupt();
-      prog.increment(); // Update progress
-    }
-  }
+  R_CheckUserInterrupt();
 
   // Predictions at t < lead_time using initial weights
   for (unsigned int t = 0; t < lead_time; t++)
