@@ -280,26 +280,28 @@ void online_learning_core_mv(
       }   // dr
 
 #pragma omp parallel for
+      // Smoothing
       for (unsigned int k = 0; k < K; k++)
       {
-        weights_tmp(x).slice(k) = basis_mats_mv(x).t() * beta(x).slice(k) * basis_mats(x).t();
-
-        // // Smoothing
         if (param_grid(x, 7) != -datum::inf && param_grid(x, 18) != -datum::inf)
         {
-          weights_tmp(x).slice(k) = hat_mats_mv(x) * weights_tmp(x).slice(k) * hat_mats(x);
+          weights_tmp(x).slice(k) = hat_mats_mv(x) * beta(x).slice(k) * hat_mats(x);
         }
         else if (param_grid(x, 7) != -datum::inf)
         {
-          weights_tmp(x).slice(k) = weights_tmp(x).slice(k) * hat_mats(x);
+          weights_tmp(x).slice(k) = basis_mats_mv(x).t() * beta(x).slice(k) * hat_mats(x);
         }
         else if (param_grid(x, 18) != -datum::inf)
         {
-          weights_tmp(x).slice(k) = hat_mats_mv(x) * weights_tmp(x).slice(k);
+          weights_tmp(x).slice(k) = hat_mats_mv(x) * beta(x).slice(k) * basis_mats(x).t();
+        }
+        else
+        {
+          weights_tmp(x).slice(k) = basis_mats_mv(x).t() * beta(x).slice(k) * basis_mats(x).t();
         }
       }
-      // Enshure that constraints hold
 #pragma omp parallel for
+      // Enshure that constraints hold
       for (unsigned int p = 0; p < P; p++)
       {
 
@@ -603,6 +605,17 @@ Rcpp::List online_rcpp_mv(
 #pragma omp parallel for
   for (unsigned int x = 0; x < X; x++)
   {
+
+    if (param_grid(x, 7) != -datum::inf)
+    {
+      hat_mats(x) = basis_mats(x).t() * hat_mats(x);
+    }
+
+    if (param_grid(x, 18) != -datum::inf)
+    {
+      hat_mats_mv(x) = hat_mats_mv(x) * basis_mats_mv(x).t();
+    }
+
     unsigned int Pr = basis_mats(x).n_cols;
     unsigned int Dr = basis_mats_mv(x).n_rows;
 
