@@ -1,5 +1,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::depends(RcppProgress)]]
+//[[Rcpp::depends(RcppClock)]]
+
 #include <misc.h>
 #include <loss.h>
 #include <splines2.h>
@@ -7,6 +9,9 @@
 
 #include <RcppArmadillo.h>
 #include <progress.hpp>
+#include <RcppClock.h>
+#include <thread>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -55,13 +60,15 @@ void online_learning_core_mv(
     field<cube> &loss_exp,
     const cube &loss_array,
     const cube &regret_array,
-    Progress &prog)
+    Progress &prog,
+    Rcpp::Clock &clock)
 {
   for (unsigned int t = start; t < T; t++)
   {
     weights(t).set_size(D, P, K);
     past_performance(t).set_size(D, P, param_grid.n_rows);
 
+    clock.tick("loss");
     for (unsigned int d = 0; d < D; d++)
     {
       // Save final weights weights_tmp
@@ -88,8 +95,10 @@ void online_learning_core_mv(
       predictions.tube(t, d) = predictions_tmp(opt_index(t)).tube(t, d);
     }
 
+    clock.tock("loss");
     for (unsigned int x = 0; x < param_grid.n_rows; x++)
     {
+      clock.tick("regret");
       mat lexp_int(P, K); // Experts loss
       mat lexp_ext(P, K); // Experts loss
       mat lexp(P, K);     // Experts loss
@@ -97,9 +106,10 @@ void online_learning_core_mv(
       cube regret_tmp(D, P, K);
       cube regret(basis_mats_mv(x).n_rows, basis_mats(x).n_cols, K); // Dr x Pr x K
 
-#pragma omp parallel for
+      clock.tick("learning");
       for (unsigned int d = 0; d < D; d++)
       {
+#pragma omp parallel for
         for (unsigned int p = 0; p < P; p++)
         {
           // Evaluate the ex-post predictive performance
@@ -181,6 +191,8 @@ void online_learning_core_mv(
       {
         regret.slice(k) = basis_mats_mv(x) * regret_tmp.slice(k) * basis_mats(x);
       }
+
+      clock.tock("regret");
 
 #pragma omp parallel for collapse(2)
       for (unsigned int dr = 0; dr < regret.n_rows; dr++)
@@ -278,7 +290,9 @@ void online_learning_core_mv(
               (param_grid(x, 6) / K);
         } // pr
       }   // dr
+      clock.tock("learning");
 
+      clock.tick("smoothing");
 #pragma omp parallel for
       // Smoothing
       for (unsigned int k = 0; k < K; k++)
@@ -300,6 +314,8 @@ void online_learning_core_mv(
           weights_tmp(x).slice(k) = basis_mats_mv(x).t() * beta(x).slice(k) * basis_mats(x).t();
         }
       }
+      clock.tock("smoothing");
+
 #pragma omp parallel for
       // Enshure that constraints hold
       for (unsigned int p = 0; p < P; p++)
@@ -317,7 +333,6 @@ void online_learning_core_mv(
         }
       }
       tmp_performance(x) = accu(past_performance(t).slice(x));
-      prog.increment(); // Update progress
       R_CheckUserInterrupt();
     }
 
@@ -326,6 +341,7 @@ void online_learning_core_mv(
 
     opt_index(t + 1) = cum_performance.index_min();
     chosen_params.row(t) = param_grid.row(opt_index(t + 1));
+    prog.increment(); // Update progress
   }
   // Save Final Weights and Prediction
   weights(T) = weights_tmp(opt_index(T));
@@ -349,6 +365,7 @@ void online_learning_core_mv(
   }
 
   // Save losses suffered by forecaster and experts
+  clock.tick("loss_for_exp");
 #pragma omp parallel for
   for (unsigned int t = 0; t < T; t++)
   {
@@ -379,6 +396,7 @@ void online_learning_core_mv(
       }
     }
   }
+  clock.tock("loss_for_exp");
   return;
 }
 
@@ -401,6 +419,9 @@ Rcpp::List online_rcpp_mv(
     const cube &regret_array,
     const bool trace)
 {
+
+  Rcpp::Clock clock;
+  clock.tick("init");
 
   // Indexing Convention -> (T, P, K, X)
   // T number of observations
@@ -435,20 +456,17 @@ Rcpp::List online_rcpp_mv(
   arma::field<cube> past_performance(T);
   vec tmp_performance(X, fill::zeros);
   vec cum_performance(X, fill::zeros);
-  Progress prog(T * X + X, trace);
+  Progress prog(T + 2 * X, trace);
 
   // Init objects holding weights
   arma::field<cube> weights_tmp(X);
-
-  // predictions_tmp(T,D P);
   arma::field<cube> predictions_tmp(X);
 
-  // // Output Objects
+  // Output Objects
   cube predictions(T + T_E_Y, D, P, fill::zeros);
-  // weights(D, P, K, fill::zeros);
   arma::field<cube> weights(T + 1);
 
-  // // Learning parameters
+  // Learning parameters
   arma::field<mat> hat_mats(X);
   arma::field<mat> hat_mats_mv(X);
   arma::field<sp_mat> basis_mats(X);
@@ -557,6 +575,7 @@ Rcpp::List online_rcpp_mv(
                                          param_grid(x, 20), // uneven grid
                                          P % 2 == 0);       // even
     }
+    prog.increment();
   }
 
   // Note that this can't be parralelized due to basis_mats(x - 1)
@@ -692,6 +711,9 @@ Rcpp::List online_rcpp_mv(
   field<cube> loss_exp(T);
 
   const int start = lead_time;
+  clock.tock("init");
+
+  clock.tick("core");
 
   online_learning_core_mv(
       T,
@@ -735,7 +757,12 @@ Rcpp::List online_rcpp_mv(
       loss_exp,
       loss_array,
       regret_array,
-      prog);
+      prog,
+      clock);
+
+  clock.tock("core");
+
+  clock.tick("wrangle");
 
   // // 1-Indexing for R-Output
   opt_index = opt_index + 1;
@@ -797,6 +824,10 @@ Rcpp::List online_rcpp_mv(
 
   // Rcpp::List out;
   out.attr("class") = "online";
+
+  clock.tock("wrangle");
+
+  clock.stop("times");
 
   return out;
 }
