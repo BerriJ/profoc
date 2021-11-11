@@ -491,7 +491,7 @@ Rcpp::List online_rcpp_mv(
         param_grid(x, 16) == param_grid(x - 1, 16) &&
         param_grid(x, 17) == param_grid(x - 1, 17))
     {
-      basis_mats_mv(x) = basis_mats_mv(x - 1).t();
+      basis_mats_mv(x) = basis_mats_mv(x - 1);
     }
     else
     {
