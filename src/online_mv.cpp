@@ -796,6 +796,7 @@ Rcpp::List online_rcpp_mv(
       Rcpp::Named("predictions_tmp") = predictions_tmp,
       Rcpp::Named("cum_performance") = cum_performance,
       Rcpp::Named("hat_matrices") = hat_mats,
+      Rcpp::Named("hat_matrices_mv") = hat_mats_mv,
       Rcpp::Named("V") = V,
       Rcpp::Named("E") = E,
       Rcpp::Named("k") = k,
@@ -820,6 +821,7 @@ Rcpp::List online_rcpp_mv(
       Rcpp::Named("opt_index") = opt_index,
       Rcpp::Named("parametergrid") = parametergrid_out,
       Rcpp::Named("basis_matrices") = basis_mats,
+      Rcpp::Named("basis_matrices_mv") = basis_mats_mv,
       Rcpp::Named("specification") = model_spec);
 
   // Rcpp::List out;
