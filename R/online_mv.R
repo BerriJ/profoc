@@ -12,12 +12,8 @@
 #'
 #' @template param_method
 #'
-#' @template param_basis_knot_distance_online
-#' @template param_basis_knot_distance_power
-#' @template param_basis_deg_online
-#' @param mv_basis_knot_distance tbd
-#' @param mv_basis_knot_distance_power tbd
-#' @param mv_basis_deg tbd
+#' @param smooth_pr tbd
+#' @param smooth_mv tbd
 #'
 #' @param forget_regret Share of past regret not to be considered, resp. to be
 #' forgotten in every iteration of the algorithm. Defaults to 0.
@@ -27,16 +23,6 @@
 #'
 #' @template param_fixed_share
 #'
-#' @template param_p_smooth_lambda
-#' @template param_p_smooth_knot_distance
-#' @template param_p_smooth_knot_distance_power
-#' @template param_p_smooth_deg
-#' @template param_p_smooth_ndiff
-#' @param  mv_p_smooth_lambda tdb
-#' @param  mv_p_smooth_knot_distance tdb
-#' @param  mv_p_smooth_knot_distance_power tdb
-#' @param  mv_p_smooth_deg tdb
-#' @param  mv_p_smooth_ndiff tdb
 #'
 #' @param gamma Scaling parameter for the learning rate.
 #'
@@ -99,26 +85,38 @@ online_mv <- function(y, experts, tau,
                       loss_parameter = 1,
                       loss_gradient = TRUE,
                       method = "bewa",
-                      basis_knot_distance = 1 / (P + 1),
-                      basis_knot_distance_power = 1,
-                      basis_deg = 1,
-                      mv_basis_knot_distance = 1 / (D + 1),
-                      mv_basis_knot_distance_power = 1,
-                      mv_basis_deg = 1,
+                      smooth_pr = list(
+                          basis = list(
+                              knot_distance = 1 / (P + 1),
+                              knot_distance_power = 1,
+                              deg = 1
+                          ),
+                          penalized = list(
+                              lambda = -Inf,
+                              knot_distance = 1 / (P + 1),
+                              knot_distance_power = 1,
+                              deg = 1,
+                              ndiff = 1.5
+                          )
+                      ),
+                      smooth_mv = list(
+                          basis = list(
+                              knot_distance = 1 / (D + 1),
+                              knot_distance_power = 1,
+                              deg = 1
+                          ),
+                          penalized = list(
+                              lambda = -Inf,
+                              knot_distance = 1 / (D + 1),
+                              knot_distance_power = 1,
+                              deg = 1,
+                              ndiff = 1.5
+                          )
+                      ),
                       forget_regret = 0,
                       soft_threshold = -Inf,
                       hard_threshold = -Inf,
                       fixed_share = 0,
-                      p_smooth_lambda = -Inf,
-                      p_smooth_knot_distance = basis_knot_distance,
-                      p_smooth_knot_distance_power = basis_knot_distance_power,
-                      p_smooth_deg = basis_deg,
-                      p_smooth_ndiff = 1.5,
-                      mv_p_smooth_lambda = -Inf,
-                      mv_p_smooth_knot_distance = basis_knot_distance,
-                      mv_p_smooth_knot_distance_power = basis_knot_distance_power,
-                      mv_p_smooth_deg = basis_deg,
-                      mv_p_smooth_ndiff = 1.5,
                       gamma = 1,
                       parametergrid_max_combinations = 100,
                       parametergrid = NULL,
@@ -200,64 +198,95 @@ online_mv <- function(y, experts, tau,
     }
 
     if (is.null(parametergrid)) {
-        if (missing(p_smooth_knot_distance)) {
-            p_smooth_knot_distance <- 0
-            inh_kstep <- TRUE
-        } else {
-            inh_kstep <- FALSE
-        }
-
-        if (missing(p_smooth_knot_distance_power)) {
-            p_smooth_knot_distance_power <- 0
-            inh_kstep_p <- TRUE
-        } else {
-            inh_kstep_p <- FALSE
-        }
-
-        if (missing(p_smooth_deg)) {
-            p_smooth_deg <- 0
-            inh_deg <- TRUE
-        } else {
-            inh_deg <- FALSE
-        }
-
         grid <- expand.grid(
-            basis_knot_distance,
-            basis_knot_distance_power,
-            basis_deg,
+            ifelse(
+                is.null(smooth_pr$basis$knot_distance),
+                1 / (P + 1),
+                smooth_pr$basis$knot_distance
+            ),
+            ifelse(
+                is.null(smooth_pr$basis$knot_distance_power),
+                1,
+                smooth_pr$basis$knot_distance_power
+            ),
+            ifelse(
+                is.null(smooth_pr$basis$deg),
+                1,
+                smooth_pr$basis$deg
+            ),
             forget_regret,
             soft_threshold,
             hard_threshold,
             fixed_share,
-            p_smooth_lambda,
-            p_smooth_knot_distance,
-            p_smooth_knot_distance_power,
-            p_smooth_deg,
-            p_smooth_ndiff,
+            ifelse(
+                is.null(smooth_pr$penalized$lambda),
+                -Inf,
+                smooth_pr$penalized$lambda
+            ),
+            ifelse(
+                is.null(smooth_pr$penalized$knot_distance),
+                1 / (P + 1),
+                smooth_pr$penalized$knot_distance
+            ),
+            ifelse(
+                is.null(smooth_pr$penalized$knot_distance_power),
+                1,
+                smooth_pr$penalized$knot_distance_power
+            ),
+            ifelse(
+                is.null(smooth_pr$penalized$deg),
+                1,
+                smooth_pr$penalized$deg
+            ),
+            ifelse(
+                is.null(smooth_pr$penalized$ndiff),
+                1.5,
+                smooth_pr$penalized$ndiff
+            ),
             gamma,
             loss_share,
             regret_share,
-            mv_basis_knot_distance,
-            mv_basis_knot_distance_power,
-            mv_basis_deg,
-            mv_p_smooth_lambda,
-            mv_p_smooth_knot_distance,
-            mv_p_smooth_knot_distance_power,
-            mv_p_smooth_deg,
-            mv_p_smooth_ndiff
+            ifelse(
+                is.null(smooth_mv$basis$knot_distance),
+                1 / (P + 1),
+                smooth_mv$basis$knot_distance
+            ),
+            ifelse(
+                is.null(smooth_mv$basis$knot_distance_power),
+                1,
+                smooth_mv$basis$knot_distance_power
+            ),
+            ifelse(
+                is.null(smooth_mv$basis$deg),
+                1,
+                smooth_mv$basis$deg
+            ),
+            ifelse(
+                is.null(smooth_mv$penalized$lambda),
+                -Inf,
+                smooth_mv$penalized$lambda
+            ),
+            ifelse(
+                is.null(smooth_mv$penalized$knot_distance),
+                1 / (P + 1),
+                smooth_mv$penalized$knot_distance
+            ),
+            ifelse(
+                is.null(smooth_mv$penalized$knot_distance_power),
+                1,
+                smooth_mv$penalized$knot_distance_power
+            ),
+            ifelse(
+                is.null(smooth_mv$penalized$deg),
+                1,
+                smooth_mv$penalized$deg
+            ),
+            ifelse(
+                is.null(smooth_mv$penalized$ndiff),
+                1.5,
+                smooth_mv$penalized$ndiff
+            )
         )
-
-        if (inh_kstep) {
-            grid[, 9] <- grid[, 1]
-        }
-
-        if (inh_kstep_p) {
-            grid[, 10] <- grid[, 2]
-        }
-
-        if (inh_deg) {
-            grid[, 11] <- grid[, 3]
-        }
 
         parametergrid <- as.matrix(grid)
     } else if (ncol(parametergrid) != 15) {
