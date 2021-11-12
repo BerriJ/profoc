@@ -1,6 +1,6 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::depends(RcppProgress)]]
-//[[Rcpp::depends(RcppClock)]]
+// [[Rcpp::depends(RcppClock)]]
 
 #include <misc.h>
 #include <loss.h>
