@@ -320,12 +320,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // test1
-void test1();
+int test1();
 RcppExport SEXP _profoc_test1() {
 BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    test1();
-    return R_NilValue;
+    rcpp_result_gen = Rcpp::wrap(test1());
+    return rcpp_result_gen;
 END_RCPP
 }
 

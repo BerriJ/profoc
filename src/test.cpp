@@ -7,7 +7,7 @@
 using namespace arma;
 
 // [[Rcpp::export]]
-void test1()
+int test1()
 {
 
     Rcpp::Clock clock;
@@ -36,5 +36,5 @@ void test1()
         clock.tock("2x99");
     }
     clock.stop("times");
-    return;
+    return 0;
 }
