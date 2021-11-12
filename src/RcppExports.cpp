@@ -319,6 +319,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// test1
+void test1();
+RcppExport SEXP _profoc_test1() {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    test1();
+    return R_NilValue;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_profoc_batch_rcpp", (DL_FUNC) &_profoc_batch_rcpp, 17},
@@ -339,6 +348,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_make_hat_matrix", (DL_FUNC) &_profoc_make_hat_matrix, 7},
     {"_profoc_make_basis_matrix", (DL_FUNC) &_profoc_make_basis_matrix, 5},
     {"_profoc_splines2_basis", (DL_FUNC) &_profoc_splines2_basis, 3},
+    {"_profoc_test1", (DL_FUNC) &_profoc_test1, 0},
     {NULL, NULL, 0}
 };
 
