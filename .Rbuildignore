@@ -6,6 +6,7 @@
 ^docs$
 ^pkgdown$
 ^man-roxygen
+src/test.cpp
 cran-comments.md
 ^CRAN-RELEASE$
 ^LICENSE\.md$
