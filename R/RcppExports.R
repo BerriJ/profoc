@@ -109,7 +109,3 @@ splines2_basis <- function(x, knots, deg) {
     .Call(`_profoc_splines2_basis`, x, knots, deg)
 }
 
-test1 <- function() {
-    invisible(.Call(`_profoc_test1`))
-}
-
