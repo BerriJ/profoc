@@ -20,6 +20,7 @@ Encoding: UTF-8
 Depends: R (>= 3.0.2)
 Imports: Rcpp (>= 1.0.5), Matrix, abind
 LinkingTo: Rcpp, RcppArmadillo, RcppProgress, splines2 (>= 0.4.4), RcppClock
+SystemRequirements: C++11
 URL: https://profoc.berrisch.biz/, https://github.com/BerriJ/profoc
 BugReports: https://github.com/BerriJ/profoc/issues
 RoxygenNote: 7.1.2
