@@ -1,6 +1,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::depends(RcppProgress)]]
-//[[Rcpp::depends(RcppClock)]]
+// [[Rcpp::depends(RcppClock)]]
+// [[Rcpp::plugins("cpp11")]]
 
 #include <misc.h>
 #include <loss.h>
