@@ -106,7 +106,6 @@ void online_learning_core_mv(
       cube regret_tmp(D, P, K);
       cube regret(basis_mats_mv(x).n_rows, basis_mats(x).n_cols, K); // Dr x Pr x K
 
-      clock.tick("learning");
       for (unsigned int d = 0; d < D; d++)
       {
 #pragma omp parallel for
@@ -193,7 +192,7 @@ void online_learning_core_mv(
       }
 
       clock.tock("regret");
-
+      clock.tick("learning");
 #pragma omp parallel for collapse(2)
       for (unsigned int dr = 0; dr < regret.n_rows; dr++)
       { // This is subject to change if D will be reduces using another basis
