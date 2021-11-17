@@ -374,14 +374,14 @@ online_mv <- function(y, experts, tau,
     tmp <- array(
         NA,
         c(
-            dim(model$past)[1],
-            dim(model$past[[1]])[1],
-            dim(model$past[[1]])[2],
-            dim(model$past[[1]])[3]
+            dim(model$past_performance)[1],
+            dim(model$past_performance[[1]])[1],
+            dim(model$past_performance[[1]])[2],
+            dim(model$past_performance[[1]])[3]
         )
     )
-    for (i in seq_len(dim(model$past)[1])) tmp[i, , , ] <- model$past[[i]]
-    model$past <- tmp
+    for (i in seq_len(dim(model$past_performance)[1])) tmp[i, , , ] <- model$past_performance[[i]]
+    model$past_performance <- tmp
 
     tmp <- array(
         NA,
