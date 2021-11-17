@@ -197,94 +197,86 @@ online_mv <- function(y, experts, tau,
         regret_share <- regret$share
     }
 
+    val_or_def <- function(val, def) {
+        if (is.null(val)) {
+            return(def)
+        } else {
+            return(val)
+        }
+    }
+
     if (is.null(parametergrid)) {
         grid <- expand.grid(
-            ifelse(
-                is.null(smooth_pr$basis$knot_distance),
-                1 / (P + 1),
-                smooth_pr$basis$knot_distance
+            val_or_def(
+                smooth_pr$basis$knot_distance,
+                1 / (P + 1)
             ),
-            ifelse(
-                is.null(smooth_pr$basis$knot_distance_power),
-                1,
-                smooth_pr$basis$knot_distance_power
+            val_or_def(
+                smooth_pr$basis$knot_distance_power,
+                1
             ),
-            ifelse(
-                is.null(smooth_pr$basis$deg),
-                1,
-                smooth_pr$basis$deg
+            val_or_def(
+                smooth_pr$basis$deg,
+                1
             ),
             forget_regret,
             soft_threshold,
             hard_threshold,
             fixed_share,
-            ifelse(
-                is.null(smooth_pr$penalized$lambda),
-                -Inf,
-                smooth_pr$penalized$lambda
+            val_or_def(
+                smooth_pr$penalized$lambda,
+                -Inf
             ),
-            ifelse(
-                is.null(smooth_pr$penalized$knot_distance),
-                1 / (P + 1),
-                smooth_pr$penalized$knot_distance
+            val_or_def(
+                smooth_pr$penalized$knot_distance,
+                1 / (P + 1)
             ),
-            ifelse(
-                is.null(smooth_pr$penalized$knot_distance_power),
-                1,
-                smooth_pr$penalized$knot_distance_power
+            val_or_def(
+                smooth_pr$penalized$knot_distance_power,
+                1
             ),
-            ifelse(
-                is.null(smooth_pr$penalized$deg),
-                1,
-                smooth_pr$penalized$deg
+            val_or_def(
+                smooth_pr$penalized$deg,
+                1
             ),
-            ifelse(
-                is.null(smooth_pr$penalized$ndiff),
-                1.5,
-                smooth_pr$penalized$ndiff
+            val_or_def(
+                smooth_pr$penalized$ndiff,
+                1.5
             ),
             gamma,
             loss_share,
             regret_share,
-            ifelse(
-                is.null(smooth_mv$basis$knot_distance),
-                1 / (P + 1),
-                smooth_mv$basis$knot_distance
+            val_or_def(
+                smooth_mv$basis$knot_distance,
+                1 / (P + 1)
             ),
-            ifelse(
-                is.null(smooth_mv$basis$knot_distance_power),
-                1,
-                smooth_mv$basis$knot_distance_power
+            val_or_def(
+                smooth_mv$basis$knot_distance_power,
+                1
             ),
-            ifelse(
-                is.null(smooth_mv$basis$deg),
-                1,
-                smooth_mv$basis$deg
+            val_or_def(
+                smooth_mv$basis$deg,
+                1
             ),
-            ifelse(
-                is.null(smooth_mv$penalized$lambda),
-                -Inf,
-                smooth_mv$penalized$lambda
+            val_or_def(
+                smooth_mv$penalized$lambda,
+                -Inf
             ),
-            ifelse(
-                is.null(smooth_mv$penalized$knot_distance),
-                1 / (P + 1),
-                smooth_mv$penalized$knot_distance
+            val_or_def(
+                smooth_mv$penalized$knot_distance,
+                1 / (P + 1)
             ),
-            ifelse(
-                is.null(smooth_mv$penalized$knot_distance_power),
-                1,
-                smooth_mv$penalized$knot_distance_power
+            val_or_def(
+                smooth_mv$penalized$knot_distance_power,
+                1
             ),
-            ifelse(
-                is.null(smooth_mv$penalized$deg),
-                1,
-                smooth_mv$penalized$deg
+            val_or_def(
+                smooth_mv$penalized$deg,
+                1
             ),
-            ifelse(
-                is.null(smooth_mv$penalized$ndiff),
-                1.5,
-                smooth_mv$penalized$ndiff
+            val_or_def(
+                smooth_mv$penalized$ndiff,
+                1.5
             )
         )
 
@@ -429,7 +421,7 @@ online_mv <- function(y, experts, tau,
         "mv_p_smooth_ndiff"
     )
 
-    colnames(model$chosen_par) <- parnames
+    colnames(model$chosen_parameters) <- parnames
     colnames(model$parametergrid) <- parnames
 
     return(model)
