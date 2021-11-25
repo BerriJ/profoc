@@ -12,8 +12,10 @@
 #'
 #' @template param_method
 #'
-#' @param smooth_pr tbd
-#' @param smooth_mv tbd
+#' @param b_smooth_pr tbd
+#' @param p_smooth_pr tbd
+#' @param b_smooth_mv tbd
+#' @param p_smooth_mv tbd
 #'
 #' @param forget_regret Share of past regret not to be considered, resp. to be
 #' forgotten in every iteration of the algorithm. Defaults to 0.
@@ -85,33 +87,29 @@ online_mv <- function(y, experts, tau,
                       loss_parameter = 1,
                       loss_gradient = TRUE,
                       method = "bewa",
-                      smooth_pr = list(
-                          basis = list(
-                              knot_distance = 1 / (P + 1),
-                              knot_distance_power = 1,
-                              deg = 1
-                          ),
-                          penalized = list(
-                              lambda = -Inf,
-                              knot_distance = 1 / (P + 1),
-                              knot_distance_power = 1,
-                              deg = 1,
-                              ndiff = 1.5
-                          )
+                      b_smooth_pr = list(
+                          knot_distance = 1 / (P + 1),
+                          knot_distance_power = 1,
+                          deg = 1
                       ),
-                      smooth_mv = list(
-                          basis = list(
-                              knot_distance = 1 / (D + 1),
-                              knot_distance_power = 1,
-                              deg = 1
-                          ),
-                          penalized = list(
-                              lambda = -Inf,
-                              knot_distance = 1 / (D + 1),
-                              knot_distance_power = 1,
-                              deg = 1,
-                              ndiff = 1.5
-                          )
+                      p_smooth_pr = list(
+                          lambda = -Inf,
+                          knot_distance = 1 / (P + 1),
+                          knot_distance_power = 1,
+                          deg = 1,
+                          ndiff = 1.5
+                      ),
+                      b_smooth_mv = list(
+                          knot_distance = 1 / (D + 1),
+                          knot_distance_power = 1,
+                          deg = 1
+                      ),
+                      p_smooth_mv = list(
+                          lambda = -Inf,
+                          knot_distance = 1 / (D + 1),
+                          knot_distance_power = 1,
+                          deg = 1,
+                          ndiff = 1.5
                       ),
                       forget_regret = 0,
                       soft_threshold = -Inf,
@@ -208,15 +206,15 @@ online_mv <- function(y, experts, tau,
     if (is.null(parametergrid)) {
         grid <- expand.grid(
             val_or_def(
-                smooth_pr$basis$knot_distance,
+                b_smooth_pr$knot_distance,
                 1 / (P + 1)
             ),
             val_or_def(
-                smooth_pr$basis$knot_distance_power,
+                b_smooth_pr$knot_distance_power,
                 1
             ),
             val_or_def(
-                smooth_pr$basis$deg,
+                b_smooth_pr$deg,
                 1
             ),
             forget_regret,
@@ -224,58 +222,58 @@ online_mv <- function(y, experts, tau,
             hard_threshold,
             fixed_share,
             val_or_def(
-                smooth_pr$penalized$lambda,
+                p_smooth_pr$lambda,
                 -Inf
             ),
             val_or_def(
-                smooth_pr$penalized$knot_distance,
+                p_smooth_pr$knot_distance,
                 1 / (P + 1)
             ),
             val_or_def(
-                smooth_pr$penalized$knot_distance_power,
+                p_smooth_pr$knot_distance_power,
                 1
             ),
             val_or_def(
-                smooth_pr$penalized$deg,
+                p_smooth_pr$deg,
                 1
             ),
             val_or_def(
-                smooth_pr$penalized$ndiff,
+                p_smooth_pr$ndiff,
                 1.5
             ),
             gamma,
             loss_share,
             regret_share,
             val_or_def(
-                smooth_mv$basis$knot_distance,
+                b_smooth_mv$knot_distance,
                 1 / (P + 1)
             ),
             val_or_def(
-                smooth_mv$basis$knot_distance_power,
+                b_smooth_mv$knot_distance_power,
                 1
             ),
             val_or_def(
-                smooth_mv$basis$deg,
+                b_smooth_mv$deg,
                 1
             ),
             val_or_def(
-                smooth_mv$penalized$lambda,
+                p_smooth_mv$lambda,
                 -Inf
             ),
             val_or_def(
-                smooth_mv$penalized$knot_distance,
+                p_smooth_mv$knot_distance,
                 1 / (P + 1)
             ),
             val_or_def(
-                smooth_mv$penalized$knot_distance_power,
+                p_smooth_mv$knot_distance_power,
                 1
             ),
             val_or_def(
-                smooth_mv$penalized$deg,
+                p_smooth_mv$deg,
                 1
             ),
             val_or_def(
-                smooth_mv$penalized$ndiff,
+                p_smooth_mv$ndiff,
                 1.5
             )
         )
