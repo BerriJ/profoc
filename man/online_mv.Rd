@@ -13,12 +13,12 @@ online_mv(
   loss_parameter = 1,
   loss_gradient = TRUE,
   method = "bewa",
-  smooth_pr = list(basis = list(knot_distance = 1/(P + 1), knot_distance_power = 1, deg
-    = 1), penalized = list(lambda = -Inf, knot_distance = 1/(P + 1), knot_distance_power
-    = 1, deg = 1, ndiff = 1.5)),
-  smooth_mv = list(basis = list(knot_distance = 1/(D + 1), knot_distance_power = 1, deg
-    = 1), penalized = list(lambda = -Inf, knot_distance = 1/(D + 1), knot_distance_power
-    = 1, deg = 1, ndiff = 1.5)),
+  b_smooth_pr = list(knot_distance = 1/(P + 1), knot_distance_power = 1, deg = 1),
+  p_smooth_pr = list(lambda = -Inf, knot_distance = 1/(P + 1), knot_distance_power = 1,
+    deg = 1, ndiff = 1.5),
+  b_smooth_mv = list(knot_distance = 1/(D + 1), knot_distance_power = 1, deg = 1),
+  p_smooth_mv = list(lambda = -Inf, knot_distance = 1/(D + 1), knot_distance_power = 1,
+    deg = 1, ndiff = 1.5),
   forget_regret = 0,
   soft_threshold = -Inf,
   hard_threshold = -Inf,
@@ -60,9 +60,13 @@ to t+1+h at time t. The weight updates delay accordingly.}
 order refinement of boa, but updating weights with the simple
  exponential weighting.}
 
-\item{smooth_pr}{tbd}
+\item{b_smooth_pr}{tbd}
 
-\item{smooth_mv}{tbd}
+\item{p_smooth_pr}{tbd}
+
+\item{b_smooth_mv}{tbd}
+
+\item{p_smooth_mv}{tbd}
 
 \item{forget_regret}{Share of past regret not to be considered, resp. to be
 forgotten in every iteration of the algorithm. Defaults to 0.}
