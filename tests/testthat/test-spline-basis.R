@@ -54,3 +54,4 @@ old <- splines::splineDesign(knots, x, deg + 1, derivs = 0L, outer.ok = TRUE)
 new <- splines2_basis(x, knots, deg)
 
 expect_equal(old, new)
+

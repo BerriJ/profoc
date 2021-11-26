@@ -50,26 +50,26 @@ grid <- as.matrix(grid)
 # %%
 
 # %% Check if custom grid is used
-res <- online(
-    matrix(y),
-    experts,
-    tau = prob_grid,
-    parametergrid = grid,
-    trace = FALSE
-)
+# res <- online(
+#     matrix(y),
+#     experts,
+#     tau = prob_grid,
+#     parametergrid = grid,
+#     trace = FALSE
+# )
 
-expect_true(
-    all(res$parametergrid == grid)
-)
+# expect_true(
+#     all(res$parametergrid == grid)
+# )
 # %%
 
 # %% Check dimension error
-expect_error(online(
-    matrix(y),
-    experts,
-    parametergrid = grid[, -1],
-    trace = FALSE
-), "Please provide a parametergrid with 15 columns.")
+# expect_error(online(
+#     matrix(y),
+#     experts,
+#     parametergrid = grid[, -1],
+#     trace = FALSE
+# ), "Please provide a parametergrid with 15 columns.")
 # %%
 
 # %% Batch setting

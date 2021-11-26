@@ -26,14 +26,14 @@ boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
-    p_smooth_lambda = 2^40,
+    p_smooth_pr = list(lambda = 2^40),
     trace = FALSE
 )
 
 expect_true(
     all(
         abs(
-            apply(boa_smooth$weights[, , 1], 1, diff)
+            apply(boa_smooth$weights[, , , 1], 1, diff)
         ) < 1e-9
     )
 )
