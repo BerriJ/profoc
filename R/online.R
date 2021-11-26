@@ -305,8 +305,10 @@ online <- function(y, experts, tau,
     }
     init$init_weights <- pmax(init$init_weights, exp(-350))
     for (d in 1:D) {
-        init$init_weights[d, , ] <-
-            init$init_weights[d, , ] / rowSums(init$init_weights[d, , ,drop = FALSE])
+        for (p in 1:P) {
+            init$init_weights[d, p, ] <-
+                init$init_weights[d, p, ] / sum(init$init_weights[d, p, ])
+        }
     }
 
     if (is.null(init$R0)) {
