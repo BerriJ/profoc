@@ -34,7 +34,7 @@
 #'
 #' @template param_allow_quantile_crossing
 #'
-#' @param init A named list containing "init_weights": Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P, whereas specifying a PxK matrix allows different starting weights for each P. "R0" a matrix of dimension PxK or 1xK used as starting regret.
+#' @param init A named list containing "init_weights": Array of dimension DxPxK used as starting weights. "R0" a matrix of dimension PxK or 1xK used as starting regret.
 #' @param loss User specified loss array. Can also be a list with elements "loss_array"
 #' and "share", share mixes the provided loss with the loss calculated by
 #' profoc. 1 means, only the provided loss will be used. share can also be
@@ -160,10 +160,10 @@ online_mv <- function(y, experts, tau,
     }
     exdim <- dim(experts[[1]])
 
-    T <- dim(experts)[1]
+    T <- dim(experts)[1] # TODO REMOVE?
     D <- dim(experts[[1]])[1]
     P <- dim(experts[[1]])[2]
-    K <- dim(experts[[1]])[3]
+    K <- dim(experts[[1]])[3] # TODO REMOVE?
 
     if (nrow(experts) - nrow(y) < 0) {
         stop("Number of provided expert predictions has to match or exceed observations.")
@@ -298,25 +298,16 @@ online_mv <- function(y, experts, tau,
     }
 
     if (is.null(init$init_weights)) {
-        init$init_weights <- matrix(
-            1 / exdim[3],
-            nrow = exdim[2],
-            ncol = exdim[3]
+        init$init_weights <- array(
+            1 / K,
+            dim = c(D, P, K)
         )
-    } else if (nrow(init$init_weights) == 1) {
-        init$init_weights <- matrix(init$init_weights,
-            nrow = exdim[2],
-            ncol = exdim[3],
-            byrow = TRUE
-        )
-    } else if (
-        (nrow(init$init_weights) != 1 &
-            nrow(init$init_weights) != exdim[2]) |
-            ncol(init$init_weights) != exdim[3]) {
-        stop("Either a 1xK or PxK matrix of initial weights must be supplied.")
     }
     init$init_weights <- pmax(init$init_weights, exp(-350))
-    init$init_weights <- init$init_weights / rowSums(init$init_weights)
+    for (d in 1:D) {
+        init$init_weights[d, , ] <-
+            init$init_weights[d, , ] / rowSums(init$init_weights[d, , ])
+    }
 
     if (is.null(init$R0)) {
         init$R0 <- matrix(0,

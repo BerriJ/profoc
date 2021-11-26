@@ -413,7 +413,7 @@ Rcpp::List online_rcpp_mv(
     const mat &param_grid,
     const double &forget_past_performance,
     bool allow_quantile_crossing,
-    const mat w0,
+    const cube w0,
     const mat R0,
     const cube &loss_array,
     const cube &regret_array,
@@ -657,17 +657,22 @@ Rcpp::List online_rcpp_mv(
     weights_tmp(x).set_size(D, P, K);
     predictions_tmp(x).set_size(T, D, P);
 
+    for (unsigned int d = 0; d < D; d++)
+    {
+      weights_tmp(x).row(d) = w0.row(d);
+    }
+
     for (unsigned int dr = 0; dr < Dr; dr++)
     {
       R(x).row(dr) = basis_mats(x).t() * R0;
       R_reg(x).row(dr) = basis_mats(x).t() * R0;
-      beta(x).row(dr) = (w0.t() * pinv(mat(basis_mats(x))).t()).t();
     }
 
-    for (unsigned int d = 0; d < D; d++)
+    for (unsigned int k = 0; k < K; k++)
     {
-      weights_tmp(x).row(d) = w0;
+      beta(x).slice(k) = pinv(mat(basis_mats_mv(x))).t() * w0.slice(k) * pinv(mat(basis_mats(x))).t();
     }
+
     beta0field(x) = beta(x);
     prog.increment(); // Update progress
   }
@@ -831,5 +836,6 @@ Rcpp::List online_rcpp_mv(
 
   clock.stop("times");
 
+  // Rcpp::List out;
   return out;
 }
