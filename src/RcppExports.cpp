@@ -159,7 +159,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // online_rcpp_mv
-Rcpp::List online_rcpp_mv(mat& y, arma::field<cube>& experts, vec tau, const unsigned int& lead_time, const std::string loss_function, const double& loss_parameter, const bool& loss_gradient, const std::string method, const mat& param_grid, const double& forget_past_performance, bool allow_quantile_crossing, const mat w0, const mat R0, const cube& loss_array, const cube& regret_array, const bool trace);
+Rcpp::List online_rcpp_mv(mat& y, arma::field<cube>& experts, vec tau, const unsigned int& lead_time, const std::string loss_function, const double& loss_parameter, const bool& loss_gradient, const std::string method, const mat& param_grid, const double& forget_past_performance, bool allow_quantile_crossing, const cube w0, const mat R0, const cube& loss_array, const cube& regret_array, const bool trace);
 RcppExport SEXP _profoc_online_rcpp_mv(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP lead_timeSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP loss_gradientSEXP, SEXP methodSEXP, SEXP param_gridSEXP, SEXP forget_past_performanceSEXP, SEXP allow_quantile_crossingSEXP, SEXP w0SEXP, SEXP R0SEXP, SEXP loss_arraySEXP, SEXP regret_arraySEXP, SEXP traceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -175,7 +175,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const mat& >::type param_grid(param_gridSEXP);
     Rcpp::traits::input_parameter< const double& >::type forget_past_performance(forget_past_performanceSEXP);
     Rcpp::traits::input_parameter< bool >::type allow_quantile_crossing(allow_quantile_crossingSEXP);
-    Rcpp::traits::input_parameter< const mat >::type w0(w0SEXP);
+    Rcpp::traits::input_parameter< const cube >::type w0(w0SEXP);
     Rcpp::traits::input_parameter< const mat >::type R0(R0SEXP);
     Rcpp::traits::input_parameter< const cube& >::type loss_array(loss_arraySEXP);
     Rcpp::traits::input_parameter< const cube& >::type regret_array(regret_arraySEXP);
