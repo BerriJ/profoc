@@ -163,7 +163,7 @@ online_mv <- function(y, experts, tau,
     T <- dim(experts)[1] # TODO REMOVE?
     D <- dim(experts[[1]])[1]
     P <- dim(experts[[1]])[2]
-    K <- dim(experts[[1]])[3] # TODO REMOVE?
+    K <- dim(experts[[1]])[3]
 
     if (nrow(experts) - nrow(y) < 0) {
         stop("Number of provided expert predictions has to match or exceed observations.")
@@ -174,7 +174,7 @@ online_mv <- function(y, experts, tau,
     }
 
     if (is.null(loss)) {
-        loss_array <- array(, dim = c(0, 0, 0))
+        loss_array <- array(, dim = c(0, 0, 0, 0))
         loss_share <- 0
     } else if (is.array(loss)) {
         loss_array <- loss
@@ -185,7 +185,7 @@ online_mv <- function(y, experts, tau,
     }
 
     if (is.null(regret)) {
-        regret_array <- array(, dim = c(0, 0, 0))
+        regret_array <- array(, dim = c(0, 0, 0, 0))
         regret_share <- 0
     } else if (is.array(regret)) {
         regret_array <- regret
@@ -310,21 +310,10 @@ online_mv <- function(y, experts, tau,
     }
 
     if (is.null(init$R0)) {
-        init$R0 <- matrix(0,
-            nrow = exdim[2],
-            ncol = exdim[3],
+        init$R0 <- array(
+            0,
+            dim = c(D, P, K)
         )
-    } else if (nrow(init$R0) == 1) {
-        init$R0 <- matrix(init$R0,
-            nrow = exdim[2],
-            ncol = exdim[3],
-            byrow = TRUE
-        )
-    } else if (
-        (nrow(init$R0) != 1 &
-            nrow(init$R0) != exdim[2]) |
-            ncol(init$R0) != exdim[3]) {
-        stop("R0 must be 1xK or PxK.")
     }
 
     model <- online_rcpp_mv(

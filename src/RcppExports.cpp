@@ -159,7 +159,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // online_rcpp_mv
-Rcpp::List online_rcpp_mv(mat& y, arma::field<cube>& experts, vec tau, const unsigned int& lead_time, const std::string loss_function, const double& loss_parameter, const bool& loss_gradient, const std::string method, const mat& param_grid, const double& forget_past_performance, bool allow_quantile_crossing, const cube w0, const mat R0, const cube& loss_array, const cube& regret_array, const bool trace);
+Rcpp::List online_rcpp_mv(mat& y, arma::field<cube>& experts, vec tau, const unsigned int& lead_time, const std::string loss_function, const double& loss_parameter, const bool& loss_gradient, const std::string method, const mat& param_grid, const double& forget_past_performance, bool allow_quantile_crossing, const cube w0, const cube R0, const field<cube>& loss_array, const field<cube>& regret_array, const bool trace);
 RcppExport SEXP _profoc_online_rcpp_mv(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP lead_timeSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP loss_gradientSEXP, SEXP methodSEXP, SEXP param_gridSEXP, SEXP forget_past_performanceSEXP, SEXP allow_quantile_crossingSEXP, SEXP w0SEXP, SEXP R0SEXP, SEXP loss_arraySEXP, SEXP regret_arraySEXP, SEXP traceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -176,9 +176,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type forget_past_performance(forget_past_performanceSEXP);
     Rcpp::traits::input_parameter< bool >::type allow_quantile_crossing(allow_quantile_crossingSEXP);
     Rcpp::traits::input_parameter< const cube >::type w0(w0SEXP);
-    Rcpp::traits::input_parameter< const mat >::type R0(R0SEXP);
-    Rcpp::traits::input_parameter< const cube& >::type loss_array(loss_arraySEXP);
-    Rcpp::traits::input_parameter< const cube& >::type regret_array(regret_arraySEXP);
+    Rcpp::traits::input_parameter< const cube >::type R0(R0SEXP);
+    Rcpp::traits::input_parameter< const field<cube>& >::type loss_array(loss_arraySEXP);
+    Rcpp::traits::input_parameter< const field<cube>& >::type regret_array(regret_arraySEXP);
     Rcpp::traits::input_parameter< const bool >::type trace(traceSEXP);
     rcpp_result_gen = Rcpp::wrap(online_rcpp_mv(y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, param_grid, forget_past_performance, allow_quantile_crossing, w0, R0, loss_array, regret_array, trace));
     return rcpp_result_gen;

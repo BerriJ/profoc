@@ -59,8 +59,8 @@ void online_learning_core_mv(
     const bool &allow_quantile_crossing,
     cube &loss_for,
     field<cube> &loss_exp,
-    const cube &loss_array,
-    const cube &regret_array,
+    const field<cube> &loss_array,
+    const field<cube> &regret_array,
     Progress &prog,
     Rcpp::Clock &clock)
 {
@@ -139,13 +139,13 @@ void online_learning_core_mv(
             }
             else
             {
-              lexp_ext.row(p) = arma::vectorise(loss_array.tube(t, p)).t();
+              lexp_ext.row(p) = arma::vectorise(loss_array(t).tube(d, p)).t();
               lexp.row(p) = (1 - param_grid(x, 13)) * lexp_int.row(p) + param_grid(x, 13) * lexp_ext.row(p);
             }
           }
           else
           {
-            lexp_ext.row(p) = arma::vectorise(loss_array.tube(t, p)).t();
+            lexp_ext.row(p) = arma::vectorise(loss_array(t).tube(d, p)).t();
             lexp.row(p) = lexp_ext.row(p);
           }
           lfor(p) = loss(y(t, d),
@@ -171,7 +171,7 @@ void online_learning_core_mv(
           }
           else
           {
-            regret_ext = regret_array.row(t);
+            regret_ext = regret_array(t).row(d);
             regret_ext = regret_ext.t();
             regret_ext *= double(basis_mats(x).n_cols) / double(P);
             regret_tmp.row(d) = ((1 - param_grid(x, 14)) * regret_int + param_grid(x, 14) * regret_ext).t();
@@ -179,7 +179,7 @@ void online_learning_core_mv(
         }
         else
         {
-          regret_ext = regret_array.row(t);
+          regret_ext = regret_array(t).row(d);
           regret_ext = regret_ext.t();
           regret_ext *= double(basis_mats(x).n_cols) / double(P);
           regret_tmp.row(d) = regret_ext.t();
@@ -414,9 +414,9 @@ Rcpp::List online_rcpp_mv(
     const double &forget_past_performance,
     bool allow_quantile_crossing,
     const cube w0,
-    const mat R0,
-    const cube &loss_array,
-    const cube &regret_array,
+    const cube R0,
+    const field<cube> &loss_array,
+    const field<cube> &regret_array,
     const bool trace)
 {
 
@@ -662,14 +662,10 @@ Rcpp::List online_rcpp_mv(
       weights_tmp(x).row(d) = w0.row(d);
     }
 
-    for (unsigned int dr = 0; dr < Dr; dr++)
-    {
-      R(x).row(dr) = basis_mats(x).t() * R0;
-      R_reg(x).row(dr) = basis_mats(x).t() * R0;
-    }
-
     for (unsigned int k = 0; k < K; k++)
     {
+      R(x).slice(k) = basis_mats_mv(x) * R0.slice(k) * basis_mats(x);
+      R_reg(x).slice(k) = basis_mats_mv(x) * R0.slice(k) * basis_mats(x);
       beta(x).slice(k) = pinv(mat(basis_mats_mv(x))).t() * w0.slice(k) * pinv(mat(basis_mats(x))).t();
     }
 
