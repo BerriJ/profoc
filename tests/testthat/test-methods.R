@@ -32,8 +32,8 @@ model <- online(
 expect_type(model, "list")
 
 # Dimensions
-expect_true(all(dim(model$weights) == c(length(y) + 1, P, N)))
-expect_true(all(dim(model$predictions) == c(length(y), P)))
+expect_true(all(dim(model$weights) == c(length(y) + 1, 1, P, N)))
+expect_true(all(dim(model$predictions) == c(length(y),1, P)))
 
 # Missing values
 expect_true(all(!is.na(model$weights)))
@@ -56,8 +56,8 @@ model <- online(
 expect_type(model, "list")
 
 # Dimensions
-expect_true(all(dim(model$weights) == c(length(y) + 1, P, N)))
-expect_true(all(dim(model$predictions) == c(length(y), P)))
+expect_true(all(dim(model$weights) == c(length(y) + 1, 1, P, N)))
+expect_true(all(dim(model$predictions) == c(length(y), 1, P)))
 
 # Missing values
 expect_true(all(!is.na(model$weights)))
@@ -81,8 +81,8 @@ model <- online(
 expect_type(model, "list")
 
 # Dimensions
-expect_true(all(dim(model$weights) == c(length(y) + 1, P, N)))
-expect_true(all(dim(model$predictions) == c(length(y), P)))
+expect_true(all(dim(model$weights) == c(length(y) + 1, 1, P, N)))
+expect_true(all(dim(model$predictions) == c(length(y), 1, P)))
 
 # Missing values
 expect_true(all(!is.na(model$weights)))
@@ -105,8 +105,8 @@ model <- online(
 expect_type(model, "list")
 
 # Dimensions
-expect_true(all(dim(model$weights) == c(length(y) + 1, P, N)))
-expect_true(all(dim(model$predictions) == c(length(y), P)))
+expect_true(all(dim(model$weights) == c(length(y) + 1, 1, P, N)))
+expect_true(all(dim(model$predictions) == c(length(y), 1, P)))
 
 # Missing values
 expect_true(all(!is.na(model$weights)))

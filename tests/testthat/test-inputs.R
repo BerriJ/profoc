@@ -35,15 +35,6 @@ mod2 <- online(
     trace = FALSE
 )
 
-mod3 <- online_mv(
-    y = matrix(y), # Y as a vector
-    tau = prob_grid,
-    experts = experts,
-    trace = FALSE
-)
-
 # Passting y as vec does not change results
 expect_true(all(mod1$weights == mod2$weights))
 
-# Multivariate function yields same results as online function for univ. case
-expect_true(all(mod3$weights[, 1, , ] == mod2$weights))

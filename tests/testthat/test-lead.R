@@ -40,10 +40,9 @@ results <- online(
 # ts.plot(results$weights[, , 1], col = rainbow(ncol(results$weights)))
 # abline(v = change_at)
 
-expect_gt(results$weights[change_at + 5, , 1], 0.2)
+expect_gt(results$weights[change_at + 5, , , 1], 0.2)
 
-expect_lt(results$weights[change_at + lead + 5, , 1], 0.2)
-
+expect_lt(results$weights[change_at + lead + 5, , , 1], 0.2)
 # %%
 
 # %% Test lead for batch
@@ -66,5 +65,4 @@ results <- batch(
 expect_gt(results$weights[change_at + 5, , 1], 0.2)
 
 expect_lt(results$weights[change_at + lead + 5, , 1], 0.2)
-
 # %%

@@ -25,19 +25,23 @@ boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
-    p_smooth_lambda = c(10, 1000),
-    p_smooth_ndiff = c(1, 2),
-    p_smooth_deg = c(2, 3),
-    p_smooth_knot_distance = c(0.001, 0.1),
-    p_smooth_knot_distance_power = c(0.5, 1, 2),
-    basis_deg = 1,
-    basis_knot_distance = 0.01,
-    basis_knot_distance_power = 1,
+    p_smooth_pr = list(
+        lambda = c(10, 1000),
+        ndiff = c(1, 2),
+        deg = c(2, 3),
+        knot_distance = c(0.001, 0.1),
+        knot_distance_power = c(0.5, 1, 2)
+    ),
+    b_smooth_pr = list(
+        deg = 1,
+        knot_distance = 0.01,
+        knot_distance_power = 1
+    ),
     trace = FALSE
 )
 
 # We expect weights to sum to 1 despite the smoothing:
-expect_true(all(round(apply(boa_smooth$weights, 1:2, sum), 12) == 1))
+expect_true(all(round(apply(boa_smooth$weights, 1:3, sum), 13) == 1))
 
 expect_true(
     all(!duplicated(apply(boa_smooth$past_performance, 3, mean)))
@@ -47,9 +51,11 @@ boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
-    basis_knot_distance = 0.1,
-    p_smooth_lambda = c(1),
-    p_smooth_ndiff = seq(from = 1, to = 2, by = 0.2),
+    b_smooth_pr = list(knot_distance = 0.1),
+    p_smooth_pr = list(
+        lambda = c(1),
+        ndiff = seq(from = 1, to = 2, by = 0.2)
+    ),
     trace = FALSE
 )
 

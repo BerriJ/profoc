@@ -20,14 +20,15 @@ for (t in 1:T) {
     experts[t, , 2] <- qnorm(prob_grid, mean = 5, sd = 2)
 }
 
-# We expect that grids do effect the performance:
 expect_warning(boa <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
-    basis_knot_distance = c(0.01, 0.05, 0.5, 1),
-    basis_deg = c(1, 2),
-    p_smooth_lambda = c(1:2),
+    p_smooth_pr = list(
+        knot_distance = c(0.01, 0.05, 0.5, 1),
+        deg = c(1, 2),
+        lambda = c(1:2)
+    ),
     parametergrid_max_combinations = 3,
     trace = FALSE
 ), "Warning: Too many parameter combinations possible. 3 combinations were randomly sampled. Results may depend on sampling.")
