@@ -21,12 +21,12 @@ model <- online(
     y = matrix(y),
     experts = experts,
     tau = prob_grid,
-    basis_knot_distance = 1,
+    b_smooth_pr = list(knot_distance = 1),
     trace = FALSE
 )
 
-diff(model$weights[500, , 1])
+diff(model$weights[500, , , 1])
 
-diffs <- apply(model$weights[, , ], MARGIN = 1, FUN = diff)
+diffs <- apply(model$weights[, , , ], MARGIN = 1, FUN = diff)
 
 expect_true(sum(diffs) == 0)

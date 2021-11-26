@@ -13,18 +13,16 @@ online(
   loss_parameter = 1,
   loss_gradient = TRUE,
   method = "bewa",
-  basis_knot_distance = 1/(dim(experts)[2] + 1),
-  basis_knot_distance_power = 1,
-  basis_deg = 1,
+  b_smooth_pr = list(knot_distance = 1/(P + 1), knot_distance_power = 1, deg = 1),
+  p_smooth_pr = list(lambda = -Inf, knot_distance = 1/(P + 1), knot_distance_power = 1,
+    deg = 1, ndiff = 1.5),
+  b_smooth_mv = list(knot_distance = 1/(D + 1), knot_distance_power = 1, deg = 1),
+  p_smooth_mv = list(lambda = -Inf, knot_distance = 1/(D + 1), knot_distance_power = 1,
+    deg = 1, ndiff = 1.5),
   forget_regret = 0,
   soft_threshold = -Inf,
   hard_threshold = -Inf,
   fixed_share = 0,
-  p_smooth_lambda = -Inf,
-  p_smooth_knot_distance = basis_knot_distance,
-  p_smooth_knot_distance_power = basis_knot_distance_power,
-  p_smooth_deg = basis_deg,
-  p_smooth_ndiff = 1.5,
   gamma = 1,
   parametergrid_max_combinations = 100,
   parametergrid = NULL,
@@ -62,18 +60,13 @@ to t+1+h at time t. The weight updates delay accordingly.}
 order refinement of boa, but updating weights with the simple
  exponential weighting.}
 
-\item{basis_knot_distance}{determines the distance of the knots in the probability
-basis. Defaults to 1 / (dim(experts)[2] + 1), which means that one knot is created
-for every quantile. Takes a vector with values >0 where values > .5 correspond to constant
-weights (only one single knot).}
+\item{b_smooth_pr}{tbd}
 
-\item{basis_knot_distance_power}{Parameter which defines the symmetry of the
-basis reducing the probability space. Defaults to 1, which corresponds to
-equidistant knots. Values less than 1 create more knots in the center, while
-values above 1 concentrate more knots in the tails.}
+\item{p_smooth_pr}{tbd}
 
-\item{basis_deg}{Degree of the basis reducing the probability space.
-Defaults to 1.}
+\item{b_smooth_mv}{tbd}
+
+\item{p_smooth_mv}{tbd}
 
 \item{forget_regret}{Share of past regret not to be considered, resp. to be
 forgotten in every iteration of the algorithm. Defaults to 0.}
@@ -94,24 +87,6 @@ leads to the 'follow the leader' strategy if method is set to "ewa".}
 
 \item{fixed_share}{Amount of fixed share to be added to the weights.
 Defaults to 0. 1 leads to uniform weights.}
-
-\item{p_smooth_lambda}{Penalization parameter used in the smoothing step.
--Inf causes the smoothing step to be skipped (default).}
-
-\item{p_smooth_knot_distance}{determines the distance of the knots. Defaults to
-the value of basis_knot_distance.
-Corresponds to the grid steps when knot_distance_power = 1 (the default).}
-
-\item{p_smooth_knot_distance_power}{Parameter which defines the symmetry of
-the P-Spline basis. Takes the value of basis_knot_distance_power if unspecified.}
-
-\item{p_smooth_deg}{Degree of the B-Spine basis functions.
-Defaults to the value of basis_deg.}
-
-\item{p_smooth_ndiff}{Degree of the differencing operator in the smoothing equation.
-1.5 (default) leads to shrinkage towards a constant. Can take values from 1 to 2.
-If a value in between is used, a weighted sum of the first and second
-differentiation matrix is calculated.}
 
 \item{gamma}{Scaling parameter for the learning rate.}
 
@@ -134,7 +109,7 @@ combination. Defaults to 0.}
 
 \item{allow_quantile_crossing}{Shall quantile crossing be allowed? Defaults to false, which means that predictions are sorted in ascending order.}
 
-\item{init}{A named list containing "init_weights": Matrix of dimension 1xK or PxK used as starting weights. 1xK represents the constant solution with equal weights over all P, whereas specifying a PxK matrix allows different starting weights for each P. "R0" a matrix of dimension PxK or 1xK used as starting regret.}
+\item{init}{A named list containing "init_weights": Array of dimension DxPxK used as starting weights. "R0" a matrix of dimension PxK or 1xK used as starting regret.}
 
 \item{loss}{User specified loss array. Can also be a list with elements "loss_array"
 and "share", share mixes the provided loss with the loss calculated by

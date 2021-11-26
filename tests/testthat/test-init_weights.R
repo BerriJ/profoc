@@ -28,10 +28,11 @@ model <- online(
     trace = FALSE
 )
 
-expect_true(all(model$weights[1, , ] == 0.5))
+expect_true(all(model$weights[1, , , ] == 0.5))
 
 # Weights should be populated for all quantiles if not specified individually
-init_weights <- matrix(c(0.3, 0.7), ncol = N)
+init_weights <- matrix(c(0.3, 0.7), byrow = T, ncol = N, nrow = P)
+init_weights <- array(init_weights, dim = c(1, P, N))
 
 model <- online(
     y = matrix(y),
@@ -41,13 +42,13 @@ model <- online(
     trace = FALSE
 )
 
-expect_true(all(model$weights[1, , 1][1] == model$weights[1, , 1]))
-expect_true(all(model$weights[1, , 2][1] == model$weights[1, , 2]))
+expect_true(all(model$weights[1, , , ] == init_weights[1, , ]))
 
 # Weights can be specified for each quantile individually:
 init_weights <- matrix(nrow = P, ncol = N)
 init_weights[, 1] <- 1:9 / 10
 init_weights[, 2] <- 9:1 / 10
+init_weights <- array(init_weights, dim = c(1, P, N))
 
 model <- online(
     y = matrix(y),
@@ -57,7 +58,7 @@ model <- online(
     trace = FALSE
 )
 
-expect_true(all(model$weights[1, , ] == init_weights))
+expect_true(all(model$weights[1, , , ] == init_weights[1, , ]))
 
 # Weights should allways sum to 1:
 init_weights <- matrix(nrow = P, ncol = N)
@@ -66,6 +67,7 @@ init_weights[, 2] <- 9:1 / 10
 
 init_weights[1:5, ] <- init_weights[1:5, ] * 2
 init_weights[6:9, ] <- init_weights[6:9, ] / 3
+init_weights <- array(init_weights, dim = c(1, P, N))
 
 model <- online(
     y = matrix(y),
@@ -75,15 +77,4 @@ model <- online(
     trace = FALSE
 )
 
-expect_true(all(rowSums(model$weights[1, , ]) == 1))
-
-# Raise Error when wrong dim is supplied
-init_weights <- matrix(c(0.3, 0.7), nrow = N)
-
-expect_error(online(
-    y = matrix(y),
-    experts = experts,
-    tau = prob_grid,
-    init = list(init_weights = init_weights),
-    trace = FALSE
-), "Either a 1xK or PxK matrix of initial weights must be supplied.")
+expect_true(all(rowSums(model$weights[1, , , ]) == 1))

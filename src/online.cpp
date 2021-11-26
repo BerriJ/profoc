@@ -1,5 +1,8 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::depends(RcppProgress)]]
+// [[Rcpp::depends(RcppClock)]]
+// [[Rcpp::plugins("cpp11")]]
+
 #include <misc.h>
 #include <loss.h>
 #include <splines2.h>
@@ -7,6 +10,9 @@
 
 #include <RcppArmadillo.h>
 #include <progress.hpp>
+#include <RcppClock.h>
+#include <thread>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -15,338 +21,389 @@ using namespace arma;
 
 void online_learning_core(
     const unsigned int &T,
+    const unsigned int &D,
     const unsigned int &P,
     const unsigned int &K,
     const unsigned int &T_E_Y,
     const unsigned int &start,
     const unsigned int &lead_time,
     const mat &y,
-    const cube &experts,
+    const field<cube> &experts,
     const vec &tau,
     const std::string loss_function,
     const std::string method,
     const double &loss_parameter,
     const bool &loss_gradient,
-    cube &weights,
-    cube &weights_tmp,
-    cube &predictions_tmp,
-    mat &predictions,
-    cube &past_performance,
+    field<cube> &weights,
+    field<cube> &weights_tmp,
+    field<cube> &predictions_tmp,
+    cube &predictions,
+    field<cube> &past_performance,
     vec &opt_index,
     const mat &param_grid,
     mat &chosen_params,
-    field<mat> &R,
-    field<mat> &R_reg,
-    field<mat> &V,
-    field<mat> &E,
-    field<mat> &eta,
+    field<cube> &R,
+    field<cube> &R_reg,
+    field<cube> &V,
+    field<cube> &E,
+    field<cube> &eta,
     field<mat> &hat_mats,
+    field<mat> &hat_mats_mv,
     field<sp_mat> &basis_mats,
-    field<mat> &beta0field,
-    field<mat> &beta,
-    vec &cum_performance,
+    field<sp_mat> &basis_mats_mv,
+    field<cube> &beta0field,
+    field<cube> &beta,
+    mat &cum_performance,
     const double &forget_past_performance,
-    vec &tmp_performance,
+    mat &tmp_performance,
     const bool &allow_quantile_crossing,
-    mat &loss_for,
-    cube &loss_exp,
-    const cube &loss_array,
-    const cube &regret_array,
-    Progress &prog)
+    cube &loss_for,
+    field<cube> &loss_exp,
+    const field<cube> &loss_array,
+    const field<cube> &regret_array,
+    Progress &prog,
+    Rcpp::Clock &clock)
 {
   for (unsigned int t = start; t < T; t++)
   {
+    weights(t).set_size(D, P, K);
+    past_performance(t).set_size(D, P, param_grid.n_rows);
 
-    // Save final weights weights_tmp
-    weights.row(t) = weights_tmp.slice(opt_index(t));
-
-    // Store expert predictions temporarily
-    mat experts_mat = experts.row(t);
-
-    // Forecasters prediction
-    mat predictions_temp = sum(weights_tmp.each_slice() % experts_mat, 1);
-
-    // Sort predictions if quantile_crossing is prohibited
-    if (!allow_quantile_crossing)
+    clock.tick("loss");
+    for (unsigned int d = 0; d < D; d++)
     {
-      predictions_temp = arma::sort(predictions_temp, "ascend", 0);
+      // Save final weights weights_tmp
+      weights(t).row(d) = weights_tmp(opt_index(t)).row(d);
+
+      // Store expert predictions temporarily
+      mat experts_mat = experts(t).row(d);
+
+      // Predictions using different parameter values
+      for (unsigned int x = 0; x < param_grid.n_rows; x++)
+      {
+        mat weights_temp = weights_tmp(x).row(d);
+        vec predictions_temp = sum(weights_temp % experts_mat, 1);
+
+        // Sort predictions if quantile_crossing is prohibited
+        if (!allow_quantile_crossing)
+        {
+          predictions_temp = arma::sort(predictions_temp, "ascend", 0);
+        }
+        predictions_tmp(x).tube(t, d) = predictions_temp;
+      }
+
+      // Forecasters prediction
+      predictions.tube(t, d) = predictions_tmp(opt_index(t)).tube(t, d);
     }
 
-    predictions_tmp.row(t) = predictions_temp;
-
-    // Final prediction
-    predictions.row(t) =
-        vectorise(predictions_tmp(span(t), span::all, span(opt_index(t)))).t();
-
+    clock.tock("loss");
     for (unsigned int x = 0; x < param_grid.n_rows; x++)
     {
-
+      clock.tick("regret");
       mat lexp_int(P, K); // Experts loss
       mat lexp_ext(P, K); // Experts loss
       mat lexp(P, K);     // Experts loss
       vec lfor(P);        // Forecasters loss
+      cube regret_tmp(D, P, K);
+      cube regret(basis_mats_mv(x).n_rows, basis_mats(x).n_cols, K); // Dr x Pr x K
 
-#pragma omp parallel for
-      for (unsigned int p = 0; p < P; p++)
+      for (unsigned int d = 0; d < D; d++)
       {
-
-        // Evaluate the ex-post predictive performance
-        past_performance(t, p, x) = loss(y(t, p),
-                                         predictions_tmp(t - lead_time, p, x),
-                                         9999,           // where evaluate loss_gradient
-                                         loss_function,  // method
-                                         tau(p),         // tau
-                                         loss_parameter, // alpha
-                                         false);
-
-        if (param_grid(x, 13) != 1)
+#pragma omp parallel for
+        for (unsigned int p = 0; p < P; p++)
         {
-          for (unsigned int k = 0; k < K; k++)
+          // Evaluate the ex-post predictive performance
+          past_performance(t)(d, p, x) = loss(y(t, d),
+                                              predictions_tmp(x)(t - lead_time, d, p),
+                                              9999,           // where evaluate loss_gradient
+                                              loss_function,  // method
+                                              tau(p),         // tau
+                                              loss_parameter, // alpha
+                                              false);
+          if (param_grid(x, 13) != 1)
           {
-            lexp_int(p, k) = loss(y(t, p),
-                                  experts(t, p, k),
-                                  predictions_tmp(t - lead_time, p, x), // where evaluate loss_gradient
-                                  loss_function,                        // method
-                                  tau(p),                               // tau
-                                  loss_parameter,                       // alpha
-                                  loss_gradient);
-          }
+            for (unsigned int k = 0; k < K; k++)
+            {
+              lexp_int(p, k) = loss(y(t, d),
+                                    experts(t)(d, p, k),
+                                    predictions_tmp(x)(t - lead_time, d, p), // where evaluate loss_gradient
+                                    loss_function,                           // method
+                                    tau(p),                                  // tau
+                                    loss_parameter,                          // alpha
+                                    loss_gradient);
+            }
 
-          if (param_grid(x, 13) == 0)
-          {
-            lexp.row(p) = lexp_int.row(p);
+            if (param_grid(x, 13) == 0)
+            {
+              lexp.row(p) = lexp_int.row(p);
+            }
+            else
+            {
+              lexp_ext.row(p) = arma::vectorise(loss_array(t).tube(d, p)).t();
+              lexp.row(p) = (1 - param_grid(x, 13)) * lexp_int.row(p) + param_grid(x, 13) * lexp_ext.row(p);
+            }
           }
           else
           {
-            lexp_ext.row(p) = arma::vectorise(loss_array.tube(t, p)).t();
-            lexp.row(p) = (1 - param_grid(x, 13)) * lexp_int.row(p) + param_grid(x, 13) * lexp_ext.row(p);
+            lexp_ext.row(p) = arma::vectorise(loss_array(t).tube(d, p)).t();
+            lexp.row(p) = lexp_ext.row(p);
+          }
+          lfor(p) = loss(y(t, d),
+                         predictions_tmp(x)(t - lead_time, d, p),
+                         predictions_tmp(x)(t - lead_time, d, p), // where to evaluate loss_gradient
+                         loss_function,                           // method
+                         tau(p),                                  // tau
+                         loss_parameter,                          // alpha
+                         loss_gradient);
+        }
+
+        mat regret_int(P, K);
+        mat regret_ext(P, K);
+
+        if (param_grid(x, 14) != 1)
+        {
+          regret_int = (lfor - lexp_int.each_col()).t();
+          regret_int *= double(basis_mats(x).n_cols) / double(P);
+
+          if (param_grid(x, 14) == 0)
+          {
+            regret_tmp.row(d) = regret_int.t();
+          }
+          else
+          {
+            regret_ext = regret_array(t).row(d);
+            regret_ext = regret_ext.t();
+            regret_ext *= double(basis_mats(x).n_cols) / double(P);
+            regret_tmp.row(d) = ((1 - param_grid(x, 14)) * regret_int + param_grid(x, 14) * regret_ext).t();
           }
         }
         else
         {
-          lexp_ext.row(p) = arma::vectorise(loss_array.tube(t, p)).t();
-          lexp.row(p) = lexp_ext.row(p);
-        }
-
-        lfor(p) = loss(y(t, p),
-                       predictions_tmp(t - lead_time, p, x),
-                       predictions_tmp(t - lead_time, p, x), // where to evaluate loss_gradient
-                       loss_function,                        // method
-                       tau(p),                               // tau
-                       loss_parameter,                       // alpha
-                       loss_gradient);
-      }
-
-      mat regret_int;
-      mat regret_ext;
-      mat regret;
-
-      if (param_grid(x, 14) != 1)
-      {
-        regret_int = (lfor - lexp_int.each_col()).t();
-        regret_int *= double(basis_mats(x).n_cols) / double(P);
-
-        if (param_grid(x, 14) == 0)
-        {
-          regret = regret_int;
-        }
-        else
-        {
-          regret_ext = regret_array.row(t);
+          regret_ext = regret_array(t).row(d);
           regret_ext = regret_ext.t();
           regret_ext *= double(basis_mats(x).n_cols) / double(P);
-          regret = (1 - param_grid(x, 14)) * regret_int + param_grid(x, 14) * regret_ext;
+          regret_tmp.row(d) = regret_ext.t();
         }
       }
-      else
-      {
-        regret_ext = regret_array.row(t);
-        regret_ext = regret_ext.t();
-        regret_ext *= double(basis_mats(x).n_cols) / double(P);
-        regret = regret_ext;
-      }
-
-      regret *= basis_mats(x);
 
 #pragma omp parallel for
-      for (unsigned int l = 0; l < regret.n_cols; l++)
+      for (unsigned int k = 0; k < K; k++)
       {
+        regret.slice(k) = basis_mats_mv(x) * regret_tmp.slice(k) * basis_mats(x);
+      }
 
-        vec r = regret.col(l);
-
-        if (method == "ewa")
-        {
-          // Update the cumulative regret used by eta
-          R(x).row(l) = R(x).row(l) * (1 - param_grid(x, 3)) + r.t();
-          eta(x).row(l).fill(param_grid(x, 12));
-          beta(x).row(l) = beta0field(x).row(l) * K % softmax_r(param_grid(x, 12) * R(x).row(l));
-        }
-        else if (method == "ml_poly")
-        {
-          // Update the cumulative regret used by ML_Poly
-          R(x).row(l) = R(x).row(l) * (1 - param_grid(x, 3)) + r.t();
-
-          // Update the learning rate
-          eta(x).row(l) = 1 / (1 / eta(x).row(l) + square(r.t()));
-
-          // param_grid(x, 12) = gamma
-          beta(x).row(l) =
-              beta0field(x).row(l) * K * param_grid(x, 12) % eta(x).row(l) % pmax_arma(R(x).row(l), exp(-700));
-          beta(x).row(l) /= accu(beta(x).row(l));
-        }
-        else if (method == "boa" || method == "bewa")
+      clock.tock("regret");
+      clock.tick("learning");
+#pragma omp parallel for collapse(2)
+      for (unsigned int dr = 0; dr < regret.n_rows; dr++)
+      { // This is subject to change if D will be reduces using another basis
+        for (unsigned int pr = 0; pr < regret.n_cols; pr++)
         {
 
-          V(x).row(l) = V(x).row(l) * (1 - param_grid(x, 3)) + square(r.t());
+          vec r = regret.tube(dr, pr);
 
-          E(x).row(l) = max(E(x).row(l) * (1 - param_grid(x, 3)), abs(r.t()));
-
-          eta(x).row(l) =
-              pmin_arma(
-                  min(1 / (2 * E(x).row(l)),
-                      sqrt(-log(beta0field(x).row(l)) / V(x).row(l))),
-                  exp(350));
-
-          vec r_reg = r - eta(x).row(l).t() % square(r);
-
-          R_reg(x).row(l) *= (1 - param_grid(x, 3));
-          R_reg(x).row(l) +=
-              0.5 * (r_reg.t() + conv_to<colvec>::from(eta(x).row(l) % r.t() > 0.5).t() % (2 * E(x).row(l)));
-
-          if (method == "boa")
+          if (method == "ewa")
           {
-            // Wintenberger
-            beta(x).row(l) = beta0field(x).row(l) * K % softmax_r(log(param_grid(x, 12) * eta(x).row(l)) + param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
+            // Update the cumulative regret used by eta
+            R(x).tube(dr, pr) = vectorise(R(x).tube(dr, pr) * (1 - param_grid(x, 3))) + r;
+            eta(x).tube(dr, pr).fill(param_grid(x, 12));
+            beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(param_grid(x, 12) * vectorise(R(x).tube(dr, pr)).t());
+          }
+          else if (method == "ml_poly")
+          {
+            // Update the cumulative regret used by ML_Poly
+            R(x)
+                .tube(dr, pr) = vectorise(R(x).tube(dr, pr) * (1 - param_grid(x, 3))) + r;
+
+            // Update the learning rate
+            eta(x).tube(dr, pr) = 1 / (1 / vectorise(eta(x).tube(dr, pr)).t() + square(r.t()));
+
+            // param_grid(x, 12) = gamma
+            beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K * param_grid(x, 12) % vectorise(eta(x).tube(dr, pr)).t() % pmax_arma(vectorise(R(x).tube(dr, pr)).t(), exp(-700));
+            beta(x).tube(dr, pr) /= accu(beta(x).tube(dr, pr));
+          }
+          else if (method == "boa" || method == "bewa")
+          {
+            V(x).tube(dr, pr) = vectorise(V(x).tube(dr, pr)).t() * (1 - param_grid(x, 3)) + square(r.t());
+
+            E(x).tube(dr, pr) = max(vectorise(E(x).tube(dr, pr)).t() * (1 - param_grid(x, 3)), abs(r.t()));
+
+            eta(x).tube(dr, pr) =
+                pmin_arma(
+                    min(1 / (2 * vectorise(E(x).tube(dr, pr))),
+                        sqrt(-log(vectorise(beta0field(x).tube(dr, pr))) / vectorise(V(x).tube(dr, pr)))),
+                    exp(350));
+
+            vec r_reg = r - vectorise(eta(x).tube(dr, pr)) % square(r);
+
+            R_reg(x).tube(dr, pr) *= (1 - param_grid(x, 3)); // forget
+            R_reg(x).tube(dr, pr) +=
+                0.5 * (r_reg + conv_to<colvec>::from(vectorise(eta(x).tube(dr, pr)) % r > 0.5) % (2 * vectorise(E(x).tube(dr, pr))));
+
+            if (method == "boa")
+            {
+              // Wintenberger
+              beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(log(param_grid(x, 12) * vectorise(eta(x).tube(dr, pr)).t()) + param_grid(x, 12) * vectorise(eta(x).tube(dr, pr)).t() % vectorise(R_reg(x).tube(dr, pr)).t());
+            }
+            else
+            {
+              // Gaillard
+              beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(param_grid(x, 12) * vectorise(eta(x).tube(dr, pr)).t() % vectorise(R_reg(x).tube(dr, pr)).t());
+            }
           }
           else
           {
-            // Gaillard
-            beta(x).row(l) = beta0field(x).row(l) * K % softmax_r(param_grid(x, 12) * eta(x).row(l) % R_reg(x).row(l));
+            Rcpp::stop("Choose 'boa', 'bewa', 'ml_poly' or 'ewa' as method.");
           }
+
+          //   // Apply thresholds
+          if (param_grid(x, 4) > 0)
+          {
+            int best_k = beta(x).tube(dr, pr).index_max();
+
+            for (double &e : beta(x).tube(dr, pr))
+            {
+              threshold_soft(e, param_grid(x, 4));
+            }
+            if (accu(beta(x).tube(dr, pr)) == 0)
+            {
+              beta(x)(dr, pr, best_k) = 1;
+            }
+          }
+
+          if (param_grid(x, 5) > 0)
+          {
+            int best_k = beta(x).tube(dr, pr).index_max();
+            for (double &e : beta(x).tube(dr, pr))
+            {
+              threshold_hard(e, param_grid(x, 5));
+            }
+            if (accu(beta(x).tube(dr, pr)) == 0)
+            {
+              beta(x)(dr, pr, best_k) = 1;
+            }
+          }
+
+          // Add fixed_share
+          beta(x).tube(dr, pr) =
+              (1 - param_grid(x, 6)) * vectorise(beta(x).tube(dr, pr)) +
+              (param_grid(x, 6) / K);
+        } // pr
+      }   // dr
+      clock.tock("learning");
+
+      clock.tick("smoothing");
+#pragma omp parallel for
+      // Smoothing
+      for (unsigned int k = 0; k < K; k++)
+      {
+        if (param_grid(x, 7) != -datum::inf && param_grid(x, 18) != -datum::inf)
+        {
+          weights_tmp(x).slice(k) = hat_mats_mv(x) * beta(x).slice(k) * hat_mats(x);
+        }
+        else if (param_grid(x, 7) != -datum::inf)
+        {
+          weights_tmp(x).slice(k) = basis_mats_mv(x).t() * beta(x).slice(k) * hat_mats(x);
+        }
+        else if (param_grid(x, 18) != -datum::inf)
+        {
+          weights_tmp(x).slice(k) = hat_mats_mv(x) * beta(x).slice(k) * basis_mats(x).t();
         }
         else
         {
-          Rcpp::stop("Choose 'boa', 'bewa', 'ml_poly' or 'ewa' as method.");
+          weights_tmp(x).slice(k) = basis_mats_mv(x).t() * beta(x).slice(k) * basis_mats(x).t();
         }
-
-        // Apply thresholds
-        if (param_grid(x, 4) > 0)
-        {
-          int best_k = beta(x).row(l).index_max();
-          for (double &e : beta(x).row(l))
-          {
-            threshold_soft(e, param_grid(x, 4));
-          }
-          if (accu(beta(x).row(l)) == 0)
-          {
-            beta(x)(l, best_k) = 1;
-          }
-        }
-
-        if (param_grid(x, 5) > 0)
-        {
-          int best_k = beta(x).row(l).index_max();
-          for (double &e : beta(x).row(l))
-          {
-            threshold_hard(e, param_grid(x, 5));
-          }
-          if (accu(beta(x).row(l)) == 0)
-          {
-            beta(x)(l, best_k) = 1;
-          }
-        }
-
-        // Add fixed_share
-        beta(x).row(l) =
-            (1 - param_grid(x, 6)) * beta(x).row(l) +
-            (param_grid(x, 6) / K);
       }
+      clock.tock("smoothing");
 
-      // Smoothing
-      if (param_grid(x, 7) != -datum::inf)
-      {
-        // Note that hat was already mutliplied with basis so we can use it directly here
-        weights_tmp.slice(x) = hat_mats(x) * beta(x);
-      }
-      else
-      {
-        weights_tmp.slice(x) = basis_mats(x) * beta(x);
-      }
-
+#pragma omp parallel for
       // Enshure that constraints hold
       for (unsigned int p = 0; p < P; p++)
       {
 
-        // Positivity
-        weights_tmp(span(p), span::all, span(x)) =
-            pmax_arma(weights_tmp(span(p), span::all, span(x)), exp(-700));
+        for (unsigned int d = 0; d < D; d++)
+        {
+          // Positivity
+          weights_tmp(x)(span(d), span(p), span::all) =
+              pmax_arma(weights_tmp(x)(span(d), span(p), span::all), exp(-700));
 
-        // Affinity
-        weights_tmp(span(p), span::all, span(x)) /=
-            accu(weights_tmp(span(p), span::all, span(x)));
+          // // Affinity
+          weights_tmp(x)(span(d), span(p), span::all) /=
+              accu(weights_tmp(x)(span(d), span(p), span::all));
+        }
       }
-
-      tmp_performance(x) = accu(past_performance(span(t), span::all, span(x)));
-      prog.increment(); // Update progress
+      tmp_performance(x) = accu(past_performance(t).slice(x));
       R_CheckUserInterrupt();
     }
 
     // Sum past_performance in each slice
     cum_performance = (1 - forget_past_performance) * cum_performance + tmp_performance;
+
     opt_index(t + 1) = cum_performance.index_min();
     chosen_params.row(t) = param_grid.row(opt_index(t + 1));
+    prog.increment(); // Update progress
   }
-
-  // Save Weights and Prediction
-  weights.row(T) = weights_tmp.slice(opt_index(T));
+  // Save Final Weights and Prediction
+  weights(T) = weights_tmp(opt_index(T));
 
   // Predict residual expert forecasts if any are available
   for (unsigned int t = T; t < T + T_E_Y; t++)
   {
-    mat experts_mat = experts.row(t);
-    mat predictions_temp = sum(weights_tmp.slice(opt_index(T)) % experts_mat, 1);
-    // Sort predictions if quantile_crossing is prohibited
-    if (!allow_quantile_crossing)
+    for (unsigned int d = 0; d < D; d++)
     {
-      predictions_temp = arma::sort(predictions_temp, "ascend", 0);
+      mat experts_mat = experts(t).row(d);
+      mat weights_temp = weights(T).row(d);
+      vec predictions_temp = sum(weights_temp % experts_mat, 1);
+
+      // Sort predictions if quantile_crossing is prohibited
+      if (!allow_quantile_crossing)
+      {
+        predictions_temp = arma::sort(predictions_temp, "ascend", 0);
+      }
+      predictions.tube(t, d) = predictions_temp;
     }
-    predictions.row(t) = vectorise(predictions_temp).t();
   }
 
   // Save losses suffered by forecaster and experts
-#pragma omp parallel for collapse(2)
+  clock.tick("loss_for_exp");
+#pragma omp parallel for
   for (unsigned int t = 0; t < T; t++)
   {
-    for (unsigned int p = 0; p < P; p++)
+    loss_exp(t).set_size(D, P, K);
+
+    for (unsigned int d = 0; d < D; d++)
     {
-      for (unsigned int k = 0; k < K; k++)
+      for (unsigned int p = 0; p < P; p++)
       {
-        loss_exp(t, p, k) =
-            loss(y(t, p),
-                 experts(t, p, k),
-                 9999,           // where to evaluate the loss_gradient
-                 loss_function,  // method
-                 tau(p),         // tau
-                 loss_parameter, // alpha
-                 false);         // loss_gradient
+        for (unsigned int k = 0; k < K; k++)
+        {
+          loss_exp(t)(d, p, k) =
+              loss(y(t, d),
+                   experts(t)(d, p, k),
+                   9999,           // where to evaluate the loss_gradient
+                   loss_function,  // method
+                   tau(p),         // tau
+                   loss_parameter, // alpha
+                   false);         // loss_gradient
+        }
+        loss_for(t, d, p) = loss(y(t, d),
+                                 predictions(t, d, p),
+                                 9999,           // where to evaluate the loss_gradient
+                                 loss_function,  // method
+                                 tau(p),         // tau
+                                 loss_parameter, // alpha
+                                 false);         // loss_gradient;
       }
-      loss_for(t, p) = loss(y(t, p),
-                            predictions(t, p),
-                            9999,           // where to evaluate the loss_gradient
-                            loss_function,  // method
-                            tau(p),         // tau
-                            loss_parameter, // alpha
-                            false);         // loss_gradient;
     }
   }
-
+  clock.tock("loss_for_exp");
   return;
 }
 
 // [[Rcpp::export]]
 Rcpp::List online_rcpp(
     mat &y,
-    cube &experts,
+    arma::field<cube> &experts,
     vec tau, // We don't pass by reference here since tau may be modified
     const unsigned int &lead_time,
     const std::string loss_function,
@@ -356,29 +413,29 @@ Rcpp::List online_rcpp(
     const mat &param_grid,
     const double &forget_past_performance,
     bool allow_quantile_crossing,
-    const mat w0,
-    const mat R0,
-    const cube &loss_array,
-    const cube &regret_array,
+    const cube w0,
+    const cube R0,
+    const field<cube> &loss_array,
+    const field<cube> &regret_array,
     const bool trace)
 {
 
+  Rcpp::Clock clock;
+  clock.tick("init");
+
   // Indexing Convention -> (T, P, K, X)
   // T number of observations
+  // D dimensionality of Y. Its 1 in univariate settings
   // P lengths of probability Grid
   // K number of experts
   // X number of parameter combinations to consider
 
   // Object Dimensions
   const unsigned int T = y.n_rows;
-  const unsigned int P = experts.n_cols;
-  const unsigned int K = experts.n_slices;
+  const unsigned int D = experts(0).n_rows;
+  const unsigned int P = experts(0).n_cols;
+  const unsigned int K = experts(0).n_slices;
   const unsigned int T_E_Y = experts.n_rows - y.n_rows;
-
-  if (y.n_cols > 1 && !allow_quantile_crossing)
-  {
-    allow_quantile_crossing = true;
-  }
 
   // Expand y matrix if necessary
   if (y.n_cols == 1)
@@ -396,88 +453,145 @@ Rcpp::List online_rcpp(
   const unsigned int X = param_grid.n_rows;
   mat chosen_params(T, param_grid.n_cols);
   vec opt_index(T + 1, fill::zeros);
-  cube past_performance(T, P, X, fill::zeros);
+  arma::field<cube> past_performance(T);
   vec tmp_performance(X, fill::zeros);
   vec cum_performance(X, fill::zeros);
-  Progress prog(T * X + X, trace);
+  Progress prog(T + 2 * X, trace);
 
   // Init objects holding weights
-  cube weights_tmp(P, K, X);
-  weights_tmp.each_slice() = w0;
-
-  cube predictions_tmp(T, P, X);
+  arma::field<cube> weights_tmp(X);
+  arma::field<cube> predictions_tmp(X);
 
   // Output Objects
-  mat predictions(T + T_E_Y, P, fill::zeros);
-  cube weights(T + 1, P, K, fill::zeros);
+  cube predictions(T + T_E_Y, D, P, fill::zeros);
+  arma::field<cube> weights(T + 1);
 
   // Learning parameters
-  field<mat> hat_mats(X);
-  field<sp_mat> basis_mats(X);
-  field<mat> V(X);
-  field<mat> E(X);
-  field<mat> k(X);
-  field<mat> eta(X);
-  field<mat> R(X);
-  field<mat> R_reg(X);
-  field<mat> beta(X);
-  field<mat> beta0field(X);
+  arma::field<mat> hat_mats(X);
+  arma::field<mat> hat_mats_mv(X);
+  arma::field<sp_mat> basis_mats(X);
+  arma::field<sp_mat> basis_mats_mv(X);
+  arma::field<cube> V(X);
+  arma::field<cube> E(X);
+  arma::field<cube> k(X);
+  arma::field<cube> eta(X);
+  arma::field<cube> R(X);
+  arma::field<cube> R_reg(X);
+  arma::field<cube> beta(X);
+  arma::field<cube> beta0field(X);
 
-  vec spline_basis_x = regspace(1, P) / (P + 1);
+  vec spline_basis_prob = regspace(1, P) / (P + 1);
+  vec spline_basis_mv = regspace(1, D) / (D + 1);
 
-  // Init hat matrix field
+  // Init hat and basis_matrices
+#pragma omp parallel for
   for (unsigned int x = 0; x < X; x++)
   {
 
     // In second step: skip if recalc is not necessary:
-    if (x > 0 &&
-        param_grid(x, 2) == param_grid(x - 1, 2) &&
-        param_grid(x, 0) == param_grid(x - 1, 0) &&
-        param_grid(x, 1) == param_grid(x - 1, 1))
+    if (x == 0)
     {
-      basis_mats(x) = basis_mats(x - 1);
+      basis_mats(x) = make_basis_matrix(spline_basis_prob,
+                                        param_grid(x, 0), // kstep
+                                        param_grid(x, 2), // degree
+                                        param_grid(x, 1), // uneven grid
+                                        P % 2 == 0);      // even
     }
-    else
+    else if (
+        param_grid(x, 2) != param_grid(x - 1, 2) ||
+        param_grid(x, 0) != param_grid(x - 1, 0) ||
+        param_grid(x, 1) != param_grid(x - 1, 1))
     {
-
-      basis_mats(x) = make_basis_matrix(spline_basis_x,
+      basis_mats(x) = make_basis_matrix(spline_basis_prob,
                                         param_grid(x, 0), // kstep
                                         param_grid(x, 2), // degree
                                         param_grid(x, 1), // uneven grid
                                         P % 2 == 0);      // even
     }
 
-    int L = basis_mats(x).n_cols;
-    V(x).zeros(L, K);
-    E(x).zeros(L, K);
-    k(x).zeros(L, K);
-
-    mat eta_(L, K, fill::zeros);
-    eta(x) = eta_;
-    if (method == "ml_poly")
+    // In second step: skip if recalc is not necessary:
+    if (x == 0)
     {
-      eta_.fill(exp(350));
-      eta(x) = eta_;
+      basis_mats_mv(x) = make_basis_matrix(spline_basis_mv,
+                                           param_grid(x, 15), // kstep
+                                           param_grid(x, 16), // degree
+                                           param_grid(x, 17), // uneven grid
+                                           D % 2 == 0)
+                             .t(); // even
+    }
+    else if (param_grid(x, 15) != param_grid(x - 1, 15) ||
+             param_grid(x, 16) != param_grid(x - 1, 16) ||
+             param_grid(x, 17) != param_grid(x - 1, 17))
+    {
+      basis_mats_mv(x) = make_basis_matrix(spline_basis_mv,
+                                           param_grid(x, 15), // kstep
+                                           param_grid(x, 16), // degree
+                                           param_grid(x, 17), // uneven grid
+                                           D % 2 == 0)
+                             .t(); // even
     }
 
-    R_reg(x) = basis_mats(x).t() * R0;
-    R(x) = basis_mats(x).t() * R0;
+    if (x == 0)
+    {
+      if (param_grid(x, 7) != -datum::inf)
+        hat_mats(x) = make_hat_matrix(spline_basis_prob,
+                                      param_grid(x, 8),  // kstep
+                                      param_grid(x, 7),  // lambda
+                                      param_grid(x, 11), // differences
+                                      param_grid(x, 10), // degree
+                                      param_grid(x, 9),  // uneven grid
+                                      P % 2 == 0);       // even
+    }
+    else if (
+        param_grid(x, 7) != param_grid(x - 1, 7) ||
+        param_grid(x, 8) != param_grid(x - 1, 8) ||
+        param_grid(x, 10) != param_grid(x - 1, 10) ||
+        param_grid(x, 11) != param_grid(x - 1, 11) ||
+        param_grid(x, 9) != param_grid(x - 1, 9))
+    {
+      if (param_grid(x, 7) != -datum::inf)
+        hat_mats(x) = make_hat_matrix(spline_basis_prob,
+                                      param_grid(x, 8),  // kstep
+                                      param_grid(x, 7),  // lambda
+                                      param_grid(x, 11), // differences
+                                      param_grid(x, 10), // degree
+                                      param_grid(x, 9),  // uneven grid
+                                      P % 2 == 0);       // even
+    }
 
-    beta(x) = (w0.t() * pinv(mat(basis_mats(x))).t()).t();
-
-    beta0field(x) = beta(x);
-
-    R_CheckUserInterrupt();
+    if (x == 0 ||
+        param_grid(x, 18) != param_grid(x - 1, 18) ||
+        param_grid(x, 19) != param_grid(x - 1, 19) ||
+        param_grid(x, 20) != param_grid(x - 1, 20) ||
+        param_grid(x, 21) != param_grid(x - 1, 21) ||
+        param_grid(x, 22) != param_grid(x - 1, 22))
+    {
+      if (param_grid(x, 18) != -datum::inf)
+        hat_mats_mv(x) = make_hat_matrix(spline_basis_mv,
+                                         param_grid(x, 19), // kstep
+                                         param_grid(x, 18), // lambda
+                                         param_grid(x, 22), // differences
+                                         param_grid(x, 21), // degree
+                                         param_grid(x, 20), // uneven grid
+                                         P % 2 == 0);       // even
+    }
+    prog.increment();
   }
 
-  // Only if smoothing is possible (tau.size > 1)
-  if (P > 1)
+  // Note that this can't be parralelized due to basis_mats(x - 1)
+  for (unsigned int x = 0; x < X; x++)
   {
-    // Init hat matrix field
-    for (unsigned int x = 0; x < X; x++)
+    if (x > 0)
     {
-      // In second step: skip if recalc is not necessary:
-      if (x > 0 &&
+      if (
+          param_grid(x, 2) == param_grid(x - 1, 2) &&
+          param_grid(x, 0) == param_grid(x - 1, 0) &&
+          param_grid(x, 1) == param_grid(x - 1, 1))
+      {
+        basis_mats(x) = basis_mats(x - 1);
+      }
+
+      if (
           param_grid(x, 7) == param_grid(x - 1, 7) &&
           param_grid(x, 8) == param_grid(x - 1, 8) &&
           param_grid(x, 10) == param_grid(x - 1, 10) &&
@@ -486,51 +600,125 @@ Rcpp::List online_rcpp(
       {
         hat_mats(x) = hat_mats(x - 1);
       }
-      else
+
+      if (
+          param_grid(x, 15) == param_grid(x - 1, 15) &&
+          param_grid(x, 16) == param_grid(x - 1, 16) &&
+          param_grid(x, 17) == param_grid(x - 1, 17))
       {
-        if (param_grid(x, 7) != -datum::inf)
-          hat_mats(x) = make_hat_matrix(spline_basis_x,
-                                        param_grid(x, 8),  // kstep
-                                        param_grid(x, 7),  // lambda
-                                        param_grid(x, 11), // differences
-                                        param_grid(x, 10), // degree
-                                        param_grid(x, 9),  // uneven grid
-                                        P % 2 == 0);       // even
+        basis_mats_mv(x) = basis_mats_mv(x - 1);
       }
-      if (param_grid(x, 7) != -datum::inf)
-        hat_mats(x) *= basis_mats(x);
-      R_CheckUserInterrupt();
-      prog.increment(); // Update progress
+
+      if (
+          param_grid(x, 18) == param_grid(x - 1, 18) &&
+          param_grid(x, 19) == param_grid(x - 1, 19) &&
+          param_grid(x, 20) == param_grid(x - 1, 20) &&
+          param_grid(x, 21) == param_grid(x - 1, 21) &&
+          param_grid(x, 22) == param_grid(x - 1, 22))
+      {
+        hat_mats_mv(x) = hat_mats_mv(x - 1);
+      }
     }
   }
+
+#pragma omp parallel for
+  for (unsigned int x = 0; x < X; x++)
+  {
+
+    if (param_grid(x, 7) != -datum::inf)
+    {
+      hat_mats(x) = basis_mats(x).t() * hat_mats(x);
+    }
+
+    if (param_grid(x, 18) != -datum::inf)
+    {
+      hat_mats_mv(x) = hat_mats_mv(x) * basis_mats_mv(x).t();
+    }
+
+    unsigned int Pr = basis_mats(x).n_cols;
+    unsigned int Dr = basis_mats_mv(x).n_rows;
+
+    // Learning parameters
+    V(x).zeros(Dr, Pr, K);
+    E(x).zeros(Dr, Pr, K);
+    k(x).zeros(Dr, Pr, K);
+
+    arma::cube eta_(Dr, Pr, K, fill::zeros);
+    eta(x) = eta_;
+    if (method == "ml_poly")
+    {
+      eta_.fill(exp(350));
+      eta(x) = eta_;
+    }
+
+    R(x).set_size(Dr, Pr, K);
+    R_reg(x).set_size(Dr, Pr, K);
+    beta(x).set_size(Dr, Pr, K);
+    weights_tmp(x).set_size(D, P, K);
+    predictions_tmp(x).set_size(T, D, P);
+
+    for (unsigned int d = 0; d < D; d++)
+    {
+      weights_tmp(x).row(d) = w0.row(d);
+    }
+
+    for (unsigned int k = 0; k < K; k++)
+    {
+      R(x).slice(k) = basis_mats_mv(x) * R0.slice(k) * basis_mats(x);
+      R_reg(x).slice(k) = basis_mats_mv(x) * R0.slice(k) * basis_mats(x);
+      beta(x).slice(k) = pinv(mat(basis_mats_mv(x))).t() * w0.slice(k) * pinv(mat(basis_mats(x))).t();
+    }
+
+    beta0field(x) = beta(x);
+    prog.increment(); // Update progress
+  }
+
+  R_CheckUserInterrupt();
 
   // Predictions at t < lead_time using initial weights
   for (unsigned int t = 0; t < lead_time; t++)
   {
-    // Save final weights weights_tmp
-    weights.row(t) = weights_tmp.slice(opt_index(t));
 
-    // Store expert predictions temporarily
-    mat experts_mat = experts.row(t);
+    weights(t).set_size(D, P, K);
+    past_performance(t).set_size(D, P, X);
 
-    // Forecasters prediction
-    mat predictions_temp = sum(weights_tmp.each_slice() % experts_mat, 1);
-    predictions_tmp.row(t) = predictions_temp;
+    for (unsigned int d = 0; d < D; d++)
+    {
+      // Save final weights weights_tmp
+      weights(t).row(d) = weights_tmp(opt_index(t)).row(d);
 
-    // Final prediction
-    predictions.row(t) =
-        vectorise(predictions_tmp(span(t), span::all, span(opt_index(t)))).t();
+      // Store expert predictions temporarily
+      mat experts_mat = experts(t).row(d);
 
-    past_performance.row(t).fill(datum::nan);
+      for (unsigned int x = 0; x < X; x++)
+      {
+
+        mat weights_temp = weights_tmp(x).row(d);
+
+        // Forecasters prediction
+        vec predictions_temp = sum(weights_temp % experts_mat, 1);
+
+        predictions_tmp(x).tube(t, d) = predictions_temp;
+      }
+
+      // // Final prediction
+      predictions.tube(t, d) = predictions_tmp(opt_index(t)).tube(t, d);
+    }
+
+    past_performance(t).fill(datum::nan);
   }
 
-  mat loss_for(T, P, fill::zeros);
-  cube loss_exp(T, P, K, fill::zeros);
+  cube loss_for(T, D, P, fill::zeros);
+  field<cube> loss_exp(T);
 
   const int start = lead_time;
+  clock.tock("init");
+
+  clock.tick("core");
 
   online_learning_core(
       T,
+      D,
       P,
       K,
       T_E_Y,
@@ -557,7 +745,9 @@ Rcpp::List online_rcpp(
       E,
       eta,
       hat_mats,
+      hat_mats_mv,
       basis_mats,
+      basis_mats_mv,
       beta0field,
       beta,
       cum_performance,
@@ -568,9 +758,14 @@ Rcpp::List online_rcpp(
       loss_exp,
       loss_array,
       regret_array,
-      prog);
+      prog,
+      clock);
 
-  // 1-Indexing for R-Output
+  clock.tock("core");
+
+  clock.tick("wrangle");
+
+  // // 1-Indexing for R-Output
   opt_index = opt_index + 1;
 
   // Set unused values to NA
@@ -579,28 +774,9 @@ Rcpp::List online_rcpp(
     chosen_params.rows(0, lead_time - 1).fill(datum::nan);
   }
 
-  Rcpp::CharacterVector param_names =
-      Rcpp::CharacterVector::create("basis_knot_distance",
-                                    "basis_knot_distance_power",
-                                    "basis_deg",
-                                    "forget_regret",
-                                    "threshold_soft",
-                                    "threshold_hard",
-                                    "fixed_share",
-                                    "p_smooth_lambda",
-                                    "p_smooth_knot_distance",
-                                    "p_smooth_knot_distance_power",
-                                    "p_smooth_deg",
-                                    "smooth_diff",
-                                    "gamma",
-                                    "loss_share",
-                                    "regret_share");
-
   Rcpp::NumericMatrix parametergrid_out = Rcpp::wrap(param_grid);
-  Rcpp::colnames(parametergrid_out) = param_names;
 
   Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
-  Rcpp::colnames(chosen_parameters) = param_names;
 
   Rcpp::List model_data = Rcpp::List::create(
       Rcpp::Named("y") = y,
@@ -621,6 +797,7 @@ Rcpp::List online_rcpp(
       Rcpp::Named("predictions_tmp") = predictions_tmp,
       Rcpp::Named("cum_performance") = cum_performance,
       Rcpp::Named("hat_matrices") = hat_mats,
+      Rcpp::Named("hat_matrices_mv") = hat_mats_mv,
       Rcpp::Named("V") = V,
       Rcpp::Named("E") = E,
       Rcpp::Named("k") = k,
@@ -645,10 +822,17 @@ Rcpp::List online_rcpp(
       Rcpp::Named("opt_index") = opt_index,
       Rcpp::Named("parametergrid") = parametergrid_out,
       Rcpp::Named("basis_matrices") = basis_mats,
+      Rcpp::Named("basis_matrices_mv") = basis_mats_mv,
       Rcpp::Named("specification") = model_spec);
 
+  // Rcpp::List out;
   out.attr("class") = "online";
 
+  clock.tock("wrangle");
+
+  clock.stop("times");
+
+  // Rcpp::List out;
   return out;
 }
 
@@ -687,197 +871,197 @@ Rcpp::List predict_online(
   return object;
 }
 
-// [[Rcpp::export]]
-Rcpp::List update_online(
-    Rcpp::List &object,
-    mat &new_y,
-    Rcpp::NumericVector new_experts = Rcpp::NumericVector::create())
-{
+// // [[Rcpp::export]]
+// Rcpp::List update_online(
+//     Rcpp::List &object,
+//     mat &new_y,
+//     Rcpp::NumericVector new_experts = Rcpp::NumericVector::create())
+// {
 
-  cube experts_new;
+//   cube experts_new;
 
-  if (new_experts.size() > 0)
-  {
-    vec dim = new_experts.attr("dim");
-    cube tmp_cube(new_experts.begin(), dim(0), dim(1), dim(2), false);
-    experts_new = tmp_cube;
-  }
+//   if (new_experts.size() > 0)
+//   {
+//     vec dim = new_experts.attr("dim");
+//     cube tmp_cube(new_experts.begin(), dim(0), dim(1), dim(2), false);
+//     experts_new = tmp_cube;
+//   }
 
-  // This creates a reference to the specification, not a copy
-  Rcpp::List specification = object["specification"];
+//   // This creates a reference to the specification, not a copy
+//   Rcpp::List specification = object["specification"];
 
-  Rcpp::List model_parameters = specification["parameters"];
-  Rcpp::List model_data = specification["data"];
-  Rcpp::List model_objects = specification["objects"];
+//   Rcpp::List model_parameters = specification["parameters"];
+//   Rcpp::List model_data = specification["data"];
+//   Rcpp::List model_objects = specification["objects"];
 
-  // Data
-  cube experts = model_data["experts"];
-  int P = experts.n_cols;
+//   // Data
+//   cube experts = model_data["experts"];
+//   int P = experts.n_cols;
 
-  if (new_experts.size() > 0)
-    experts.insert_rows(experts.n_rows, experts_new);
+//   if (new_experts.size() > 0)
+//     experts.insert_rows(experts.n_rows, experts_new);
 
-  mat y = model_data["y"];
-  // Expand y matrix if necessary
-  if (new_y.n_cols == 1)
-  {
-    new_y = arma::repmat(new_y, 1, P);
-  }
-  y.insert_rows(y.n_rows, new_y);
+//   mat y = model_data["y"];
+//   // Expand y matrix if necessary
+//   if (new_y.n_cols == 1)
+//   {
+//     new_y = arma::repmat(new_y, 1, P);
+//   }
+//   y.insert_rows(y.n_rows, new_y);
 
-  Progress prog(999, false);
+//   Progress prog(999, false);
 
-  // Object Dimensions
-  const int T = y.n_rows;
-  const int K = experts.n_slices;
-  const int T_E_Y = experts.n_rows - y.n_rows;
+//   // Object Dimensions
+//   const int T = y.n_rows;
+//   const int K = experts.n_slices;
+//   const int T_E_Y = experts.n_rows - y.n_rows;
 
-  if (T_E_Y < 0)
-    Rcpp::stop("Number of provided expert predictions has to match or exceed observations.");
+//   if (T_E_Y < 0)
+//     Rcpp::stop("Number of provided expert predictions has to match or exceed observations.");
 
-  vec tau = model_data["tau"];
-  mat param_grid = object["parametergrid"];
-  const int X = param_grid.n_rows;
-  mat chosen_params = object["chosen_parameters"];
-  chosen_params.resize(T, param_grid.n_cols);
-  vec opt_index = object["opt_index"];
-  // Zero indexing in C++
-  opt_index -= 1;
-  opt_index.resize(T + 1);
+//   vec tau = model_data["tau"];
+//   mat param_grid = object["parametergrid"];
+//   const int X = param_grid.n_rows;
+//   mat chosen_params = object["chosen_parameters"];
+//   chosen_params.resize(T, param_grid.n_cols);
+//   vec opt_index = object["opt_index"];
+//   // Zero indexing in C++
+//   opt_index -= 1;
+//   opt_index.resize(T + 1);
 
-  cube past_performance = object["past_performance"];
-  past_performance.resize(T, P, X);
+//   cube past_performance = object["past_performance"];
+//   past_performance.resize(T, P, X);
 
-  vec tmp_performance(X, fill::zeros);
-  vec cum_performance = model_objects["cum_performance"];
+//   vec tmp_performance(X, fill::zeros);
+//   vec cum_performance = model_objects["cum_performance"];
 
-  cube weights_tmp = model_objects["weights_tmp"];
+//   cube weights_tmp = model_objects["weights_tmp"];
 
-  cube predictions_tmp = model_objects["predictions_tmp"];
-  predictions_tmp.resize(T, P, X);
+//   cube predictions_tmp = model_objects["predictions_tmp"];
+//   predictions_tmp.resize(T, P, X);
 
-  // TODO Add loss_array and regret_array functionality
+//   // TODO Add loss_array and regret_array functionality
 
-  cube loss_array;
-  cube regret_array;
+//   cube loss_array;
+//   cube regret_array;
 
-  // Output Objects
-  mat predictions = object["predictions"];
-  predictions.resize(T + T_E_Y, P);
-  cube weights = object["weights"];
-  weights.resize(T + 1, P, K);
+//   // Output Objects
+//   mat predictions = object["predictions"];
+//   predictions.resize(T + T_E_Y, P);
+//   cube weights = object["weights"];
+//   weights.resize(T + 1, P, K);
 
-  field<mat> hat_mats = model_objects["hat_matrices"];
-  field<sp_mat> basis_mats = object["basis_matrices"];
-  field<mat> V = model_objects["V"];
-  field<mat> E = model_objects["E"];
-  field<mat> k = model_objects["k"];
-  field<mat> eta = model_objects["eta"];
-  field<mat> R = model_objects["R"];
-  field<mat> R_reg = model_objects["R_reg"];
-  field<mat> beta = model_objects["beta"];
-  field<mat> beta0field = model_objects["beta0field"];
+//   field<mat> hat_mats = model_objects["hat_matrices"];
+//   field<sp_mat> basis_mats = object["basis_matrices"];
+//   field<mat> V = model_objects["V"];
+//   field<mat> E = model_objects["E"];
+//   field<mat> k = model_objects["k"];
+//   field<mat> eta = model_objects["eta"];
+//   field<mat> R = model_objects["R"];
+//   field<mat> R_reg = model_objects["R_reg"];
+//   field<mat> beta = model_objects["beta"];
+//   field<mat> beta0field = model_objects["beta0field"];
 
-  // Misc parameters
-  const int lead_time = model_parameters["lead_time"];
-  const std::string loss_function = model_parameters["loss_function"];
-  const double loss_parameter = model_parameters["loss_parameter"];
-  const bool loss_gradient = model_parameters["loss_gradient"];
-  const std::string method = model_parameters["method"];
+//   // Misc parameters
+//   const int lead_time = model_parameters["lead_time"];
+//   const std::string loss_function = model_parameters["loss_function"];
+//   const double loss_parameter = model_parameters["loss_parameter"];
+//   const bool loss_gradient = model_parameters["loss_gradient"];
+//   const std::string method = model_parameters["method"];
 
-  const double forget_past_performance = model_parameters["forget_past_performance"];
-  const bool allow_quantile_crossing = model_parameters["allow_quantile_crossing"];
+//   const double forget_past_performance = model_parameters["forget_past_performance"];
+//   const bool allow_quantile_crossing = model_parameters["allow_quantile_crossing"];
 
-  const int start = T - new_y.n_rows;
+//   const int start = T - new_y.n_rows;
 
-  mat loss_for(T, P, fill::zeros);
-  cube loss_exp(T, P, K, fill::zeros);
+//   mat loss_for(T, P, fill::zeros);
+//   cube loss_exp(T, P, K, fill::zeros);
 
-  online_learning_core(
-      T,
-      P,
-      K,
-      T_E_Y,
-      start,
-      lead_time,
-      y,
-      experts,
-      tau,
-      loss_function,
-      method,
-      loss_parameter,
-      loss_gradient,
-      weights,
-      weights_tmp,
-      predictions_tmp,
-      predictions,
-      past_performance,
-      opt_index,
-      param_grid,
-      chosen_params,
-      R,
-      R_reg,
-      V,
-      E,
-      eta,
-      hat_mats,
-      basis_mats,
-      beta0field,
-      beta,
-      cum_performance,
-      forget_past_performance,
-      tmp_performance,
-      allow_quantile_crossing,
-      loss_for,
-      loss_exp,
-      loss_array,
-      regret_array,
-      prog);
+//   online_learning_core(
+//       T,
+//       P,
+//       K,
+//       T_E_Y,
+//       start,
+//       lead_time,
+//       y,
+//       experts,
+//       tau,
+//       loss_function,
+//       method,
+//       loss_parameter,
+//       loss_gradient,
+//       weights,
+//       weights_tmp,
+//       predictions_tmp,
+//       predictions,
+//       past_performance,
+//       opt_index,
+//       param_grid,
+//       chosen_params,
+//       R,
+//       R_reg,
+//       V,
+//       E,
+//       eta,
+//       hat_mats,
+//       basis_mats,
+//       beta0field,
+//       beta,
+//       cum_performance,
+//       forget_past_performance,
+//       tmp_performance,
+//       allow_quantile_crossing,
+//       loss_for,
+//       loss_exp,
+//       loss_array,
+//       regret_array,
+//       prog);
 
-  // Update internal objects
-  model_objects["V"] = V;
-  model_objects["E"] = E;
-  model_objects["k"] = k;
-  model_objects["eta"] = eta;
-  model_objects["R"] = R;
-  model_objects["R_reg"] = R_reg;
-  model_objects["beta"] = beta;
-  model_objects["weights_tmp"] = weights_tmp;
-  model_objects["predictions_tmp"] = predictions_tmp;
-  model_objects["cum_performance"] = cum_performance;
+//   // Update internal objects
+//   model_objects["V"] = V;
+//   model_objects["E"] = E;
+//   model_objects["k"] = k;
+//   model_objects["eta"] = eta;
+//   model_objects["R"] = R;
+//   model_objects["R_reg"] = R_reg;
+//   model_objects["beta"] = beta;
+//   model_objects["weights_tmp"] = weights_tmp;
+//   model_objects["predictions_tmp"] = predictions_tmp;
+//   model_objects["cum_performance"] = cum_performance;
 
-  // Update data
-  model_data["experts"] = experts;
-  model_data["y"] = y;
+//   // Update data
+//   model_data["experts"] = experts;
+//   model_data["y"] = y;
 
-  // Update output
-  Rcpp::CharacterVector param_names =
-      Rcpp::CharacterVector::create("basis_knot_distance",
-                                    "basis_knot_distance_power",
-                                    "basis_deg",
-                                    "forget_regret",
-                                    "threshold_soft",
-                                    "threshold_hard",
-                                    "fixed_share",
-                                    "p_smooth_lambda",
-                                    "p_smooth_knot_distance",
-                                    "p_smooth_knot_distance_power",
-                                    "p_smooth_deg",
-                                    "smooth_diff",
-                                    "gamma",
-                                    "loss_share",
-                                    "regret_share");
+//   // Update output
+//   Rcpp::CharacterVector param_names =
+//       Rcpp::CharacterVector::create("basis_knot_distance",
+//                                     "basis_knot_distance_power",
+//                                     "basis_deg",
+//                                     "forget_regret",
+//                                     "threshold_soft",
+//                                     "threshold_hard",
+//                                     "fixed_share",
+//                                     "p_smooth_lambda",
+//                                     "p_smooth_knot_distance",
+//                                     "p_smooth_knot_distance_power",
+//                                     "p_smooth_deg",
+//                                     "smooth_diff",
+//                                     "gamma",
+//                                     "loss_share",
+//                                     "regret_share");
 
-  Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
-  Rcpp::colnames(chosen_parameters) = param_names;
+//   Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
+//   Rcpp::colnames(chosen_parameters) = param_names;
 
-  object["chosen_parameters"] = chosen_parameters;
-  object["opt_index"] = opt_index + 1;
-  object["predictions"] = predictions;
-  object["weights"] = weights;
-  object["past_performance"] = past_performance;
-  object["forecaster_loss"] = loss_for;
-  object["experts_loss"] = loss_exp;
+//   object["chosen_parameters"] = chosen_parameters;
+//   object["opt_index"] = opt_index + 1;
+//   object["predictions"] = predictions;
+//   object["weights"] = weights;
+//   object["past_performance"] = past_performance;
+//   object["forecaster_loss"] = loss_for;
+//   object["experts_loss"] = loss_exp;
 
-  return object;
-}
+//   return object;
+// }
