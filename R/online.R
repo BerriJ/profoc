@@ -177,10 +177,18 @@ online <- function(y, experts, tau,
         loss_array <- array(, dim = c(0, 0, 0, 0))
         loss_share <- 0
     } else if (is.array(loss)) {
-        loss_array <- loss
+        loss_array <- list()
+        for (i in 1:T) {
+              loss_array[[i]] <- array(loss[i, , , ], dim = c(D, P, K))
+          }
+        dim(loss_array) <- c(T, 1)
         loss_share <- 1
     } else if (is.list(loss)) {
-        loss_array <- loss$loss
+        loss_array <- list()
+        for (i in 1:T) {
+            loss_array[[i]] <- array(loss$loss[i, , , ], dim = c(D, P, K))
+        }
+        dim(loss_array) <- c(T, 1)
         loss_share <- loss$share
     }
 
@@ -188,10 +196,20 @@ online <- function(y, experts, tau,
         regret_array <- array(, dim = c(0, 0, 0, 0))
         regret_share <- 0
     } else if (is.array(regret)) {
-        regret_array <- regret
+        regret_array <- list()
+        for (i in 1:T) {
+              regret_array[[i]] <- array(regret[i, , , ], dim = c(D, P, K))
+          }
+        dim(regret_array) <- c(T, 1)
         regret_share <- 1
     } else if (is.list(regret)) {
-        regret_array <- regret$regret
+        regret_array <- list()
+        for (i in 1:T) {
+              regret_array[[i]] <- array(regret$regret[i, , , ],
+                  dim = c(D, P, K)
+              )
+          }
+        dim(regret_array) <- c(T, 1)
         regret_share <- regret$share
     }
 
