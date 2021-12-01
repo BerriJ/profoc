@@ -437,12 +437,6 @@ Rcpp::List online_rcpp(
   const unsigned int K = experts(0).n_slices;
   const unsigned int T_E_Y = experts.n_rows - y.n_rows;
 
-  // Expand y matrix if necessary
-  if (y.n_cols == 1)
-  {
-    y = repmat(y, 1, P);
-  }
-
   // Expand tau if necessary
   if (tau.n_elem == 1)
   {
