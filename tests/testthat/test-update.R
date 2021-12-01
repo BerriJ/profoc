@@ -33,30 +33,33 @@ model_full <- online(
 # %%
 
 # %% Update using same number of y and experts
-# model_partial <- online(
-#     y = matrix(y[1:10]),
-#     tau = prob_grid,
-#     experts = experts[1:10, , , drop = FALSE],
-#     trace = FALSE
-# )
+model_partial <- online(
+    y = matrix(y[1:10]),
+    tau = prob_grid,
+    experts = experts[1:10, , , drop = FALSE],
+    trace = FALSE
+)
 
-# model_partial <- update(model_partial, new_y = matrix(y[11:15]), new_experts = experts[11:15, , , drop = FALSE])
+model_partial <- update(model_partial, new_y = matrix(y[11:15]), new_experts = experts[11:15, , , drop = FALSE])
+# %%
 
-# model_partial <- update(model_partial, new_y = matrix(y[16:20]), new_experts = experts[16:20, , , drop = FALSE])
+# %%
+model_partial <- update(model_partial, new_y = matrix(y[16:20]), new_experts = experts[16:20, , , drop = FALSE])
 # %%
 
 # %% Models should now be identical
-# identical(model_partial, model_full)
+expect_true(identical(model_partial, model_full))
 # %%
 
 # %% Asymetric updating
-# model_partial <- online(
-#     y = matrix(y[1:5]),
-#     tau = prob_grid,
-#     experts = experts,
-#     trace = FALSE
-# )
+model_partial <- online(
+    y = matrix(y[1:5]),
+    tau = prob_grid,
+    experts = experts,
+    trace = FALSE
+)
 
+# TODO: FIX
 # model_partial <- update(
 #     model_partial,
 #     new_y = matrix(y[6:10])
