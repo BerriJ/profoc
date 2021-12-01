@@ -34,7 +34,7 @@ predict.online <- function(object, new_experts, ...) {
 #' @return \code{update.online} produces an updated model object.
 #' @importFrom stats update
 #' @export
-update.online <- function(object, new_y, new_experts = NULL, ...) {
+update.online <- function(object, new_y, new_experts = NULL, trace = FALSE, ...) {
     if (is.vector(new_y)) {
         new_y <- matrix(new_y)
     }
@@ -79,7 +79,7 @@ update.online <- function(object, new_y, new_experts = NULL, ...) {
     object$past_performance <- array_to_list(object$past_performance)
     object$experts_loss <- array_to_list(object$experts_loss)
 
-    update_online(object, new_y, new_experts)
+    update_online(object, new_y, new_experts, trace)
 
     dimnames(object$specification$data$y) <- dimnames(new_y)
 

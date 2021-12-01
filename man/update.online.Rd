@@ -4,7 +4,7 @@
 \alias{update.online}
 \title{Update method for online models}
 \usage{
-\method{update}{online}(object, new_y, new_experts = NULL, ...)
+\method{update}{online}(object, new_y, new_experts = NULL, trace = FALSE, ...)
 }
 \arguments{
 \item{object}{Object of class inheriting from 'online'}
