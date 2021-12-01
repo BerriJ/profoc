@@ -39,8 +39,6 @@ update.online <- function(object, new_y, new_experts = NULL, ...) {
         new_y <- matrix(new_y)
     }
 
-    print("ok")
-
     if (is.null(new_experts)) {
         new_experts <- list()
         dim(new_experts) <- c(0, 0)
@@ -83,7 +81,7 @@ update.online <- function(object, new_y, new_experts = NULL, ...) {
 
     update_online(object, new_y, new_experts)
 
-    dimnames(object$specification$data$y) <- dimnames(y)
+    dimnames(object$specification$data$y) <- dimnames(new_y)
 
     object$weights <- list_to_array(object$weights)
     object$past_performance <- list_to_array(object$past_performance)
