@@ -11,7 +11,9 @@
 
 \item{new_y}{new observations}
 
-\item{new_experts}{new expert predictions. This must be left unspecified
+\item{new_experts}{new expert predictions. This must be left unspecified}
+
+\item{trace}{If a progressbar shall be shown. Defaults to FALSE
 if the model already contains the expert predictions corresponding to new_y.}
 
 \item{...}{further arguments are ignored}
