@@ -54,31 +54,30 @@ expect_true(identical(model_partial, model_full))
 # %% Asymetric updating
 model_partial <- online(
     y = matrix(y[1:5]),
-    tau = prob_grid,
     experts = experts,
+    tau = prob_grid,
     trace = FALSE
 )
 
-# TODO: FIX
-# model_partial <- update(
-#     model_partial,
-#     new_y = matrix(y[6:10])
-# )
+model_partial <- update(
+    model_partial,
+    new_y = matrix(y[6:10])
+)
 
-# model_partial <- update(
-#     model_partial,
-#     new_y = matrix(y[11:20])
-# )
+model_partial <- update(
+    model_partial,
+    new_y = matrix(y[11:20])
+)
 # %%
 
 # %% Models should now be identical
-# identical(model_partial, model_full)
+expect_true(identical(model_partial, model_full))
 # %%
 
 # %% Throw an error when insufficient amount of expert predictions is supplied
-# expect_error(
-#     update(model_partial,
-#         new_y = matrix(y[11:20]),
-#     ), "Number of provided expert predictions has to match or exceed observations."
-# )
+expect_error(
+    update(model_partial,
+        new_y = matrix(y[11:20]),
+    ), "Number of provided expert predictions has to match or exceed observations."
+)
 # %%

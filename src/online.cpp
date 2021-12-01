@@ -69,6 +69,7 @@ void online_learning_core(
 
     weights(t).set_size(D, P, K);
     past_performance(t).set_size(D, P, param_grid.n_rows);
+    predictions_tmp(t).set_size(D, P, param_grid.n_rows);
 
     clock.tick("loss");
     for (unsigned int d = 0; d < D; d++)
@@ -92,10 +93,10 @@ void online_learning_core(
         {
           predictions_temp = arma::sort(predictions_temp, "ascend", 0);
         }
-        predictions_tmp(x).tube(t, d) = predictions_temp;
+        predictions_tmp(t)(span(d), span::all, span(x)) = predictions_temp;
       }
       // Forecasters prediction
-      predictions.tube(t, d) = predictions_tmp(opt_index(t)).tube(t, d);
+      predictions.tube(t, d) = vectorise(predictions_tmp(t)(span(d), span::all, span(opt_index(t))));
     }
 
     clock.tock("loss");
@@ -116,7 +117,7 @@ void online_learning_core(
         {
           // Evaluate the ex-post predictive performance
           past_performance(t)(d, p, x) = loss(y(t, d),
-                                              predictions_tmp(x)(t - lead_time, d, p),
+                                              predictions_tmp(t - lead_time)(d, p, x),
                                               9999,           // where evaluate loss_gradient
                                               loss_function,  // method
                                               tau(p),         // tau
@@ -128,7 +129,7 @@ void online_learning_core(
             {
               lexp_int(p, k) = loss(y(t, d),
                                     experts(t)(d, p, k),
-                                    predictions_tmp(x)(t - lead_time, d, p), // where evaluate loss_gradient
+                                    predictions_tmp(t - lead_time)(d, p, x), // where evaluate loss_gradient
                                     loss_function,                           // method
                                     tau(p),                                  // tau
                                     loss_parameter,                          // alpha
@@ -151,8 +152,8 @@ void online_learning_core(
             lexp.row(p) = lexp_ext.row(p);
           }
           lfor(p) = loss(y(t, d),
-                         predictions_tmp(x)(t - lead_time, d, p),
-                         predictions_tmp(x)(t - lead_time, d, p), // where to evaluate loss_gradient
+                         predictions_tmp(t - lead_time)(d, p, x),
+                         predictions_tmp(t - lead_time)(d, p, x), // where to evaluate loss_gradient
                          loss_function,                           // method
                          tau(p),                                  // tau
                          loss_parameter,                          // alpha
@@ -458,7 +459,7 @@ Rcpp::List online_rcpp(
 
   // Init objects holding weights
   arma::field<cube> weights_tmp(X);
-  arma::field<cube> predictions_tmp(X); // TODO Change to T as first dim
+  arma::field<cube> predictions_tmp(T + T_E_Y);
 
   // Output Objects
   cube predictions(T + T_E_Y, D, P, fill::zeros);
@@ -653,7 +654,6 @@ Rcpp::List online_rcpp(
     R_reg(x).set_size(Dr, Pr, K);
     beta(x).set_size(Dr, Pr, K);
     weights_tmp(x).set_size(D, P, K);
-    predictions_tmp(x).set_size(T, D, P);
 
     for (unsigned int d = 0; d < D; d++)
     {
@@ -679,6 +679,7 @@ Rcpp::List online_rcpp(
 
     weights(t).set_size(D, P, K);
     past_performance(t).set_size(D, P, X);
+    predictions_tmp(t).set_size(D, P, X);
 
     for (unsigned int d = 0; d < D; d++)
     {
@@ -696,11 +697,11 @@ Rcpp::List online_rcpp(
         // Forecasters prediction
         vec predictions_temp = sum(weights_temp % experts_mat, 1);
 
-        predictions_tmp(x).tube(t, d) = predictions_temp;
+        predictions_tmp(t)(span(d), span::all, span(x)) = predictions_temp;
       }
 
-      // // Final prediction
-      predictions.tube(t, d) = predictions_tmp(opt_index(t)).tube(t, d);
+      // Final prediction
+      predictions.tube(t, d) = vectorise(predictions_tmp(t)(span(d), span::all, span(opt_index(t))));
     }
 
     past_performance(t).fill(datum::nan);
@@ -873,12 +874,13 @@ Rcpp::List predict_online(
 Rcpp::List update_online(
     Rcpp::List &object,
     mat &new_y,
-    arma::field<cube> &new_experts)
+    arma::field<cube> &new_experts,
+    const bool trace)
 {
   Rcpp::Clock clock;
 
   clock.tick("init");
-  const unsigned int new_T = new_experts.n_rows;
+
   // This creates a references not copies
   Rcpp::List specification = object["specification"];
   Rcpp::List model_parameters = specification["parameters"];
@@ -886,32 +888,26 @@ Rcpp::List update_online(
   Rcpp::List model_objects = specification["objects"];
 
   // Data
-  arma::field<cube> experts = model_data["experts"];
-  const unsigned int old_T = experts.n_rows;
 
   // Join old and new expert_predictions
-  arma::field<cube> experts_new(old_T + new_T);
-  if (new_T > 0)
+  arma::field<cube> old_experts = model_data["experts"];
+  arma::field<cube> experts(old_experts.n_rows + new_experts.n_rows);
+  experts.rows(0, old_experts.n_rows - 1) = old_experts;
+  if (new_experts.n_rows > 0)
   {
-    experts_new.rows(0, old_T - 1) = experts;
-    experts_new.rows(old_T, old_T + new_T - 1) = new_experts;
-  }
-  else
-  {
-    experts_new = experts;
+    experts.rows(old_experts.n_rows, experts.n_rows - 1) = new_experts;
   }
 
   mat y = model_data["y"];
   y.insert_rows(y.n_rows, new_y);
-
-  Progress prog(999, false); // TODO
 
   // Object Dimensions
   const unsigned int T = y.n_rows;
   const unsigned int D = experts(0).n_rows;
   const unsigned int P = experts(0).n_cols;
   const unsigned int K = experts(0).n_slices;
-  const int T_E_Y = experts_new.n_rows - y.n_rows;
+  const int T_E_Y = experts.n_rows - y.n_rows;
+  const int start = T - new_y.n_rows;
 
   if (T_E_Y < 0)
     Rcpp::stop("Number of provided expert predictions has to match or exceed observations.");
@@ -927,7 +923,7 @@ Rcpp::List update_online(
   opt_index.resize(T + 1);
 
   arma::field<cube> past_performance(T);
-  past_performance.rows(0, old_T - 1) =
+  past_performance.rows(0, start - 1) =
       Rcpp::as<arma::field<cube>>(object["past_performance"]);
 
   vec tmp_performance(X, fill::zeros);
@@ -936,13 +932,9 @@ Rcpp::List update_online(
   arma::field<cube> weights_tmp =
       Rcpp::as<arma::field<cube>>(model_objects["weights_tmp"]);
 
-  arma::field<cube> predictions_tmp =
-      Rcpp::as<arma::field<cube>>(model_objects["predictions_tmp"]);
-
-  for (unsigned int x = 0; x < X; x++)
-  {
-    predictions_tmp(x).resize(T + T_E_Y, D, P);
-  }
+  arma::field<cube> predictions_tmp(T + T_E_Y);
+  arma::field<cube> test = Rcpp::as<arma::field<cube>>(model_objects["predictions_tmp"]);
+  predictions_tmp.rows(0, old_experts.n_rows - 1) = Rcpp::as<arma::field<cube>>(model_objects["predictions_tmp"]);
 
   // TODO Add loss_array and regret_array functionality
 
@@ -953,7 +945,7 @@ Rcpp::List update_online(
   cube predictions = object["predictions"];
   predictions.resize(T + T_E_Y, D, P);
   arma::field<cube> weights(T + 1);
-  weights.rows(0, old_T) = Rcpp::as<arma::field<cube>>(object["weights"]);
+  weights.rows(0, start) = Rcpp::as<arma::field<cube>>(object["weights"]);
 
   field<mat> hat_mats = model_objects["hat_matrices"];
   field<sp_mat> basis_mats = model_objects["basis_matrices"];
@@ -979,14 +971,15 @@ Rcpp::List update_online(
   const double forget_past_performance = model_parameters["forget_past_performance"];
   const bool allow_quantile_crossing = model_parameters["allow_quantile_crossing"];
 
-  const int start = T - new_y.n_rows;
-
   cube loss_for(T, D, P, fill::zeros);
-  loss_for.rows(0, old_T - 1) =
+  loss_for.rows(0, start - 1) =
       Rcpp::as<arma::cube>(object["forecaster_loss"]);
+
   field<cube> loss_exp(T);
-  loss_exp.rows(0, old_T - 1) =
+  loss_exp.rows(0, start - 1) =
       Rcpp::as<arma::field<cube>>(object["experts_loss"]);
+
+  Progress prog(T - start + T_E_Y, trace);
 
   clock.tock("init");
 
@@ -1001,7 +994,7 @@ Rcpp::List update_online(
       start,
       lead_time,
       y,
-      experts_new,
+      experts,
       tau,
       loss_function,
       method,
@@ -1052,7 +1045,7 @@ Rcpp::List update_online(
   model_objects["cum_performance"] = cum_performance;
 
   //   // Update data
-  model_data["experts"] = experts_new;
+  model_data["experts"] = experts;
   model_data["y"] = y;
 
   Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
