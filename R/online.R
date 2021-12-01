@@ -150,13 +150,7 @@ online <- function(y, experts, tau,
             dim(experts) <- c(edim[1], 1)
         }
     } else if (length(edim) == 4) { # multivariate probabilistic
-        experts <- lapply(seq_len(edim[1]),
-            asub,
-            x = experts,
-            dims = 1,
-            drop = TRUE
-        )
-        dim(experts) <- c(edim[1], 1)
+        experts <- array_to_list(experts)
     }
     exdim <- dim(experts[[1]])
 
@@ -179,8 +173,8 @@ online <- function(y, experts, tau,
     } else if (is.array(loss)) {
         loss_array <- list()
         for (i in 1:T) {
-              loss_array[[i]] <- array(loss[i, , , ], dim = c(D, P, K))
-          }
+            loss_array[[i]] <- array(loss[i, , , ], dim = c(D, P, K))
+        }
         dim(loss_array) <- c(T, 1)
         loss_share <- 1
     } else if (is.list(loss)) {
@@ -198,17 +192,17 @@ online <- function(y, experts, tau,
     } else if (is.array(regret)) {
         regret_array <- list()
         for (i in 1:T) {
-              regret_array[[i]] <- array(regret[i, , , ], dim = c(D, P, K))
-          }
+            regret_array[[i]] <- array(regret[i, , , ], dim = c(D, P, K))
+        }
         dim(regret_array) <- c(T, 1)
         regret_share <- 1
     } else if (is.list(regret)) {
         regret_array <- list()
         for (i in 1:T) {
-              regret_array[[i]] <- array(regret$regret[i, , , ],
-                  dim = c(D, P, K)
-              )
-          }
+            regret_array[[i]] <- array(regret$regret[i, , , ],
+                dim = c(D, P, K)
+            )
+        }
         dim(regret_array) <- c(T, 1)
         regret_share <- regret$share
     }
@@ -357,41 +351,9 @@ online <- function(y, experts, tau,
 
     dimnames(model$specification$data$y) <- dimnames(y)
 
-    tmp <- array(
-        NA,
-        c(
-            dim(model$weights)[1],
-            dim(model$weights[[1]])[1],
-            dim(model$weights[[1]])[2],
-            dim(model$weights[[1]])[3]
-        )
-    )
-    for (i in seq_len(dim(model$weights)[1])) tmp[i, , , ] <- model$weights[[i]]
-    model$weights <- tmp
-
-    tmp <- array(
-        NA,
-        c(
-            dim(model$past_performance)[1],
-            dim(model$past_performance[[1]])[1],
-            dim(model$past_performance[[1]])[2],
-            dim(model$past_performance[[1]])[3]
-        )
-    )
-    for (i in seq_len(dim(model$past_performance)[1])) tmp[i, , , ] <- model$past_performance[[i]]
-    model$past_performance <- tmp
-
-    tmp <- array(
-        NA,
-        c(
-            dim(model$experts_loss)[1],
-            dim(model$experts_loss[[1]])[1],
-            dim(model$experts_loss[[1]])[2],
-            dim(model$experts_loss[[1]])[3]
-        )
-    )
-    for (i in seq_len(dim(model$experts_loss)[1])) tmp[i, , , ] <- model$experts_loss[[i]]
-    model$experts_loss <- tmp
+    model$weights <- list_to_array(model$weights)
+    model$past_performance <- list_to_array(model$past_performance)
+    model$experts_loss <- list_to_array(model$experts_loss)
 
     parnames <- c(
         "basis_knot_distance",
