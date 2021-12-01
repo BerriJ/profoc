@@ -66,12 +66,14 @@ void online_learning_core(
 {
   for (unsigned int t = start; t < T; t++)
   {
+
     weights(t).set_size(D, P, K);
     past_performance(t).set_size(D, P, param_grid.n_rows);
 
     clock.tick("loss");
     for (unsigned int d = 0; d < D; d++)
     {
+
       // Save final weights weights_tmp
       weights(t).row(d) = weights_tmp(opt_index(t)).row(d);
 
@@ -81,6 +83,7 @@ void online_learning_core(
       // Predictions using different parameter values
       for (unsigned int x = 0; x < param_grid.n_rows; x++)
       {
+
         mat weights_temp = weights_tmp(x).row(d);
         vec predictions_temp = sum(weights_temp % experts_mat, 1);
 
@@ -91,7 +94,6 @@ void online_learning_core(
         }
         predictions_tmp(x).tube(t, d) = predictions_temp;
       }
-
       // Forecasters prediction
       predictions.tube(t, d) = predictions_tmp(opt_index(t)).tube(t, d);
     }
@@ -342,7 +344,9 @@ void online_learning_core(
     opt_index(t + 1) = cum_performance.index_min();
     chosen_params.row(t) = param_grid.row(opt_index(t + 1));
     prog.increment(); // Update progress
-  }
+
+  } // t
+
   // Save Final Weights and Prediction
   weights(T) = weights_tmp(opt_index(T));
 
@@ -454,7 +458,7 @@ Rcpp::List online_rcpp(
 
   // Init objects holding weights
   arma::field<cube> weights_tmp(X);
-  arma::field<cube> predictions_tmp(X);
+  arma::field<cube> predictions_tmp(X); // TODO Change to T as first dim
 
   // Output Objects
   cube predictions(T + T_E_Y, D, P, fill::zeros);
@@ -865,197 +869,201 @@ Rcpp::List predict_online(
   return object;
 }
 
-// // [[Rcpp::export]]
-// Rcpp::List update_online(
-//     Rcpp::List &object,
-//     mat &new_y,
-//     Rcpp::NumericVector new_experts = Rcpp::NumericVector::create())
-// {
+// [[Rcpp::export]]
+Rcpp::List update_online(
+    Rcpp::List &object,
+    mat &new_y,
+    arma::field<cube> &new_experts)
+{
+  Rcpp::Clock clock;
 
-//   cube experts_new;
+  clock.tick("init");
+  const unsigned int new_T = new_experts.n_rows;
+  // This creates a references not copies
+  Rcpp::List specification = object["specification"];
+  Rcpp::List model_parameters = specification["parameters"];
+  Rcpp::List model_data = specification["data"];
+  Rcpp::List model_objects = specification["objects"];
 
-//   if (new_experts.size() > 0)
-//   {
-//     vec dim = new_experts.attr("dim");
-//     cube tmp_cube(new_experts.begin(), dim(0), dim(1), dim(2), false);
-//     experts_new = tmp_cube;
-//   }
+  // Data
+  arma::field<cube> experts = model_data["experts"];
+  const unsigned int old_T = experts.n_rows;
 
-//   // This creates a reference to the specification, not a copy
-//   Rcpp::List specification = object["specification"];
+  // Join old and new expert_predictions
+  arma::field<cube> experts_new(old_T + new_T);
+  if (new_T > 0)
+  {
+    experts_new.rows(0, old_T - 1) = experts;
+    experts_new.rows(old_T, old_T + new_T - 1) = new_experts;
+  }
+  else
+  {
+    experts_new = experts;
+  }
 
-//   Rcpp::List model_parameters = specification["parameters"];
-//   Rcpp::List model_data = specification["data"];
-//   Rcpp::List model_objects = specification["objects"];
+  mat y = model_data["y"];
+  y.insert_rows(y.n_rows, new_y);
 
-//   // Data
-//   cube experts = model_data["experts"];
-//   int P = experts.n_cols;
+  Progress prog(999, false); // TODO
 
-//   if (new_experts.size() > 0)
-//     experts.insert_rows(experts.n_rows, experts_new);
+  // Object Dimensions
+  const unsigned int T = y.n_rows;
+  const unsigned int D = experts(0).n_rows;
+  const unsigned int P = experts(0).n_cols;
+  const unsigned int K = experts(0).n_slices;
+  const int T_E_Y = experts_new.n_rows - y.n_rows;
 
-//   mat y = model_data["y"];
-//   // Expand y matrix if necessary
-//   if (new_y.n_cols == 1)
-//   {
-//     new_y = arma::repmat(new_y, 1, P);
-//   }
-//   y.insert_rows(y.n_rows, new_y);
+  if (T_E_Y < 0)
+    Rcpp::stop("Number of provided expert predictions has to match or exceed observations.");
 
-//   Progress prog(999, false);
+  vec tau = model_data["tau"];
+  mat param_grid = object["parametergrid"];
+  const int X = param_grid.n_rows;
+  mat chosen_params = object["chosen_parameters"];
+  chosen_params.resize(T, param_grid.n_cols);
+  vec opt_index = object["opt_index"];
+  // Zero indexing in C++
+  opt_index -= 1;
+  opt_index.resize(T + 1);
 
-//   // Object Dimensions
-//   const int T = y.n_rows;
-//   const int K = experts.n_slices;
-//   const int T_E_Y = experts.n_rows - y.n_rows;
+  arma::field<cube> past_performance(T);
+  past_performance.rows(0, old_T - 1) =
+      Rcpp::as<arma::field<cube>>(object["past_performance"]);
 
-//   if (T_E_Y < 0)
-//     Rcpp::stop("Number of provided expert predictions has to match or exceed observations.");
+  vec tmp_performance(X, fill::zeros);
+  vec cum_performance = model_objects["cum_performance"];
 
-//   vec tau = model_data["tau"];
-//   mat param_grid = object["parametergrid"];
-//   const int X = param_grid.n_rows;
-//   mat chosen_params = object["chosen_parameters"];
-//   chosen_params.resize(T, param_grid.n_cols);
-//   vec opt_index = object["opt_index"];
-//   // Zero indexing in C++
-//   opt_index -= 1;
-//   opt_index.resize(T + 1);
+  arma::field<cube> weights_tmp =
+      Rcpp::as<arma::field<cube>>(model_objects["weights_tmp"]);
 
-//   cube past_performance = object["past_performance"];
-//   past_performance.resize(T, P, X);
+  arma::field<cube> predictions_tmp =
+      Rcpp::as<arma::field<cube>>(model_objects["predictions_tmp"]);
 
-//   vec tmp_performance(X, fill::zeros);
-//   vec cum_performance = model_objects["cum_performance"];
+  for (unsigned int x = 0; x < X; x++)
+  {
+    predictions_tmp(x).resize(T + T_E_Y, D, P);
+  }
 
-//   cube weights_tmp = model_objects["weights_tmp"];
+  // TODO Add loss_array and regret_array functionality
 
-//   cube predictions_tmp = model_objects["predictions_tmp"];
-//   predictions_tmp.resize(T, P, X);
+  arma::field<cube> loss_array;
+  arma::field<cube> regret_array;
 
-//   // TODO Add loss_array and regret_array functionality
+  // Output Objects
+  cube predictions = object["predictions"];
+  predictions.resize(T + T_E_Y, D, P);
+  arma::field<cube> weights(T + 1);
+  weights.rows(0, old_T) = Rcpp::as<arma::field<cube>>(object["weights"]);
 
-//   cube loss_array;
-//   cube regret_array;
+  field<mat> hat_mats = model_objects["hat_matrices"];
+  field<sp_mat> basis_mats = model_objects["basis_matrices"];
+  field<mat> hat_mats_mv = model_objects["hat_matrices_mv"];
+  field<sp_mat> basis_mats_mv = model_objects["basis_matrices_mv"];
 
-//   // Output Objects
-//   mat predictions = object["predictions"];
-//   predictions.resize(T + T_E_Y, P);
-//   cube weights = object["weights"];
-//   weights.resize(T + 1, P, K);
+  arma::field<cube> V = model_objects["V"];
+  arma::field<cube> E = model_objects["E"];
+  arma::field<cube> k = model_objects["k"];
+  arma::field<cube> eta = model_objects["eta"];
+  arma::field<cube> R = model_objects["R"];
+  arma::field<cube> R_reg = model_objects["R_reg"];
+  arma::field<cube> beta = model_objects["beta"];
+  arma::field<cube> beta0field = model_objects["beta0field"];
 
-//   field<mat> hat_mats = model_objects["hat_matrices"];
-//   field<sp_mat> basis_mats = object["basis_matrices"];
-//   field<mat> V = model_objects["V"];
-//   field<mat> E = model_objects["E"];
-//   field<mat> k = model_objects["k"];
-//   field<mat> eta = model_objects["eta"];
-//   field<mat> R = model_objects["R"];
-//   field<mat> R_reg = model_objects["R_reg"];
-//   field<mat> beta = model_objects["beta"];
-//   field<mat> beta0field = model_objects["beta0field"];
+  //   // Misc parameters
+  const int lead_time = model_parameters["lead_time"];
+  const std::string loss_function = model_parameters["loss_function"];
+  const double loss_parameter = model_parameters["loss_parameter"];
+  const bool loss_gradient = model_parameters["loss_gradient"];
+  const std::string method = model_parameters["method"];
 
-//   // Misc parameters
-//   const int lead_time = model_parameters["lead_time"];
-//   const std::string loss_function = model_parameters["loss_function"];
-//   const double loss_parameter = model_parameters["loss_parameter"];
-//   const bool loss_gradient = model_parameters["loss_gradient"];
-//   const std::string method = model_parameters["method"];
+  const double forget_past_performance = model_parameters["forget_past_performance"];
+  const bool allow_quantile_crossing = model_parameters["allow_quantile_crossing"];
 
-//   const double forget_past_performance = model_parameters["forget_past_performance"];
-//   const bool allow_quantile_crossing = model_parameters["allow_quantile_crossing"];
+  const int start = T - new_y.n_rows;
 
-//   const int start = T - new_y.n_rows;
+  cube loss_for(T, D, P, fill::zeros);
+  loss_for.rows(0, old_T - 1) =
+      Rcpp::as<arma::cube>(object["forecaster_loss"]);
+  field<cube> loss_exp(T);
+  loss_exp.rows(0, old_T - 1) =
+      Rcpp::as<arma::field<cube>>(object["experts_loss"]);
 
-//   mat loss_for(T, P, fill::zeros);
-//   cube loss_exp(T, P, K, fill::zeros);
+  clock.tock("init");
 
-//   online_learning_core(
-//       T,
-//       P,
-//       K,
-//       T_E_Y,
-//       start,
-//       lead_time,
-//       y,
-//       experts,
-//       tau,
-//       loss_function,
-//       method,
-//       loss_parameter,
-//       loss_gradient,
-//       weights,
-//       weights_tmp,
-//       predictions_tmp,
-//       predictions,
-//       past_performance,
-//       opt_index,
-//       param_grid,
-//       chosen_params,
-//       R,
-//       R_reg,
-//       V,
-//       E,
-//       eta,
-//       hat_mats,
-//       basis_mats,
-//       beta0field,
-//       beta,
-//       cum_performance,
-//       forget_past_performance,
-//       tmp_performance,
-//       allow_quantile_crossing,
-//       loss_for,
-//       loss_exp,
-//       loss_array,
-//       regret_array,
-//       prog);
+  clock.tick("core");
 
-//   // Update internal objects
-//   model_objects["V"] = V;
-//   model_objects["E"] = E;
-//   model_objects["k"] = k;
-//   model_objects["eta"] = eta;
-//   model_objects["R"] = R;
-//   model_objects["R_reg"] = R_reg;
-//   model_objects["beta"] = beta;
-//   model_objects["weights_tmp"] = weights_tmp;
-//   model_objects["predictions_tmp"] = predictions_tmp;
-//   model_objects["cum_performance"] = cum_performance;
+  online_learning_core(
+      T,
+      D,
+      P,
+      K,
+      T_E_Y,
+      start,
+      lead_time,
+      y,
+      experts_new,
+      tau,
+      loss_function,
+      method,
+      loss_parameter,
+      loss_gradient,
+      weights,
+      weights_tmp,
+      predictions_tmp,
+      predictions,
+      past_performance,
+      opt_index,
+      param_grid,
+      chosen_params,
+      R,
+      R_reg,
+      V,
+      E,
+      eta,
+      hat_mats,
+      hat_mats_mv,
+      basis_mats,
+      basis_mats_mv,
+      beta0field,
+      beta,
+      cum_performance,
+      forget_past_performance,
+      tmp_performance,
+      allow_quantile_crossing,
+      loss_for,
+      loss_exp,
+      loss_array,
+      regret_array,
+      prog,
+      clock);
 
-//   // Update data
-//   model_data["experts"] = experts;
-//   model_data["y"] = y;
+  clock.tock("core");
 
-//   // Update output
-//   Rcpp::CharacterVector param_names =
-//       Rcpp::CharacterVector::create("basis_knot_distance",
-//                                     "basis_knot_distance_power",
-//                                     "basis_deg",
-//                                     "forget_regret",
-//                                     "threshold_soft",
-//                                     "threshold_hard",
-//                                     "fixed_share",
-//                                     "p_smooth_lambda",
-//                                     "p_smooth_knot_distance",
-//                                     "p_smooth_knot_distance_power",
-//                                     "p_smooth_deg",
-//                                     "smooth_diff",
-//                                     "gamma",
-//                                     "loss_share",
-//                                     "regret_share");
+  //   // Update internal objects
+  model_objects["V"] = V;
+  model_objects["E"] = E;
+  model_objects["k"] = k;
+  model_objects["eta"] = eta;
+  model_objects["R"] = R;
+  model_objects["R_reg"] = R_reg;
+  model_objects["beta"] = beta;
+  model_objects["weights_tmp"] = weights_tmp;
+  model_objects["predictions_tmp"] = predictions_tmp;
+  model_objects["cum_performance"] = cum_performance;
 
-//   Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
-//   Rcpp::colnames(chosen_parameters) = param_names;
+  //   // Update data
+  model_data["experts"] = experts_new;
+  model_data["y"] = y;
 
-//   object["chosen_parameters"] = chosen_parameters;
-//   object["opt_index"] = opt_index + 1;
-//   object["predictions"] = predictions;
-//   object["weights"] = weights;
-//   object["past_performance"] = past_performance;
-//   object["forecaster_loss"] = loss_for;
-//   object["experts_loss"] = loss_exp;
+  Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
 
-//   return object;
-// }
+  object["chosen_parameters"] = chosen_parameters;
+  object["opt_index"] = opt_index + 1;
+  object["predictions"] = predictions;
+  object["weights"] = weights;
+  object["past_performance"] = past_performance;
+  object["forecaster_loss"] = loss_for;
+  object["experts_loss"] = loss_exp;
+
+  return object;
+}
