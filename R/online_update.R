@@ -11,6 +11,8 @@
 #' @importFrom stats update
 #' @export
 update.online <- function(object, new_y, new_experts = NULL, trace = FALSE, ...) {
+    enames <- dimnames(object$experts_loss)[[4]]
+
     if (is.vector(new_y)) {
         new_y <- matrix(new_y)
     }
@@ -62,6 +64,8 @@ update.online <- function(object, new_y, new_experts = NULL, trace = FALSE, ...)
     object$weights <- list_to_array(object$weights)
     object$past_performance <- list_to_array(object$past_performance)
     object$experts_loss <- list_to_array(object$experts_loss)
+
+    dimnames(object$experts_loss)[[4]] <- enames
 
     parnames <- c(
         "basis_knot_distance",

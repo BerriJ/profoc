@@ -5,5 +5,12 @@
 #' @param ...  further arguments are ignored
 #' @export
 print.online <- function(x, ...) {
-    print_common(x)
+    expert_names <- dimnames(x$experts_loss)[[4]]
+    experts_loss <- round(apply(x$experts_loss, 4, mean), 5)
+    forecaster_loss <- mean(x$forecaster_loss)
+
+    print(data.frame(
+        Name = c(expert_names, "Combination"),
+        Loss = c(experts_loss, forecaster_loss)
+    ), row.names = FALSE, right = FALSE)
 }
