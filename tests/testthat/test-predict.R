@@ -52,7 +52,7 @@ model_partial_2 <- online(
 )
 model_partial_2 <- predict(model_partial_2, new_experts = experts[11:20, , , drop = FALSE])
 
-identical(model_partial_1$predictions, model_partial_2$predictions)
+expect_true(all(model_partial_1$predictions == model_partial_2$predictions))
 # identical(model_partial, model_full) # TODO: FIX
 # %%
 

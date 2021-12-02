@@ -29,10 +29,6 @@ online_rcpp <- function(y, experts, tau, lead_time, loss_function, loss_paramete
     .Call(`_profoc_online_rcpp`, y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, param_grid, forget_past_performance, allow_quantile_crossing, w0, R0, loss_array, regret_array, trace)
 }
 
-predict_online <- function(object, new_experts, update_model) {
-    .Call(`_profoc_predict_online`, object, new_experts, update_model)
-}
-
 update_online <- function(object, new_y, new_experts, trace) {
     .Call(`_profoc_update_online`, object, new_y, new_experts, trace)
 }
