@@ -134,14 +134,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // predict_online
-Rcpp::List predict_online(Rcpp::List& object, cube& new_experts);
-RcppExport SEXP _profoc_predict_online(SEXP objectSEXP, SEXP new_expertsSEXP) {
+Rcpp::List predict_online(Rcpp::List& object, arma::field<cube>& new_experts, const bool& update_model);
+RcppExport SEXP _profoc_predict_online(SEXP objectSEXP, SEXP new_expertsSEXP, SEXP update_modelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::List& >::type object(objectSEXP);
-    Rcpp::traits::input_parameter< cube& >::type new_experts(new_expertsSEXP);
-    rcpp_result_gen = Rcpp::wrap(predict_online(object, new_experts));
+    Rcpp::traits::input_parameter< arma::field<cube>& >::type new_experts(new_expertsSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type update_model(update_modelSEXP);
+    rcpp_result_gen = Rcpp::wrap(predict_online(object, new_experts, update_model));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -303,7 +304,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_fieldtest1", (DL_FUNC) &_profoc_fieldtest1, 0},
     {"_profoc_fieldtest2", (DL_FUNC) &_profoc_fieldtest2, 1},
     {"_profoc_online_rcpp", (DL_FUNC) &_profoc_online_rcpp, 16},
-    {"_profoc_predict_online", (DL_FUNC) &_profoc_predict_online, 2},
+    {"_profoc_predict_online", (DL_FUNC) &_profoc_predict_online, 3},
     {"_profoc_update_online", (DL_FUNC) &_profoc_update_online, 4},
     {"_profoc_optimize_weights", (DL_FUNC) &_profoc_optimize_weights, 10},
     {"_profoc_optimize_betas", (DL_FUNC) &_profoc_optimize_betas, 13},

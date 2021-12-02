@@ -838,36 +838,58 @@ Rcpp::List online_rcpp(
 // [[Rcpp::export]]
 Rcpp::List predict_online(
     Rcpp::List &object,
-    cube &new_experts)
+    arma::field<cube> &new_experts,
+    const bool &update_model)
 {
-
+  // TODO Translate to R
   // This creates a reference to the specification, not a copy
   Rcpp::List specification = object["specification"];
-
   Rcpp::List model_parameters = specification["parameters"];
   Rcpp::List model_data = specification["data"];
 
   bool allow_quantile_crossing = model_parameters["allow_quantile_crossing"];
-  cube experts = model_data["experts"];
-  experts.insert_rows(experts.n_rows, new_experts);
-  model_data["experts"] = experts;
 
-  mat predictions = object["predictions"];
-  cube weights = object["weights"];
-
-  mat predictions_new(new_experts.n_rows, new_experts.n_cols);
-
-  // Sort predictions if quantile_crossing is prohibited
-  if (!allow_quantile_crossing)
+  arma::field<cube> old_experts = model_data["experts"];
+  arma::field<cube> experts(old_experts.n_rows + new_experts.n_rows);
+  experts.rows(0, old_experts.n_rows - 1) = old_experts;
+  if (new_experts.n_rows > 0)
   {
-    predictions_new = arma::sort(predictions_new, "ascend", 1);
+    experts.rows(old_experts.n_rows, experts.n_rows - 1) = new_experts;
   }
 
-  mat predictions_joined = join_vert(predictions, predictions_new);
+  arma::field<cube> weights = object["weights"];
+  cube predictions = object["predictions"];
+  cube predictions_new(old_experts.n_rows + new_experts.n_rows, new_experts(0).n_rows, new_experts(0).n_cols);
+  predictions_new.rows(0, predictions.n_rows - 1) = predictions;
 
-  object["predictions"] = predictions_joined;
+  for (unsigned int t = predictions.n_rows; t < predictions_new.n_rows; t++)
+  {
+    for (unsigned int d = 0; d < experts(0).n_rows; d++)
+    {
+      mat experts_mat = experts(t).row(d);
+      mat weights_temp = weights(weights.n_rows - 1).row(d);
+      vec predictions_temp = sum(weights_temp % experts_mat, 1);
 
-  return object;
+      // Sort predictions if quantile_crossing is prohibited
+      if (!allow_quantile_crossing)
+      {
+        predictions_temp = arma::sort(predictions_temp, "ascend", 0);
+      }
+      predictions_new.tube(t, d) = predictions_temp;
+    }
+  }
+
+  if (update_model)
+  {
+    model_data["experts"] = experts;
+    object["predictions"] = predictions_new;
+    return object;
+  }
+  else
+  {
+    cube preds = predictions_new.rows(predictions.n_rows, predictions_new.n_rows - 1);
+    return Rcpp::List::create(preds);
+  }
 }
 
 // [[Rcpp::export]]
