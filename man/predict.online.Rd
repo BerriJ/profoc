@@ -4,7 +4,7 @@
 \alias{predict.online}
 \title{Predict method for online models}
 \usage{
-\method{predict}{online}(object, new_experts, ...)
+\method{predict}{online}(object, new_experts, update_model = TRUE, ...)
 }
 \arguments{
 \item{object}{Object of class inheriting from 'online'}
