@@ -14,8 +14,6 @@ autoplot <- function(object, ...) {
 }
 
 print_common <- function(x) {
-    k <- dim(x$weights)[3]
-
     expert_names <- dimnames(x$specification$data$experts)[[3]]
 
     experts_loss <- round(apply(x$experts_loss, 3, mean), 5)

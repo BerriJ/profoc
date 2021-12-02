@@ -131,6 +131,10 @@ online <- function(y, experts, tau,
     }
 
     if (length(edim) == 3) {
+        enames <- dimnames(experts)[[3]]
+        if (is.null(enames)) {
+            enames <- paste0("E", 1:edim[3])
+        }
         if (ncol(y) > 1) { # multivariate point
             experts <- array(unlist(experts), dim = c(edim[1], edim[2], 1, edim[3]))
             experts <- lapply(seq_len(edim[1]),
@@ -150,6 +154,10 @@ online <- function(y, experts, tau,
             dim(experts) <- c(edim[1], 1)
         }
     } else if (length(edim) == 4) { # multivariate probabilistic
+        enames <- dimnames(experts)[[4]]
+        if (is.null(enames)) {
+            enames <- paste0("E", 1:edim[4])
+        }
         experts <- array_to_list(experts)
     }
     exdim <- dim(experts[[1]])
@@ -354,6 +362,8 @@ online <- function(y, experts, tau,
     model$weights <- list_to_array(model$weights)
     model$past_performance <- list_to_array(model$past_performance)
     model$experts_loss <- list_to_array(model$experts_loss)
+
+    dimnames(model$experts_loss)[[4]] <- enames
 
     parnames <- c(
         "basis_knot_distance",
