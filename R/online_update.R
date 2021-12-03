@@ -10,7 +10,10 @@
 #' @return \code{update.online} produces an updated model object.
 #' @importFrom stats update
 #' @export
-update.online <- function(object, new_y, new_experts = NULL, trace = FALSE, ...) {
+update.online <- function(object,
+                          new_y,
+                          new_experts = NULL,
+                          trace = FALSE, ...) {
     enames <- dimnames(object$experts_loss)[[4]]
 
     if (is.vector(new_y)) {
@@ -25,7 +28,10 @@ update.online <- function(object, new_y, new_experts = NULL, trace = FALSE, ...)
 
         if (length(edim) == 3) {
             if (ncol(new_y) > 1) { # multivariate point
-                new_experts <- array(unlist(new_experts), dim = c(edim[1], edim[2], 1, edim[3]))
+                new_experts <- array(
+                    unlist(new_experts),
+                    dim = c(edim[1], edim[2], 1, edim[3])
+                )
                 new_experts <- lapply(seq_len(edim[1]),
                     asub,
                     x = new_experts,

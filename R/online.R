@@ -34,8 +34,11 @@
 #'
 #' @template param_allow_quantile_crossing
 #'
-#' @param init A named list containing "init_weights": Array of dimension DxPxK used as starting weights. "R0" a matrix of dimension PxK or 1xK used as starting regret.
-#' @param loss User specified loss array. Can also be a list with elements "loss_array"
+#' @param init A named list containing "init_weights": Array of dimension
+#' DxPxK used as starting weights. "R0" a matrix of dimension PxK or 1xK
+#' used as starting regret.
+#' @param loss User specified loss array. Can also be a list with elements
+#' "loss_array"
 #' and "share", share mixes the provided loss with the loss calculated by
 #' profoc. 1 means, only the provided loss will be used. share can also be
 #' vector of shares to consider.
@@ -136,7 +139,10 @@ online <- function(y, experts, tau,
             enames <- paste0("E", 1:edim[3])
         }
         if (ncol(y) > 1) { # multivariate point
-            experts <- array(unlist(experts), dim = c(edim[1], edim[2], 1, edim[3]))
+            experts <- array(
+                unlist(experts),
+                dim = c(edim[1], edim[2], 1, edim[3])
+            )
             experts <- lapply(seq_len(edim[1]),
                 asub,
                 x = experts,
