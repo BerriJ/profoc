@@ -16,3 +16,10 @@ list_to_array <- function(x) {
     for (i in seq_len(dx[1])) out[i, , , ] <- x[[i]]
     return(out)
 }
+
+darken <- function(color, factor = 1.4) {
+    col <- col2rgb(color)
+    col <- col / factor
+    col <- rgb(t(col), maxColorValue = 255)
+    col
+}

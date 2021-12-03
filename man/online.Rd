@@ -109,9 +109,12 @@ combination. Defaults to 0.}
 
 \item{allow_quantile_crossing}{Shall quantile crossing be allowed? Defaults to false, which means that predictions are sorted in ascending order.}
 
-\item{init}{A named list containing "init_weights": Array of dimension DxPxK used as starting weights. "R0" a matrix of dimension PxK or 1xK used as starting regret.}
+\item{init}{A named list containing "init_weights": Array of dimension
+DxPxK used as starting weights. "R0" a matrix of dimension PxK or 1xK
+used as starting regret.}
 
-\item{loss}{User specified loss array. Can also be a list with elements "loss_array"
+\item{loss}{User specified loss array. Can also be a list with elements
+"loss_array"
 and "share", share mixes the provided loss with the loss calculated by
 profoc. 1 means, only the provided loss will be used. share can also be
 vector of shares to consider.}
