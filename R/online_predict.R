@@ -44,7 +44,7 @@ predict.online <- function(object, new_experts, update_model = TRUE, ...) {
 
         # Sort
         if (!object$specification$parameters$allow_quantile_crossing) {
-            new_predictions[i, , ] <- sort(new_predictions[i, , ])
+            new_predictions[i, , ] <- apply(new_predictions[i, , , drop = FALSE], MARGIN = 2, FUN = sort)
         }
     }
 
