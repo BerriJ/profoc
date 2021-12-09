@@ -829,7 +829,7 @@ Rcpp::List online_rcpp(
 
   clock.tock("wrangle");
 
-  clock.stop("times");
+  // clock.stop("times");
 
   // Rcpp::List out;
   return out;
