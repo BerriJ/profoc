@@ -121,3 +121,25 @@ sp_mat make_basis_matrix(const vec &x, const double &kstep, const int deg, const
 
     return out;
 }
+
+// [[Rcpp::export]]
+sp_mat make_basis_matrix2(const vec &x,
+                          const vec &knots,
+                          const unsigned int deg)
+{
+    mat B;
+
+    B = splines2_basis(x, knots, deg);
+    // Remove columns without contribution
+    B = B.cols(find(sum(B) >= 1E-6));
+
+    for (double &e : B)
+    {
+        if (fabs(e) < 1E-10)
+            e = 0;
+    }
+
+    sp_mat out(B);
+
+    return out;
+}

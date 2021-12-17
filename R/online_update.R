@@ -99,8 +99,7 @@ update.online <- function(object,
         "mv_p_smooth_ndiff"
     )
 
-    colnames(object$chosen_parameters) <- parnames
-    colnames(object$parametergrid) <- parnames
+    # colnames(object$chosen_parameters) <- parnames
 
     return(object)
 }
