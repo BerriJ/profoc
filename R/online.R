@@ -221,6 +221,26 @@ online <- function(y, experts, tau,
         regret_share <- regret$share
     }
 
+    # Create basis and hat matix lists
+
+    # Basis matrix for probabilistic smoothing
+    make_basis_mats <- function(knot_distance,
+                                knot_distance_power,
+                                deg,
+                                P) {
+        sp_basis_pr <- 1:P / (P + 1)
+        params <- expand.grid(knot_distance, knot_distance_power, deg)
+        basis_list <- list()
+
+        for (i in seq_len(nrow(params))) {
+            knots <- make_knots(params[i, 1], params[i, 2], params[i, 3], FALSE)
+            basis_list[[i]] <- splines2_basis(sp_basis_pr, knots, params[i, 3])
+        }
+        return(basis_list)
+    }
+
+    basis_list <- make_basis_mats(b_smooth_pr$knot_distance, b_smooth_pr$knot_distance_power, b_smooth_pr$deg, P)
+
     if (is.null(parametergrid)) {
         grid <- expand.grid(
             val_or_def(
@@ -391,6 +411,8 @@ online <- function(y, experts, tau,
 
     colnames(model$chosen_parameters) <- parnames
     colnames(model$parametergrid) <- parnames
+
+    model$test <- basis_list
 
     return(model)
 }
