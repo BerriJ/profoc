@@ -40,7 +40,7 @@ void online_learning_core(
     cube &predictions,
     field<cube> &past_performance,
     vec &opt_index,
-    const mat &param_grid,
+    std::map<std::string, arma::vec> &params,
     mat &chosen_params,
     field<cube> &R,
     field<cube> &R_reg,
@@ -68,13 +68,13 @@ void online_learning_core(
   {
 
     weights(t).set_size(D, P, K);
-    past_performance(t).set_size(D, P, param_grid.n_rows);
-    predictions_tmp(t).set_size(D, P, param_grid.n_rows);
+    const unsigned int X = params["gamma"].n_elem;
+    past_performance(t).set_size(D, P, X);
+    predictions_tmp(t).set_size(D, P, X);
 
     clock.tick("loss");
     for (unsigned int d = 0; d < D; d++)
     {
-
       // Save final weights weights_tmp
       weights(t).row(d) = weights_tmp(opt_index(t)).row(d);
 
@@ -82,7 +82,7 @@ void online_learning_core(
       mat experts_mat = experts(t).row(d);
 
       // Predictions using different parameter values
-      for (unsigned int x = 0; x < param_grid.n_rows; x++)
+      for (unsigned int x = 0; x < X; x++)
       {
 
         mat weights_temp = weights_tmp(x).row(d);
@@ -100,7 +100,7 @@ void online_learning_core(
     }
 
     clock.tock("loss");
-    for (unsigned int x = 0; x < param_grid.n_rows; x++)
+    for (unsigned int x = 0; x < X; x++)
     {
       clock.tick("regret");
       mat lexp_int(P, K); // Experts loss
@@ -123,7 +123,7 @@ void online_learning_core(
                                               tau(p),         // tau
                                               loss_parameter, // alpha
                                               false);
-          if (param_grid(x, 13) != 1)
+          if (params["loss_share"](x) != 1)
           {
             for (unsigned int k = 0; k < K; k++)
             {
@@ -136,14 +136,14 @@ void online_learning_core(
                                     loss_gradient);
             }
 
-            if (param_grid(x, 13) == 0)
+            if (params["loss_share"](x) == 0)
             {
               lexp.row(p) = lexp_int.row(p);
             }
             else
             {
               lexp_ext.row(p) = arma::vectorise(loss_array(t).tube(d, p)).t();
-              lexp.row(p) = (1 - param_grid(x, 13)) * lexp_int.row(p) + param_grid(x, 13) * lexp_ext.row(p);
+              lexp.row(p) = (1 - params["loss_share"](x)) * lexp_int.row(p) + params["loss_share"](x) * lexp_ext.row(p);
             }
           }
           else
@@ -163,12 +163,12 @@ void online_learning_core(
         mat regret_int(P, K);
         mat regret_ext(P, K);
 
-        if (param_grid(x, 14) != 1)
+        if (params["regret_share"](x) != 1)
         {
           regret_int = (lfor - lexp_int.each_col()).t();
           regret_int *= double(basis_mats(x).n_cols) / double(P);
 
-          if (param_grid(x, 14) == 0)
+          if (params["regret_share"](x) == 0)
           {
             regret_tmp.row(d) = regret_int.t();
           }
@@ -177,7 +177,7 @@ void online_learning_core(
             regret_ext = regret_array(t).row(d);
             regret_ext = regret_ext.t();
             regret_ext *= double(basis_mats(x).n_cols) / double(P);
-            regret_tmp.row(d) = ((1 - param_grid(x, 14)) * regret_int + param_grid(x, 14) * regret_ext).t();
+            regret_tmp.row(d) = ((1 - params["regret_share"](x)) * regret_int + params["regret_share"](x) * regret_ext).t();
           }
         }
         else
@@ -208,28 +208,27 @@ void online_learning_core(
           if (method == "ewa")
           {
             // Update the cumulative regret used by eta
-            R(x).tube(dr, pr) = vectorise(R(x).tube(dr, pr) * (1 - param_grid(x, 3))) + r;
-            eta(x).tube(dr, pr).fill(param_grid(x, 12));
-            beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(param_grid(x, 12) * vectorise(R(x).tube(dr, pr)).t());
+            R(x).tube(dr, pr) = vectorise(R(x).tube(dr, pr) * (1 - params["forget_regret"](x))) + r;
+            eta(x).tube(dr, pr).fill(params["gamma"](x));
+            beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(params["gamma"](x) * vectorise(R(x).tube(dr, pr)).t());
           }
           else if (method == "ml_poly")
           {
             // Update the cumulative regret used by ML_Poly
             R(x)
-                .tube(dr, pr) = vectorise(R(x).tube(dr, pr) * (1 - param_grid(x, 3))) + r;
+                .tube(dr, pr) = vectorise(R(x).tube(dr, pr) * (1 - params["forget_regret"](x))) + r;
 
             // Update the learning rate
             eta(x).tube(dr, pr) = 1 / (1 / vectorise(eta(x).tube(dr, pr)).t() + square(r.t()));
 
-            // param_grid(x, 12) = gamma
-            beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K * param_grid(x, 12) % vectorise(eta(x).tube(dr, pr)).t() % pmax_arma(vectorise(R(x).tube(dr, pr)).t(), exp(-700));
+            beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K * params["gamma"](x) % vectorise(eta(x).tube(dr, pr)).t() % pmax_arma(vectorise(R(x).tube(dr, pr)).t(), exp(-700));
             beta(x).tube(dr, pr) /= accu(beta(x).tube(dr, pr));
           }
           else if (method == "boa" || method == "bewa")
           {
-            V(x).tube(dr, pr) = vectorise(V(x).tube(dr, pr)).t() * (1 - param_grid(x, 3)) + square(r.t());
+            V(x).tube(dr, pr) = vectorise(V(x).tube(dr, pr)).t() * (1 - params["forget_regret"](x)) + square(r.t());
 
-            E(x).tube(dr, pr) = max(vectorise(E(x).tube(dr, pr)).t() * (1 - param_grid(x, 3)), abs(r.t()));
+            E(x).tube(dr, pr) = max(vectorise(E(x).tube(dr, pr)).t() * (1 - params["forget_regret"](x)), abs(r.t()));
 
             eta(x).tube(dr, pr) =
                 pmin_arma(
@@ -239,19 +238,19 @@ void online_learning_core(
 
             vec r_reg = r - vectorise(eta(x).tube(dr, pr)) % square(r);
 
-            R_reg(x).tube(dr, pr) *= (1 - param_grid(x, 3)); // forget
+            R_reg(x).tube(dr, pr) *= (1 - params["forget_regret"](x)); // forget
             R_reg(x).tube(dr, pr) +=
                 0.5 * (r_reg + conv_to<colvec>::from(vectorise(eta(x).tube(dr, pr)) % r > 0.5) % (2 * vectorise(E(x).tube(dr, pr))));
 
             if (method == "boa")
             {
               // Wintenberger
-              beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(log(param_grid(x, 12) * vectorise(eta(x).tube(dr, pr)).t()) + param_grid(x, 12) * vectorise(eta(x).tube(dr, pr)).t() % vectorise(R_reg(x).tube(dr, pr)).t());
+              beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(log(params["gamma"](x) * vectorise(eta(x).tube(dr, pr)).t()) + params["gamma"](x) * vectorise(eta(x).tube(dr, pr)).t() % vectorise(R_reg(x).tube(dr, pr)).t());
             }
             else
             {
               // Gaillard
-              beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(param_grid(x, 12) * vectorise(eta(x).tube(dr, pr)).t() % vectorise(R_reg(x).tube(dr, pr)).t());
+              beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(params["gamma"](x) * vectorise(eta(x).tube(dr, pr)).t() % vectorise(R_reg(x).tube(dr, pr)).t());
             }
           }
           else
@@ -260,13 +259,13 @@ void online_learning_core(
           }
 
           //   // Apply thresholds
-          if (param_grid(x, 4) > 0)
+          if (params["soft_threshold"](x) > 0)
           {
             int best_k = beta(x).tube(dr, pr).index_max();
 
             for (double &e : beta(x).tube(dr, pr))
             {
-              threshold_soft(e, param_grid(x, 4));
+              threshold_soft(e, params["soft_threshold"](x));
             }
             if (accu(beta(x).tube(dr, pr)) == 0)
             {
@@ -274,12 +273,12 @@ void online_learning_core(
             }
           }
 
-          if (param_grid(x, 5) > 0)
+          if (params["hard_threshold"](x) > 0)
           {
             int best_k = beta(x).tube(dr, pr).index_max();
             for (double &e : beta(x).tube(dr, pr))
             {
-              threshold_hard(e, param_grid(x, 5));
+              threshold_hard(e, params["hard_threshold"](x));
             }
             if (accu(beta(x).tube(dr, pr)) == 0)
             {
@@ -289,8 +288,8 @@ void online_learning_core(
 
           // Add fixed_share
           beta(x).tube(dr, pr) =
-              (1 - param_grid(x, 6)) * vectorise(beta(x).tube(dr, pr)) +
-              (param_grid(x, 6) / K);
+              (1 - params["fixed_share"](x)) * vectorise(beta(x).tube(dr, pr)) +
+              (params["fixed_share"](x) / K);
         } // pr
       }   // dr
       clock.tock("learning");
@@ -300,15 +299,15 @@ void online_learning_core(
       // Smoothing
       for (unsigned int k = 0; k < K; k++)
       {
-        if (param_grid(x, 7) != -datum::inf && param_grid(x, 18) != -datum::inf)
+        if (params["p_smooth_lambda"](x) != -datum::inf && params["mv_p_smooth_lambda"](x) != -datum::inf)
         {
           weights_tmp(x).slice(k) = hat_mats_mv(x) * beta(x).slice(k) * hat_mats(x);
         }
-        else if (param_grid(x, 7) != -datum::inf)
+        else if (params["p_smooth_lambda"](x) != -datum::inf)
         {
           weights_tmp(x).slice(k) = basis_mats_mv(x).t() * beta(x).slice(k) * hat_mats(x);
         }
-        else if (param_grid(x, 18) != -datum::inf)
+        else if (params["mv_p_smooth_lambda"](x) != -datum::inf)
         {
           weights_tmp(x).slice(k) = hat_mats_mv(x) * beta(x).slice(k) * basis_mats(x).t();
         }
@@ -343,7 +342,7 @@ void online_learning_core(
     cum_performance = (1 - forget_past_performance) * cum_performance + tmp_performance;
 
     opt_index(t + 1) = cum_performance.index_min();
-    chosen_params.row(t) = param_grid.row(opt_index(t + 1));
+    // chosen_params.row(t) = param_grid.row(opt_index(t + 1));
     prog.increment(); // Update progress
 
   } // t
@@ -415,7 +414,7 @@ Rcpp::List online_rcpp(
     const double &loss_parameter,
     const bool &loss_gradient,
     const std::string method,
-    const mat &param_grid,
+    Rcpp::NumericMatrix &param_grid,
     const double &forget_past_performance,
     bool allow_quantile_crossing,
     const cube w0,
@@ -441,6 +440,7 @@ Rcpp::List online_rcpp(
   const unsigned int P = experts(0).n_cols;
   const unsigned int K = experts(0).n_slices;
   const unsigned int T_E_Y = experts.n_rows - y.n_rows;
+  const unsigned int X = param_grid.rows();
 
   // Expand tau if necessary
   if (tau.n_elem == 1)
@@ -449,8 +449,9 @@ Rcpp::List online_rcpp(
     tau.fill(tau(0));
   }
 
-  const unsigned int X = param_grid.n_rows;
-  mat chosen_params(T, param_grid.n_cols);
+  std::map<std::string, arma::vec> params = mat_to_map(param_grid);
+
+  mat chosen_params(T, param_grid.cols());
   vec opt_index(T + 1, fill::zeros);
   arma::field<cube> past_performance(T);
   vec tmp_performance(X, fill::zeros);
@@ -483,7 +484,6 @@ Rcpp::List online_rcpp(
   vec spline_basis_mv = regspace(1, D) / (D + 1);
 
   // Init hat and basis_matrices
-#pragma omp parallel for
   for (unsigned int x = 0; x < X; x++)
   {
 
@@ -491,88 +491,88 @@ Rcpp::List online_rcpp(
     if (x == 0)
     {
       basis_mats(x) = make_basis_matrix(spline_basis_prob,
-                                        param_grid(x, 0), // kstep
-                                        param_grid(x, 2), // degree
-                                        param_grid(x, 1), // uneven grid
-                                        P % 2 == 0);      // even
+                                        params["basis_knot_distance"](x),       // kstep
+                                        params["basis_deg"](x),                 // degree
+                                        params["basis_knot_distance_power"](x), // uneven grid
+                                        P % 2 == 0);                            // even
     }
     else if (
-        param_grid(x, 2) != param_grid(x - 1, 2) ||
-        param_grid(x, 0) != param_grid(x - 1, 0) ||
-        param_grid(x, 1) != param_grid(x - 1, 1))
+        params["basis_deg"](x) != params["basis_deg"](x - 1) ||
+        params["basis_knot_distance"](x) != params["basis_knot_distance"](x - 1) ||
+        params["basis_knot_distance_power"](x) != params["basis_knot_distance_power"](x - 1))
     {
       basis_mats(x) = make_basis_matrix(spline_basis_prob,
-                                        param_grid(x, 0), // kstep
-                                        param_grid(x, 2), // degree
-                                        param_grid(x, 1), // uneven grid
-                                        P % 2 == 0);      // even
+                                        params["basis_knot_distance"](x),       // kstep
+                                        params["basis_deg"](x),                 // degree
+                                        params["basis_knot_distance_power"](x), // uneven grid
+                                        P % 2 == 0);                            // even
     }
 
     // In second step: skip if recalc is not necessary:
     if (x == 0)
     {
       basis_mats_mv(x) = make_basis_matrix(spline_basis_mv,
-                                           param_grid(x, 15), // kstep
-                                           param_grid(x, 17), // degree
-                                           param_grid(x, 16), // uneven grid
+                                           params["mv_basis_knot_distance"](x),       // kstep
+                                           params["mv_basis_deg"](x),                 // degree
+                                           params["mv_basis_knot_distance_power"](x), // uneven
                                            D % 2 == 0)
                              .t(); // even
     }
-    else if (param_grid(x, 15) != param_grid(x - 1, 15) ||
-             param_grid(x, 16) != param_grid(x - 1, 16) ||
-             param_grid(x, 17) != param_grid(x - 1, 17))
+    else if (params["mv_basis_knot_distance"](x) != params["mv_basis_knot_distance"](x - 1) ||
+             params["mv_basis_knot_distance_power"](x) != params["mv_basis_knot_distance_power"](x - 1) ||
+             params["mv_basis_deg"](x) != params["mv_basis_deg"](x - 1))
     {
       basis_mats_mv(x) = make_basis_matrix(spline_basis_mv,
-                                           param_grid(x, 15), // kstep
-                                           param_grid(x, 17), // degree
-                                           param_grid(x, 16), // uneven grid
+                                           params["mv_p_smooth_knot_distance_power"](x), // kstep
+                                           params["mv_basis_deg"](x),                    // degree
+                                           params["mv_basis_knot_distance_power"](x),    // uneven grid
                                            D % 2 == 0)
                              .t(); // even
     }
 
     if (x == 0)
     {
-      if (param_grid(x, 7) != -datum::inf)
+      if (params["p_smooth_lambda"](x) != -datum::inf)
         hat_mats(x) = make_hat_matrix(spline_basis_prob,
-                                      param_grid(x, 8),  // kstep
-                                      param_grid(x, 7),  // lambda
-                                      param_grid(x, 11), // differences
-                                      param_grid(x, 10), // degree
-                                      param_grid(x, 9),  // uneven grid
-                                      P % 2 == 0);       // even
+                                      params["p_smooth_knot_distance"](x),       // kstep
+                                      params["p_smooth_lambda"](x),              // lambda
+                                      params["smooth_diff"](x),                  // differences
+                                      params["p_smooth_deg"](x),                 // degree
+                                      params["p_smooth_knot_distance_power"](x), // uneven grid
+                                      P % 2 == 0);                               // even
     }
     else if (
-        param_grid(x, 7) != param_grid(x - 1, 7) ||
-        param_grid(x, 8) != param_grid(x - 1, 8) ||
-        param_grid(x, 10) != param_grid(x - 1, 10) ||
-        param_grid(x, 11) != param_grid(x - 1, 11) ||
-        param_grid(x, 9) != param_grid(x - 1, 9))
+        params["p_smooth_knot_distance"](x) != params["p_smooth_knot_distance"](x - 1) ||
+        params["p_smooth_lambda"](x) != params["p_smooth_lambda"](x - 1) ||
+        params["smooth_diff"](x) != params["smooth_diff"](x - 1) ||
+        params["p_smooth_deg"](x) != params["p_smooth_deg"](x - 1) ||
+        params["p_smooth_knot_distance_power"](x) != params["p_smooth_knot_distance_power"](x - 1))
     {
-      if (param_grid(x, 7) != -datum::inf)
+      if (params["p_smooth_lambda"](x) != -datum::inf)
         hat_mats(x) = make_hat_matrix(spline_basis_prob,
-                                      param_grid(x, 8),  // kstep
-                                      param_grid(x, 7),  // lambda
-                                      param_grid(x, 11), // differences
-                                      param_grid(x, 10), // degree
-                                      param_grid(x, 9),  // uneven grid
-                                      P % 2 == 0);       // even
+                                      params["p_smooth_knot_distance"](x),       // kstep
+                                      params["p_smooth_lambda"](x),              // lambda
+                                      params["smooth_diff"](x),                  // differences
+                                      params["p_smooth_deg"](x),                 // degree
+                                      params["p_smooth_knot_distance_power"](x), // uneven grid
+                                      P % 2 == 0);                               // even
     }
 
     if (x == 0 ||
-        param_grid(x, 18) != param_grid(x - 1, 18) ||
-        param_grid(x, 19) != param_grid(x - 1, 19) ||
-        param_grid(x, 20) != param_grid(x - 1, 20) ||
-        param_grid(x, 21) != param_grid(x - 1, 21) ||
-        param_grid(x, 22) != param_grid(x - 1, 22))
+        params["mv_p_smooth_knot_distance"](x) != params["mv_p_smooth_knot_distance"](x - 1) ||
+        params["mv_p_smooth_lambda"](x) != params["mv_p_smooth_lambda"](x - 1) ||
+        params["mv_p_smooth_ndiff"](x) != params["mv_p_smooth_ndiff"](x - 1) ||
+        params["mv_p_smooth_deg"](x) != params["mv_p_smooth_deg"](x - 1) ||
+        params["mv_p_smooth_knot_distance_power"](x) != params["mv_p_smooth_knot_distance_power"](x - 1))
     {
-      if (param_grid(x, 18) != -datum::inf)
+      if (params["mv_p_smooth_lambda"](x) != -datum::inf)
         hat_mats_mv(x) = make_hat_matrix(spline_basis_mv,
-                                         param_grid(x, 19), // kstep
-                                         param_grid(x, 18), // lambda
-                                         param_grid(x, 22), // differences
-                                         param_grid(x, 21), // degree
-                                         param_grid(x, 20), // uneven grid
-                                         P % 2 == 0);       // even
+                                         params["mv_p_smooth_knot_distance"](x),       // kstep
+                                         params["mv_p_smooth_lambda"](x),              // lambda
+                                         params["mv_p_smooth_ndiff"](x),               // differences
+                                         params["mv_p_smooth_deg"](x),                 // degree
+                                         params["mv_p_smooth_knot_distance_power"](x), // uneven grid
+                                         P % 2 == 0);                                  // even
     }
     prog.increment();
   }
@@ -583,53 +583,53 @@ Rcpp::List online_rcpp(
     if (x > 0)
     {
       if (
-          param_grid(x, 2) == param_grid(x - 1, 2) &&
-          param_grid(x, 0) == param_grid(x - 1, 0) &&
-          param_grid(x, 1) == param_grid(x - 1, 1))
+          params["basis_deg"](x) == params["basis_deg"](x - 1) &&
+          params["basis_knot_distance"](x) == params["basis_knot_distance"](x - 1) &&
+          params["basis_knot_distance_power"](x) == params["basis_knot_distance_power"](x - 1))
       {
         basis_mats(x) = basis_mats(x - 1);
       }
 
       if (
-          param_grid(x, 7) == param_grid(x - 1, 7) &&
-          param_grid(x, 8) == param_grid(x - 1, 8) &&
-          param_grid(x, 10) == param_grid(x - 1, 10) &&
-          param_grid(x, 11) == param_grid(x - 1, 11) &&
-          param_grid(x, 9) == param_grid(x - 1, 9))
+          params["p_smooth_knot_distance"](x) == params["p_smooth_knot_distance"](x - 1) &&
+          params["p_smooth_lambda"](x) == params["p_smooth_lambda"](x - 1) &&
+          params["smooth_diff"](x) == params["smooth_diff"](x - 1) &&
+          params["p_smooth_deg"](x) == params["p_smooth_deg"](x - 1) &&
+          params["p_smooth_knot_distance_power"](x) == params["p_smooth_knot_distance_power"](x - 1))
       {
         hat_mats(x) = hat_mats(x - 1);
       }
 
       if (
-          param_grid(x, 15) == param_grid(x - 1, 15) &&
-          param_grid(x, 16) == param_grid(x - 1, 16) &&
-          param_grid(x, 17) == param_grid(x - 1, 17))
+          params["mv_basis_knot_distance"](x) == params["mv_basis_knot_distance"](x - 1) &&
+          params["mv_basis_knot_distance_power"](x) == params["mv_basis_knot_distance_power"](x - 1) &&
+          params["mv_basis_deg"](x) == params["mv_basis_deg"](x - 1))
       {
         basis_mats_mv(x) = basis_mats_mv(x - 1);
       }
 
       if (
-          param_grid(x, 18) == param_grid(x - 1, 18) &&
-          param_grid(x, 19) == param_grid(x - 1, 19) &&
-          param_grid(x, 20) == param_grid(x - 1, 20) &&
-          param_grid(x, 21) == param_grid(x - 1, 21) &&
-          param_grid(x, 22) == param_grid(x - 1, 22))
+          params["mv_p_smooth_knot_distance"](x) == params["mv_p_smooth_knot_distance"](x - 1) &&
+          params["mv_p_smooth_lambda"](x) == params["mv_p_smooth_lambda"](x - 1) &&
+          params["mv_p_smooth_ndiff"](x) == params["mv_p_smooth_ndiff"](x - 1) &&
+          params["mv_p_smooth_deg"](x) == params["mv_p_smooth_deg"](x - 1) &&
+          params["mv_p_smooth_knot_distance_power"](x) == params["mv_p_smooth_knot_distance_power"](x - 1))
       {
         hat_mats_mv(x) = hat_mats_mv(x - 1);
       }
     }
   }
 
-#pragma omp parallel for
+  // #pragma omp parallel for
   for (unsigned int x = 0; x < X; x++)
   {
 
-    if (param_grid(x, 7) != -datum::inf)
+    if (params["p_smooth_lambda"](x) != -datum::inf)
     {
       hat_mats(x) = basis_mats(x).t() * hat_mats(x);
     }
 
-    if (param_grid(x, 18) != -datum::inf)
+    if (params["mv_p_smooth_lambda"](x) != -datum::inf)
     {
       hat_mats_mv(x) = hat_mats_mv(x) * basis_mats_mv(x).t();
     }
@@ -671,7 +671,7 @@ Rcpp::List online_rcpp(
     prog.increment(); // Update progress
   }
 
-  R_CheckUserInterrupt();
+  //   R_CheckUserInterrupt();
 
   // Predictions at t < lead_time using initial weights
   for (unsigned int t = 0; t < lead_time; t++)
@@ -736,7 +736,7 @@ Rcpp::List online_rcpp(
       predictions,
       past_performance,
       opt_index,
-      param_grid,
+      params,
       chosen_params,
       R,
       R_reg,
@@ -768,14 +768,14 @@ Rcpp::List online_rcpp(
   opt_index = opt_index + 1;
 
   // Set unused values to NA
-  if (lead_time > 0)
-  {
-    chosen_params.rows(0, lead_time - 1).fill(datum::nan);
-  }
+  // if (lead_time > 0)
+  // {
+  //   chosen_params.rows(0, lead_time - 1).fill(datum::nan); # TODO
+  // }
 
-  Rcpp::NumericMatrix parametergrid_out = Rcpp::wrap(param_grid);
+  // Rcpp::NumericMatrix parametergrid_out = Rcpp::wrap(param_grid);
 
-  Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
+  // Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
 
   Rcpp::List model_data = Rcpp::List::create(
       Rcpp::Named("y") = y,
@@ -819,12 +819,11 @@ Rcpp::List online_rcpp(
       Rcpp::Named("forecaster_loss") = loss_for,
       Rcpp::Named("experts_loss") = loss_exp,
       Rcpp::Named("past_performance") = past_performance,
-      Rcpp::Named("chosen_parameters") = chosen_parameters,
+      // Rcpp::Named("chosen_parameters") = chosen_parameters,
       Rcpp::Named("opt_index") = opt_index,
-      Rcpp::Named("parametergrid") = parametergrid_out,
+      Rcpp::Named("parametergrid") = param_grid,
       Rcpp::Named("specification") = model_spec);
 
-  // Rcpp::List out;
   out.attr("class") = "online";
 
   clock.tock("wrangle");
@@ -878,10 +877,15 @@ Rcpp::List update_online(
     Rcpp::stop("Number of provided expert predictions has to match or exceed observations.");
 
   vec tau = model_data["tau"];
-  mat param_grid = object["parametergrid"];
-  const int X = param_grid.n_rows;
-  mat chosen_params = object["chosen_parameters"];
-  chosen_params.resize(T, param_grid.n_cols);
+
+  Rcpp::NumericMatrix param_grid = object["parametergrid"];
+  const unsigned int X = param_grid.rows();
+
+  std::map<std::string, arma::vec> params = mat_to_map(param_grid);
+
+  mat chosen_params(T, param_grid.cols()); // Just a placeholder fow now
+  // mat chosen_params = object["chosen_parameters"];
+  // chosen_params.resize(T, param_grid.cols()); # TODO
   vec opt_index = object["opt_index"];
   // Zero indexing in C++
   opt_index -= 1;
@@ -971,7 +975,7 @@ Rcpp::List update_online(
       predictions,
       past_performance,
       opt_index,
-      param_grid,
+      params,
       chosen_params,
       R,
       R_reg,
@@ -1013,9 +1017,9 @@ Rcpp::List update_online(
   model_data["experts"] = experts;
   model_data["y"] = y;
 
-  Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
+  // Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
 
-  object["chosen_parameters"] = chosen_parameters;
+  // object["chosen_parameters"] = chosen_parameters;
   object["opt_index"] = opt_index + 1;
   object["predictions"] = predictions;
   object["weights"] = weights;

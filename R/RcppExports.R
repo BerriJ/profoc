@@ -17,14 +17,6 @@ vec2mat <- function(x, matrows, matcols) {
     .Call(`_profoc_vec2mat`, x, matrows, matcols)
 }
 
-fieldtest1 <- function() {
-    .Call(`_profoc_fieldtest1`)
-}
-
-fieldtest2 <- function(x) {
-    .Call(`_profoc_fieldtest2`, x)
-}
-
 online_rcpp <- function(y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, param_grid, forget_past_performance, allow_quantile_crossing, w0, R0, loss_array, regret_array, trace) {
     .Call(`_profoc_online_rcpp`, y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, param_grid, forget_past_performance, allow_quantile_crossing, w0, R0, loss_array, regret_array, trace)
 }
@@ -95,6 +87,10 @@ make_hat_matrix <- function(x, kstep, lambda, bdiff, deg, a, even) {
 
 make_basis_matrix <- function(x, kstep, deg, a, even) {
     .Call(`_profoc_make_basis_matrix`, x, kstep, deg, a, even)
+}
+
+make_basis_matrix2 <- function(x, knots, deg) {
+    .Call(`_profoc_make_basis_matrix2`, x, knots, deg)
 }
 
 splines2_basis <- function(x, knots, deg) {

@@ -32,6 +32,8 @@ arma::rowvec softmax_r(arma::rowvec x);
 
 arma::colvec softmax_c(arma::colvec x);
 
+std::map<std::string, arma::vec> mat_to_map(const Rcpp::NumericMatrix &x);
+
 template <typename T>
 int sgn(T val)
 {

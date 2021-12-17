@@ -223,94 +223,92 @@ online <- function(y, experts, tau,
 
     # Create basis and hat matix lists
 
-    # Basis matrix for probabilistic smoothing
-    make_basis_mats <- function(knot_distance,
-                                knot_distance_power,
-                                deg,
-                                P) {
-        sp_basis_pr <- 1:P / (P + 1)
-        params <- expand.grid(knot_distance, knot_distance_power, deg)
-        basis_list <- list()
+    # # Basis matrices for probabilistic smoothing
+    # basis_list_pr <- make_basis_mats(
+    #     val_or_def(b_smooth_pr$knot_distance, 1 / (P + 1)),
+    #     val_or_def(b_smooth_pr$knot_distance_power, 1),
+    #     val_or_def(b_smooth_pr$deg, 1),
+    #     P
+    # )
 
-        for (i in seq_len(nrow(params))) {
-            knots <- make_knots(params[i, 1], params[i, 2], params[i, 3], FALSE)
-            basis_list[[i]] <- splines2_basis(sp_basis_pr, knots, params[i, 3])
-        }
-        return(basis_list)
-    }
-
-    basis_list <- make_basis_mats(b_smooth_pr$knot_distance, b_smooth_pr$knot_distance_power, b_smooth_pr$deg, P)
+    # # Basis matrices for multivariate smoothing
+    # basis_list_mv <- make_basis_mats(
+    #     val_or_def(b_smooth_mv$knot_distance, 1 / (D + 1)),
+    #     val_or_def(b_smooth_mv$knot_distance_power, 1),
+    #     val_or_def(b_smooth_mv$deg, 1),
+    #     D
+    # )
 
     if (is.null(parametergrid)) {
         grid <- expand.grid(
-            val_or_def(
+            basis_knot_distance = val_or_def(
                 b_smooth_pr$knot_distance,
                 1 / (P + 1)
             ),
-            val_or_def(
+            basis_knot_distance_power = val_or_def(
                 b_smooth_pr$knot_distance_power,
                 1
             ),
-            val_or_def(
+            basis_deg = val_or_def(
                 b_smooth_pr$deg,
                 1
             ),
-            forget_regret,
-            soft_threshold,
-            hard_threshold,
-            fixed_share,
-            val_or_def(
+            forget_regret = forget_regret,
+            soft_threshold = soft_threshold,
+            hard_threshold = hard_threshold,
+            fixed_share = fixed_share,
+            p_smooth_lambda = val_or_def(
                 p_smooth_pr$lambda,
                 -Inf
             ),
-            val_or_def(
+            p_smooth_knot_distance = val_or_def(
                 p_smooth_pr$knot_distance,
                 1 / (P + 1)
             ),
-            val_or_def(
+            p_smooth_knot_distance_power = val_or_def(
                 p_smooth_pr$knot_distance_power,
                 1
             ),
-            val_or_def(
+            p_smooth_deg = val_or_def(
                 p_smooth_pr$deg,
                 1
             ),
-            val_or_def(
+            smooth_diff = val_or_def(
                 p_smooth_pr$ndiff,
                 1.5
             ),
-            gamma,
-            loss_share,
-            regret_share,
-            val_or_def(
+            gamma = gamma,
+            loss_share = loss_share,
+            regret_share = regret_share,
+            mv_basis_knot_distance = val_or_def(
                 b_smooth_mv$knot_distance,
                 1 / (D + 1)
             ),
-            val_or_def(
+            mv_basis_knot_distance_power = val_or_def(
                 b_smooth_mv$knot_distance_power,
                 1
             ),
-            val_or_def(
+            mv_basis_deg = val_or_def(
                 b_smooth_mv$deg,
                 1
             ),
-            val_or_def(
+            mv_p_smooth_lambda = val_or_def(
                 p_smooth_mv$lambda,
                 -Inf
             ),
-            val_or_def(
+            mv_p_smooth_knot_distance = val_or_def(
                 p_smooth_mv$knot_distance,
                 1 / (D + 1)
             ),
-            val_or_def(
+            mv_p_smooth_knot_distance_power = val_or_def(
                 p_smooth_mv$knot_distance_power,
                 1
             ),
-            val_or_def(
+            mv_p_smooth_deg = val_or_def(
                 p_smooth_mv$deg,
                 1
             ),
-            val_or_def(
+            mv_p_smooth_ndiff = val_or_def(
                 p_smooth_mv$ndiff,
                 1.5
             )
@@ -383,36 +381,10 @@ online <- function(y, experts, tau,
 
     dimnames(model$experts_loss)[[4]] <- enames
 
-    parnames <- c(
-        "basis_knot_distance",
-        "basis_knot_distance_power",
-        "basis_deg",
-        "forget_regret",
-        "threshold_soft",
-        "threshold_hard",
-        "fixed_share",
-        "p_smooth_lambda",
-        "p_smooth_knot_distance",
-        "p_smooth_knot_distance_power",
-        "p_smooth_deg",
-        "smooth_diff",
-        "gamma",
-        "loss_share",
-        "regret_share",
-        "mv_basis_knot_distance",
-        "mv_basis_knot_distance_power",
-        "mv_basis_deg",
-        "mv_p_smooth_lambda",
-        "mv_p_smooth_knot_distance",
-        "mv_p_smooth_knot_distance_power",
-        "mv_p_smooth_deg",
-        "mv_p_smooth_ndiff"
-    )
+    # colnames(model$chosen_parameters) <- parnames # TODO
 
-    colnames(model$chosen_parameters) <- parnames
-    colnames(model$parametergrid) <- parnames
-
-    model$test <- basis_list
+    # model$basis_list_pr <- basis_list_pr
+    # model$basis_list_mv <- basis_list_mv
 
     return(model)
 }

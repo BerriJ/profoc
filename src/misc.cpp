@@ -147,22 +147,17 @@ colvec softmax_c(colvec x)
     return expvec;
 }
 
-// [[Rcpp::export]]
-field<mat> fieldtest1()
+std::map<std::string, arma::vec> mat_to_map(const Rcpp::NumericMatrix &x)
 {
-    field<mat> out(5, 6, 5);
-    mat A(5, 5);
-    A.fill(5);
-    mat B(5, 10);
-    B.fill(40);
-    out(1, 1) = A;
-    out(1, 2) = B;
+    std::vector<std::string> ch = Rcpp::as<std::vector<std::string>>(Rcpp::colnames(x));
+    const unsigned int N = x.ncol();
+    std::map<std::string, arma::vec> map;
 
-    return out;
-}
+    for (unsigned int n = 0; n < N; n++)
+    {
+        arma::vec vals = x.column(n);
+        map[ch[n]] = vals;
+    }
 
-// [[Rcpp::export]]
-field<mat> fieldtest2(field<mat> x)
-{
-    return x;
+    return map;
 }
