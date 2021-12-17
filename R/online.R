@@ -221,14 +221,6 @@ online <- function(y, experts, tau,
         regret_share <- regret$share
     }
 
-    val_or_def <- function(val, def) {
-        if (is.null(val)) {
-            return(def)
-        } else {
-            return(val)
-        }
-    }
-
     if (is.null(parametergrid)) {
         grid <- expand.grid(
             val_or_def(
