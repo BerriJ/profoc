@@ -23,3 +23,11 @@ darken <- function(color, factor = 1.4) {
     col <- rgb(t(col), maxColorValue = 255)
     col
 }
+
+val_or_def <- function(val, def) {
+    if (is.null(val)) {
+        return(def)
+    } else {
+        return(val)
+    }
+}
