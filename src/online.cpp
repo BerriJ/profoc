@@ -513,8 +513,8 @@ Rcpp::List online_rcpp(
     {
       basis_mats_mv(x) = make_basis_matrix(spline_basis_mv,
                                            param_grid(x, 15), // kstep
-                                           param_grid(x, 16), // degree
-                                           param_grid(x, 17), // uneven grid
+                                           param_grid(x, 17), // degree
+                                           param_grid(x, 16), // uneven grid
                                            D % 2 == 0)
                              .t(); // even
     }
@@ -524,8 +524,8 @@ Rcpp::List online_rcpp(
     {
       basis_mats_mv(x) = make_basis_matrix(spline_basis_mv,
                                            param_grid(x, 15), // kstep
-                                           param_grid(x, 16), // degree
-                                           param_grid(x, 17), // uneven grid
+                                           param_grid(x, 17), // degree
+                                           param_grid(x, 16), // uneven grid
                                            D % 2 == 0)
                              .t(); // even
     }
