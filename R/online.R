@@ -284,7 +284,7 @@ online <- function(y, experts, tau,
             regret_share,
             val_or_def(
                 b_smooth_mv$knot_distance,
-                1 / (P + 1)
+                1 / (D + 1)
             ),
             val_or_def(
                 b_smooth_mv$knot_distance_power,
@@ -300,7 +300,7 @@ online <- function(y, experts, tau,
             ),
             val_or_def(
                 p_smooth_mv$knot_distance,
-                1 / (P + 1)
+                1 / (D + 1)
             ),
             val_or_def(
                 p_smooth_mv$knot_distance_power,
