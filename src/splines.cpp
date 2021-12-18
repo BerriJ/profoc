@@ -9,7 +9,7 @@
 using namespace arma;
 
 // [[Rcpp::export]]
-vec make_knots(const double &kstep, const double &a = 1, const int deg = 3, const bool &even = false)
+arma::vec make_knots(const double &kstep, const double &a = 1, const int deg = 3, const bool &even = false)
 {
 
     vec x;
@@ -42,7 +42,7 @@ mat splineDesign_rcpp(const vec &x, const vec &knots, const int &deg)
 }
 
 // [[Rcpp::export]]
-mat make_difference_matrix(const vec &knots, const int &bdiff, const int deg)
+arma::mat make_difference_matrix(const arma::vec &knots, const int &bdiff, const int deg)
 {
     int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
     const vec diag_vals = 1 / diff_cpp(knots, deg, 1);
@@ -52,7 +52,7 @@ mat make_difference_matrix(const vec &knots, const int &bdiff, const int deg)
 }
 
 // [[Rcpp::export]]
-mat make_hat_matrix(const vec &x, const double &kstep, const double &lambda, const double &bdiff, const int deg, const double &a, const bool &even)
+arma::mat make_hat_matrix(const arma::vec &x, const double &kstep, const double &lambda, const double &bdiff, const int deg, const double &a, const bool &even)
 {
 
     mat H;
@@ -93,7 +93,7 @@ mat make_hat_matrix(const vec &x, const double &kstep, const double &lambda, con
 }
 
 // [[Rcpp::export]]
-sp_mat make_basis_matrix(const vec &x, const double &kstep, const int deg, const double &a, const bool &even)
+arma::sp_mat make_basis_matrix(const arma::vec &x, const double &kstep, const int deg, const double &a, const bool &even)
 {
     mat B;
 
@@ -123,9 +123,9 @@ sp_mat make_basis_matrix(const vec &x, const double &kstep, const int deg, const
 }
 
 // [[Rcpp::export]]
-sp_mat make_basis_matrix2(const vec &x,
-                          const vec &knots,
-                          const unsigned int deg)
+arma::sp_mat make_basis_matrix2(const arma::vec &x,
+                                const arma::vec &knots,
+                                const unsigned int deg)
 {
     mat B;
 

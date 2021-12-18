@@ -12,9 +12,9 @@ using namespace arma;
 
 // [[Rcpp::export]]
 Rcpp::List batch_rcpp(
-    mat &y,
-    cube &experts,
-    vec tau, // We don't pass by reference here since tau may be modified
+    arma::mat &y,
+    arma::cube &experts,
+    arma::vec tau, // We don't pass by reference here since tau may be modified
     const bool &affine,
     const bool &positive,
     const bool &intercept,
@@ -25,7 +25,7 @@ Rcpp::List batch_rcpp(
     const std::string loss_function,
     const double &loss_parameter,
     const bool &qw_crps,
-    const mat &param_grid,
+    const arma::mat &param_grid,
     const double &forget_past_performance,
     bool allow_quantile_crossing,
     const bool trace)
