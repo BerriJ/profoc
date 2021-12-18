@@ -260,19 +260,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// splines2_basis
-arma::mat splines2_basis(const arma::vec& x, const arma::vec& knots, const unsigned int deg);
-RcppExport SEXP _profoc_splines2_basis(SEXP xSEXP, SEXP knotsSEXP, SEXP degSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type knots(knotsSEXP);
-    Rcpp::traits::input_parameter< const unsigned int >::type deg(degSEXP);
-    rcpp_result_gen = Rcpp::wrap(splines2_basis(x, knots, deg));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_profoc_batch_rcpp", (DL_FUNC) &_profoc_batch_rcpp, 17},
@@ -289,7 +276,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_make_hat_matrix", (DL_FUNC) &_profoc_make_hat_matrix, 7},
     {"_profoc_make_basis_matrix", (DL_FUNC) &_profoc_make_basis_matrix, 5},
     {"_profoc_make_basis_matrix2", (DL_FUNC) &_profoc_make_basis_matrix2, 3},
-    {"_profoc_splines2_basis", (DL_FUNC) &_profoc_splines2_basis, 3},
     {NULL, NULL, 0}
 };
 

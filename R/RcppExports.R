@@ -93,7 +93,3 @@ make_basis_matrix2 <- function(x, knots, deg) {
     .Call(`_profoc_make_basis_matrix2`, x, knots, deg)
 }
 
-splines2_basis <- function(x, knots, deg) {
-    .Call(`_profoc_splines2_basis`, x, knots, deg)
-}
-
