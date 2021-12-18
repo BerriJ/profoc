@@ -9,9 +9,9 @@ using namespace splines2;
 using namespace arma;
 
 // [[Rcpp::export]]
-mat splines2_basis(const vec &x,
-                   const vec &knots,
-                   const unsigned int deg)
+arma::mat splines2_basis(const arma::vec &x,
+                         const arma::vec &knots,
+                         const unsigned int deg)
 {
     splines2::BSpline bs_obj{x, deg, knots};
     return bs_obj.basis(true);

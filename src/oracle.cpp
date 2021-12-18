@@ -211,16 +211,16 @@ Vec_t constraint_function(const Vec_t &vals_inp, Mat_t *jacob_out, void *opt_dat
 }
 
 // [[Rcpp::export]]
-vec optimize_weights(const vec &truth,
-                     const mat &experts,
-                     const bool &affine = false,
-                     const bool &positive = false,
-                     const bool &intercept = false,
-                     const bool &debias = true,
-                     const std::string &loss_function = "quantile",
-                     const double &tau = 0.5,
-                     const double &forget = 0,
-                     const double &loss_scaling = 1)
+arma::vec optimize_weights(const arma::vec &truth,
+                           const arma::mat &experts,
+                           const bool &affine = false,
+                           const bool &positive = false,
+                           const bool &intercept = false,
+                           const bool &debias = true,
+                           const std::string &loss_function = "quantile",
+                           const double &tau = 0.5,
+                           const double &forget = 0,
+                           const double &loss_scaling = 1)
 {
 
     const int K = experts.n_cols;
@@ -315,19 +315,19 @@ vec optimize_weights(const vec &truth,
 }
 
 // [[Rcpp::export]]
-mat optimize_betas(const mat &truth,
-                   const cube &experts,
-                   const bool &affine,
-                   const bool &positive,
-                   const bool &intercept,
-                   const bool &debias,
-                   const std::string &loss_function,
-                   const vec &tau_vec,
-                   const double &forget,
-                   const double &loss_scaling,
-                   const sp_mat &basis,
-                   const mat &beta,
-                   const bool &qw_crps)
+arma::mat optimize_betas(const arma::mat &truth,
+                         const arma::cube &experts,
+                         const bool &affine,
+                         const bool &positive,
+                         const bool &intercept,
+                         const bool &debias,
+                         const std::string &loss_function,
+                         const arma::vec &tau_vec,
+                         const double &forget,
+                         const double &loss_scaling,
+                         const arma::sp_mat &basis,
+                         const arma::mat &beta,
+                         const bool &qw_crps)
 {
 
     const int K = experts.n_slices;
@@ -485,7 +485,7 @@ mat optimize_betas(const mat &truth,
 //' @export
 // [[Rcpp::export]]
 Rcpp::List oracle(arma::mat &y,
-                  cube &experts,
+                  arma::cube &experts,
                   Rcpp::NumericVector tau = Rcpp::NumericVector::create(),
                   const bool &affine = false,
                   const bool &positive = false,

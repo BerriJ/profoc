@@ -406,9 +406,9 @@ void online_learning_core(
 
 // [[Rcpp::export]]
 Rcpp::List online_rcpp(
-    mat &y,
-    arma::field<cube> &experts,
-    vec tau, // We don't pass by reference here since tau may be modified
+    arma::mat &y,
+    arma::field<arma::cube> &experts,
+    arma::vec tau, // We don't pass by reference here since tau may be modified
     const unsigned int &lead_time,
     const std::string loss_function,
     const double &loss_parameter,
@@ -417,10 +417,10 @@ Rcpp::List online_rcpp(
     Rcpp::NumericMatrix &param_grid,
     const double &forget_past_performance,
     bool allow_quantile_crossing,
-    const cube w0,
-    const cube R0,
-    const field<cube> &loss_array,
-    const field<cube> &regret_array,
+    const arma::cube w0,
+    const arma::cube R0,
+    const arma::field<arma::cube> &loss_array,
+    const arma::field<arma::cube> &regret_array,
     const bool trace)
 {
 
@@ -837,8 +837,8 @@ Rcpp::List online_rcpp(
 // [[Rcpp::export]]
 Rcpp::List update_online(
     Rcpp::List &object,
-    mat &new_y,
-    arma::field<cube> &new_experts,
+    arma::mat &new_y,
+    arma::field<arma::cube> &new_experts,
     const bool trace)
 {
   Rcpp::Clock clock;

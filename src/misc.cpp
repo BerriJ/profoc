@@ -98,9 +98,9 @@ double threshold_soft(double &x,
 }
 
 // [[Rcpp::export]]
-mat vec2mat(const vec &x,
-            const unsigned int &matrows,
-            const unsigned int &matcols)
+arma::mat vec2mat(const arma::vec &x,
+                  const unsigned int &matrows,
+                  const unsigned int &matcols)
 {
 
     mat outmat(matrows, matcols);
