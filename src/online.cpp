@@ -1,6 +1,5 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::depends(RcppProgress)]]
-// [[Rcpp::depends(RcppClock)]]
 // [[Rcpp::plugins("cpp11")]]
 
 #include <misc.h>
@@ -10,7 +9,7 @@
 
 #include <RcppArmadillo.h>
 #include <progress.hpp>
-#include <RcppClock.h>
+#include <clock.h>
 #include <thread>
 
 #ifdef _OPENMP
@@ -828,7 +827,7 @@ Rcpp::List online_rcpp(
 
   clock.tock("wrangle");
 
-  // clock.stop("times");
+  clock.stop("times");
 
   // Rcpp::List out;
   return out;
