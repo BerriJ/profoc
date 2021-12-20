@@ -571,8 +571,8 @@ Rcpp::List online_rcpp(
                                          params["mv_p_smooth_ndiff"](x),               // differences
                                          params["mv_p_smooth_deg"](x),                 // degree
                                          params["mv_p_smooth_knot_distance_power"](x), // uneven grid
-                                         P % 2 == 0);                                  // even
-    }
+                                         D % 2 == 0);                                  // even
+        }
     prog.increment();
   }
 

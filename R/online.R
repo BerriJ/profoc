@@ -224,20 +224,38 @@ online <- function(y, experts, tau,
     # Create basis and hat matix lists
 
     # # Basis matrices for probabilistic smoothing
-    # basis_list_pr <- make_basis_mats(
-    #     val_or_def(b_smooth_pr$knot_distance, 1 / (P + 1)),
-    #     val_or_def(b_smooth_pr$knot_distance_power, 1),
-    #     val_or_def(b_smooth_pr$deg, 1),
-    #     P
-    # )
+    basis_list_pr <- make_basis_mats(
+        val_or_def(b_smooth_pr$knot_distance, 1 / (P + 1)),
+        val_or_def(b_smooth_pr$knot_distance_power, 1),
+        val_or_def(b_smooth_pr$deg, 1),
+        P
+    )
 
-    # # Basis matrices for multivariate smoothing
-    # basis_list_mv <- make_basis_mats(
-    #     val_or_def(b_smooth_mv$knot_distance, 1 / (D + 1)),
-    #     val_or_def(b_smooth_mv$knot_distance_power, 1),
-    #     val_or_def(b_smooth_mv$deg, 1),
-    #     D
-    # )
+    # Basis matrices for multivariate smoothing
+    basis_list_mv <- make_basis_mats(
+        val_or_def(b_smooth_mv$knot_distance, 1 / (D + 1)),
+        val_or_def(b_smooth_mv$knot_distance_power, 1),
+        val_or_def(b_smooth_mv$deg, 1),
+        D
+    )
+
+    hat_list_pr <- make_hat_mats(
+        val_or_def(p_smooth_pr$knot_distance, 1 / (P + 1)),
+        val_or_def(p_smooth_pr$knot_distance_power, 1),
+        val_or_def(p_smooth_pr$deg, 1),
+        val_or_def(p_smooth_pr$lambda, -Inf),
+        val_or_def(p_smooth_pr$diff, 1.5),
+        P
+    )
+
+    hat_list_mv <- make_hat_mats(
+        val_or_def(p_smooth_mv$knot_distance, 1 / (D + 1)),
+        val_or_def(p_smooth_mv$knot_distance_power, 1),
+        val_or_def(p_smooth_mv$deg, 1),
+        val_or_def(p_smooth_mv$lambda, -Inf),
+        val_or_def(p_smooth_mv$diff, 1.5),
+        D
+    )
 
     if (is.null(parametergrid)) {
         grid <- expand.grid(
@@ -385,6 +403,9 @@ online <- function(y, experts, tau,
 
     # model$basis_list_pr <- basis_list_pr
     # model$basis_list_mv <- basis_list_mv
+
+    model$hat_list_pr <- hat_list_pr
+    model$hat_list_mv <- hat_list_mv
 
     return(model)
 }
