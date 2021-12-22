@@ -6,8 +6,6 @@
 
 #include <misc.h>
 #include <loss.h>
-#include <splines2.h>
-#include <splines.h>
 
 #include <RcppArmadillo.h>
 #include <progress.hpp>
@@ -20,7 +18,7 @@
 
 using namespace arma;
 
-void online_learning_core(
+static void online_learning_core(
     const unsigned int &T,
     const unsigned int &D,
     const unsigned int &P,

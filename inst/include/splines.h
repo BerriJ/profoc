@@ -3,13 +3,10 @@
 
 #include <RcppArmadillo.h>
 
+// include header file from splines2 package
+#include <splines2Armadillo.h>
+
 arma::vec make_knots(const double &kstep, const double &a, const int deg, const bool &even);
-
-arma::vec make_knots_even(const double &kstep, const double &a, const int deg);
-
-arma::mat splineDesign_rcpp(const arma::vec &x, const arma::vec &knots, const int &deg);
-
-arma::mat make_difference_matrix(const arma::vec &knots, const int &bdiff, const int deg);
 
 arma::sp_mat make_hat_matrix(const arma::vec &x,
                              const double &kstep,
