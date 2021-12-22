@@ -13,10 +13,6 @@ loss_grad_wrt_w <- function(expert, pred, truth, tau, loss_function, a, w) {
     .Call(`_profoc_loss_grad_wrt_w`, expert, pred, truth, tau, loss_function, a, w)
 }
 
-vec2mat <- function(x, matrows, matcols) {
-    .Call(`_profoc_vec2mat`, x, matrows, matcols)
-}
-
 online_rcpp <- function(y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, param_grid, basis_pr, basis_mv, hat_pr, hat_mv, forget_past_performance, allow_quantile_crossing, w0, R0, loss_array, regret_array, trace) {
     .Call(`_profoc_online_rcpp`, y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, param_grid, basis_pr, basis_mv, hat_pr, hat_mv, forget_past_performance, allow_quantile_crossing, w0, R0, loss_array, regret_array, trace)
 }
@@ -75,10 +71,6 @@ oracle <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive 
 
 make_knots <- function(kstep, a = 1, deg = 3L, even = FALSE) {
     .Call(`_profoc_make_knots`, kstep, a, deg, even)
-}
-
-make_difference_matrix <- function(knots, bdiff, deg) {
-    .Call(`_profoc_make_difference_matrix`, knots, bdiff, deg)
 }
 
 make_hat_matrix <- function(x, kstep, lambda, bdiff, deg, a, even) {

@@ -38,7 +38,7 @@ struct objective_data
 // Global decleration of objective val
 double obj_val;
 
-double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
+static double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
 {
     objective_data *objfn_data = reinterpret_cast<objective_data *>(opt_data);
 
@@ -101,7 +101,7 @@ double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
     return obj_val;
 }
 
-double objective2(const vec &vals_inp, vec *grad_out, void *opt_data)
+static double objective2(const vec &vals_inp, vec *grad_out, void *opt_data)
 {
     objective_data *objfn_data = reinterpret_cast<objective_data *>(opt_data);
 

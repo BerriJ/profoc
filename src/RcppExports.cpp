@@ -72,19 +72,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// vec2mat
-arma::mat vec2mat(const arma::vec& x, const unsigned int& matrows, const unsigned int& matcols);
-RcppExport SEXP _profoc_vec2mat(SEXP xSEXP, SEXP matrowsSEXP, SEXP matcolsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const unsigned int& >::type matrows(matrowsSEXP);
-    Rcpp::traits::input_parameter< const unsigned int& >::type matcols(matcolsSEXP);
-    rcpp_result_gen = Rcpp::wrap(vec2mat(x, matrows, matcols));
-    return rcpp_result_gen;
-END_RCPP
-}
 // online_rcpp
 Rcpp::List online_rcpp(arma::mat& y, arma::field<arma::cube>& experts, arma::vec tau, const unsigned int& lead_time, const std::string loss_function, const double& loss_parameter, const bool& loss_gradient, const std::string method, Rcpp::NumericMatrix& param_grid, const arma::field<arma::sp_mat>& basis_pr, const arma::field<arma::sp_mat>& basis_mv, const arma::field<arma::sp_mat>& hat_pr, const arma::field<arma::sp_mat>& hat_mv, const double& forget_past_performance, bool allow_quantile_crossing, const arma::cube w0, const arma::cube R0, const arma::field<arma::cube>& loss_array, const arma::field<arma::cube>& regret_array, const bool trace);
 RcppExport SEXP _profoc_online_rcpp(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP lead_timeSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP loss_gradientSEXP, SEXP methodSEXP, SEXP param_gridSEXP, SEXP basis_prSEXP, SEXP basis_mvSEXP, SEXP hat_prSEXP, SEXP hat_mvSEXP, SEXP forget_past_performanceSEXP, SEXP allow_quantile_crossingSEXP, SEXP w0SEXP, SEXP R0SEXP, SEXP loss_arraySEXP, SEXP regret_arraySEXP, SEXP traceSEXP) {
@@ -206,19 +193,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// make_difference_matrix
-arma::mat make_difference_matrix(const arma::vec& knots, const int& bdiff, const int deg);
-RcppExport SEXP _profoc_make_difference_matrix(SEXP knotsSEXP, SEXP bdiffSEXP, SEXP degSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type knots(knotsSEXP);
-    Rcpp::traits::input_parameter< const int& >::type bdiff(bdiffSEXP);
-    Rcpp::traits::input_parameter< const int >::type deg(degSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_difference_matrix(knots, bdiff, deg));
-    return rcpp_result_gen;
-END_RCPP
-}
 // make_hat_matrix
 arma::sp_mat make_hat_matrix(const arma::vec& x, const double& kstep, const double& lambda, const double& bdiff, const int deg, const double& a, const bool& even);
 RcppExport SEXP _profoc_make_hat_matrix(SEXP xSEXP, SEXP kstepSEXP, SEXP lambdaSEXP, SEXP bdiffSEXP, SEXP degSEXP, SEXP aSEXP, SEXP evenSEXP) {
@@ -269,14 +243,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_batch_rcpp", (DL_FUNC) &_profoc_batch_rcpp, 17},
     {"_profoc_loss", (DL_FUNC) &_profoc_loss, 7},
     {"_profoc_loss_grad_wrt_w", (DL_FUNC) &_profoc_loss_grad_wrt_w, 7},
-    {"_profoc_vec2mat", (DL_FUNC) &_profoc_vec2mat, 3},
     {"_profoc_online_rcpp", (DL_FUNC) &_profoc_online_rcpp, 20},
     {"_profoc_update_online", (DL_FUNC) &_profoc_update_online, 4},
     {"_profoc_optimize_weights", (DL_FUNC) &_profoc_optimize_weights, 10},
     {"_profoc_optimize_betas", (DL_FUNC) &_profoc_optimize_betas, 13},
     {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 10},
     {"_profoc_make_knots", (DL_FUNC) &_profoc_make_knots, 4},
-    {"_profoc_make_difference_matrix", (DL_FUNC) &_profoc_make_difference_matrix, 3},
     {"_profoc_make_hat_matrix", (DL_FUNC) &_profoc_make_hat_matrix, 7},
     {"_profoc_make_basis_matrix", (DL_FUNC) &_profoc_make_basis_matrix, 5},
     {"_profoc_make_basis_matrix2", (DL_FUNC) &_profoc_make_basis_matrix2, 3},

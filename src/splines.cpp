@@ -1,10 +1,18 @@
 #include <splines.h>
 
 #include <misc.h>
-#include <splines2.h>
 
-// [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
+// include header file from splines2 package
+#include <splines2Armadillo.h>
+
+static arma::mat splines2_basis(const arma::vec &x,
+                                const arma::vec &knots,
+                                const unsigned int deg)
+{
+    splines2::BSpline bs_obj{x, deg, knots};
+    return bs_obj.basis(true);
+}
 
 using namespace arma;
 
@@ -33,7 +41,7 @@ arma::vec make_knots(const double &kstep, const double &a = 1, const int deg = 3
 }
 
 // Expose splines::splineDesign to Rcpp
-mat splineDesign_rcpp(const vec &x, const vec &knots, const int &deg)
+static mat splineDesign_rcpp(const vec &x, const vec &knots, const int &deg)
 {
     Rcpp::Environment pkg = Rcpp::Environment::namespace_env("splines");
     Rcpp::Function f = pkg["splineDesign"];
@@ -41,8 +49,7 @@ mat splineDesign_rcpp(const vec &x, const vec &knots, const int &deg)
     return y;
 }
 
-// [[Rcpp::export]]
-arma::mat make_difference_matrix(const arma::vec &knots, const int &bdiff, const int deg)
+static arma::mat make_difference_matrix(const arma::vec &knots, const int &bdiff, const int deg)
 {
     int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
     const vec diag_vals = 1 / diff_cpp(knots, deg, 1);
