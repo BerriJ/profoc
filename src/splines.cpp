@@ -52,7 +52,14 @@ arma::mat make_difference_matrix(const arma::vec &knots, const int &bdiff, const
 }
 
 // [[Rcpp::export]]
-arma::mat make_hat_matrix(const arma::vec &x, const double &kstep, const double &lambda, const double &bdiff, const int deg, const double &a, const bool &even)
+arma::sp_mat make_hat_matrix(
+    const arma::vec &x,
+    const double &kstep,
+    const double &lambda,
+    const double &bdiff,
+    const int deg,
+    const double &a,
+    const bool &even)
 {
 
     mat H;
@@ -88,8 +95,9 @@ arma::mat make_hat_matrix(const arma::vec &x, const double &kstep, const double 
         mat identity(x.n_elem, x.n_elem, fill::eye);
         H = identity;
     }
-    // Return hat matrix
-    return H;
+
+    arma::sp_mat sp_H = sp_mat(H); // Return hat matrix
+    return sp_H;
 }
 
 // [[Rcpp::export]]

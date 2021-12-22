@@ -4,7 +4,7 @@ set.seed(1)
 
 T <- 32
 N <- 2
-P <- 50
+P <- 99
 prob_grid <- 1:P / (P + 1)
 
 mean_y <- 0
