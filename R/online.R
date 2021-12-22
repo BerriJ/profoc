@@ -129,6 +129,7 @@ online <- function(y, experts, tau,
                    trace = TRUE) {
     edim <- dim(experts)
 
+
     if (is.vector(y)) {
         y <- matrix(y)
     }
@@ -259,82 +260,20 @@ online <- function(y, experts, tau,
 
     if (is.null(parametergrid)) {
         grid <- expand.grid(
-            basis_knot_distance = val_or_def(
-                b_smooth_pr$knot_distance,
-                1 / (P + 1)
-            ),
-            basis_knot_distance_power = val_or_def(
-                b_smooth_pr$knot_distance_power,
-                1
-            ),
-            basis_deg = val_or_def(
-                b_smooth_pr$deg,
-                1
-            ),
+            basis_pr_idx = (seq_len(dim(basis_list_pr)[1]) - 1),
             forget_regret = forget_regret,
             soft_threshold = soft_threshold,
             hard_threshold = hard_threshold,
             fixed_share = fixed_share,
-            p_smooth_lambda = val_or_def(
-                p_smooth_pr$lambda,
-                -Inf
-            ),
-            p_smooth_knot_distance = val_or_def(
-                p_smooth_pr$knot_distance,
-                1 / (P + 1)
-            ),
-            p_smooth_knot_distance_power = val_or_def(
-                p_smooth_pr$knot_distance_power,
-                1
-            ),
-            p_smooth_deg = val_or_def(
-                p_smooth_pr$deg,
-                1
-            ),
-            smooth_diff = val_or_def(
-                p_smooth_pr$ndiff,
-                1.5
-            ),
+            hat_pr_idx = (seq_len(dim(hat_list_pr)[1]) - 1),
+            hat_mv_idx = (seq_len(dim(hat_list_mv)[1]) - 1),
             gamma = gamma,
             loss_share = loss_share,
             regret_share = regret_share,
-            mv_basis_knot_distance = val_or_def(
-                b_smooth_mv$knot_distance,
-                1 / (D + 1)
-            ),
-            mv_basis_knot_distance_power = val_or_def(
-                b_smooth_mv$knot_distance_power,
-                1
-            ),
-            mv_basis_deg = val_or_def(
-                b_smooth_mv$deg,
-                1
-            ),
-            mv_p_smooth_lambda = val_or_def(
-                p_smooth_mv$lambda,
-                -Inf
-            ),
-            mv_p_smooth_knot_distance = val_or_def(
-                p_smooth_mv$knot_distance,
-                1 / (D + 1)
-            ),
-            mv_p_smooth_knot_distance_power = val_or_def(
-                p_smooth_mv$knot_distance_power,
-                1
-            ),
-            mv_p_smooth_deg = val_or_def(
-                p_smooth_mv$deg,
-                1
-            ),
-            mv_p_smooth_ndiff = val_or_def(
-                p_smooth_mv$ndiff,
-                1.5
-            )
+            basis_mv_idx = (seq_len(dim(basis_list_mv)[1]) - 1)
         )
 
         parametergrid <- as.matrix(grid)
-    } else if (ncol(parametergrid) != 15) {
-        stop("Please provide a parametergrid with 15 columns.")
     }
 
     if (nrow(parametergrid) > parametergrid_max_combinations) {
@@ -382,6 +321,10 @@ online <- function(y, experts, tau,
         loss_gradient = loss_gradient,
         method = method,
         param_grid = parametergrid,
+        basis_pr = basis_list_pr,
+        basis_mv = basis_list_mv,
+        hat_pr = hat_list_pr,
+        hat_mv = hat_list_mv,
         forget_past_performance = forget_past_performance,
         allow_quantile_crossing = allow_quantile_crossing,
         w0 = init$init_weights,
@@ -398,14 +341,6 @@ online <- function(y, experts, tau,
     model$experts_loss <- list_to_array(model$experts_loss)
 
     dimnames(model$experts_loss)[[4]] <- enames
-
-    # colnames(model$chosen_parameters) <- parnames # TODO
-
-    # model$basis_list_pr <- basis_list_pr
-    # model$basis_list_mv <- basis_list_mv
-
-    model$hat_list_pr <- hat_list_pr
-    model$hat_list_mv <- hat_list_mv
 
     return(model)
 }

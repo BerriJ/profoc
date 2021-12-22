@@ -3,18 +3,28 @@ make_basis_mats <- function(knot_distance,
                             deg,
                             P_or_D) {
     sp_basis <- 1:P_or_D / (P_or_D + 1)
-    params <- expand.grid(knot_distance, knot_distance_power, deg)
+    params <- expand.grid(
+        knot_distance,
+        knot_distance_power,
+        deg
+    )
     basis_list <- list()
 
     for (i in seq_len(nrow(params))) {
-        knots <- make_knots(
-            params[i, 1],
-            params[i, 2],
-            params[i, 3],
-            P_or_D %% 2 == 0
-        )
+        # knots <- make_knots(
+        #     params[i, 1],
+        #     params[i, 2],
+        #     params[i, 3],
+        #     P_or_D %% 2 == 0
+        # )
         basis_list[[i]] <-
-            make_basis_matrix2(sp_basis, knots, params[i, 3])
+            make_basis_matrix(
+                sp_basis,
+                params[i, 1],
+                params[i, 3],
+                params[i, 2],
+                P_or_D %% 2 == 0
+            )
     }
     # Important for passing to C++ as arma::field object
     dim(basis_list) <- c(length(basis_list), 1)
@@ -55,7 +65,11 @@ make_hat_mats <- function(knot_distance,
                 P_or_D %% 2 == 0
             )
         } else {
-            hat_list[[i]] <- matrix(nrow = 0, ncol = 0)
+            hat_list[[i]] <- Matrix::sparseMatrix(
+                i = 1:P_or_D,
+                j = 1:P_or_D,
+                x = 1
+            )
         }
     }
     # Important for passing to C++ as arma::field object

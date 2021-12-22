@@ -2,6 +2,8 @@
 // [[Rcpp::depends(RcppProgress)]]
 // [[Rcpp::plugins("cpp11")]]
 
+#define LOG(x) std::cout << x << std::endl
+
 #include <misc.h>
 #include <loss.h>
 #include <splines2.h>
@@ -46,10 +48,10 @@ void online_learning_core(
     field<cube> &V,
     field<cube> &E,
     field<cube> &eta,
-    field<mat> &hat_mats,
-    field<mat> &hat_mats_mv,
-    field<sp_mat> &basis_mats,
-    field<sp_mat> &basis_mats_mv,
+    const field<sp_mat> &hat_pr,
+    const field<sp_mat> &hat_mv,
+    const field<sp_mat> &basis_pr,
+    const field<sp_mat> &basis_mv,
     field<cube> &beta0field,
     field<cube> &beta,
     mat &cum_performance,
@@ -107,7 +109,9 @@ void online_learning_core(
       mat lexp(P, K);     // Experts loss
       vec lfor(P);        // Forecasters loss
       cube regret_tmp(D, P, K);
-      cube regret(basis_mats_mv(x).n_rows, basis_mats(x).n_cols, K); // Dr x Pr x K
+      cube regret(basis_mv(params["basis_mv_idx"](x)).n_cols,
+                  basis_pr(params["basis_pr_idx"](x)).n_cols,
+                  K); // Dr x Pr x K
 
       for (unsigned int d = 0; d < D; d++)
       {
@@ -165,7 +169,7 @@ void online_learning_core(
         if (params["regret_share"](x) != 1)
         {
           regret_int = (lfor - lexp_int.each_col()).t();
-          regret_int *= double(basis_mats(x).n_cols) / double(P);
+          regret_int *= double(basis_pr(params["basis_pr_idx"](x)).n_cols) / double(P);
 
           if (params["regret_share"](x) == 0)
           {
@@ -175,7 +179,7 @@ void online_learning_core(
           {
             regret_ext = regret_array(t).row(d);
             regret_ext = regret_ext.t();
-            regret_ext *= double(basis_mats(x).n_cols) / double(P);
+            regret_ext *= double(basis_pr(params["basis_pr_idx"](x)).n_cols) / double(P);
             regret_tmp.row(d) = ((1 - params["regret_share"](x)) * regret_int + params["regret_share"](x) * regret_ext).t();
           }
         }
@@ -183,7 +187,7 @@ void online_learning_core(
         {
           regret_ext = regret_array(t).row(d);
           regret_ext = regret_ext.t();
-          regret_ext *= double(basis_mats(x).n_cols) / double(P);
+          regret_ext *= double(basis_pr(params["basis_pr_idx"](x)).n_cols) / double(P);
           regret_tmp.row(d) = regret_ext.t();
         }
       }
@@ -191,7 +195,7 @@ void online_learning_core(
 #pragma omp parallel for
       for (unsigned int k = 0; k < K; k++)
       {
-        regret.slice(k) = basis_mats_mv(x) * regret_tmp.slice(k) * basis_mats(x);
+        regret.slice(k) = basis_mv(params["basis_mv_idx"](x)).t() * regret_tmp.slice(k) * basis_pr(params["basis_pr_idx"](x));
       }
 
       clock.tock("regret");
@@ -298,22 +302,11 @@ void online_learning_core(
       // Smoothing
       for (unsigned int k = 0; k < K; k++)
       {
-        if (params["p_smooth_lambda"](x) != -datum::inf && params["mv_p_smooth_lambda"](x) != -datum::inf)
-        {
-          weights_tmp(x).slice(k) = hat_mats_mv(x) * beta(x).slice(k) * hat_mats(x);
-        }
-        else if (params["p_smooth_lambda"](x) != -datum::inf)
-        {
-          weights_tmp(x).slice(k) = basis_mats_mv(x).t() * beta(x).slice(k) * hat_mats(x);
-        }
-        else if (params["mv_p_smooth_lambda"](x) != -datum::inf)
-        {
-          weights_tmp(x).slice(k) = hat_mats_mv(x) * beta(x).slice(k) * basis_mats(x).t();
-        }
-        else
-        {
-          weights_tmp(x).slice(k) = basis_mats_mv(x).t() * beta(x).slice(k) * basis_mats(x).t();
-        }
+        weights_tmp(x).slice(k) = hat_mv(params["hat_mv_idx"](x)) *
+                                  basis_mv(params["basis_mv_idx"](x)) *
+                                  beta(x).slice(k) *
+                                  basis_pr(params["basis_pr_idx"](x)).t() *
+                                  hat_pr(params["hat_pr_idx"](x));
       }
       clock.tock("smoothing");
 
@@ -321,7 +314,6 @@ void online_learning_core(
       // Enshure that constraints hold
       for (unsigned int p = 0; p < P; p++)
       {
-
         for (unsigned int d = 0; d < D; d++)
         {
           // Positivity
@@ -414,6 +406,10 @@ Rcpp::List online_rcpp(
     const bool &loss_gradient,
     const std::string method,
     Rcpp::NumericMatrix &param_grid,
+    const arma::field<arma::sp_mat> &basis_pr,
+    const arma::field<arma::sp_mat> &basis_mv,
+    const arma::field<arma::sp_mat> &hat_pr,
+    const arma::field<arma::sp_mat> &hat_mv,
     const double &forget_past_performance,
     bool allow_quantile_crossing,
     const arma::cube w0,
@@ -464,12 +460,10 @@ Rcpp::List online_rcpp(
   // Output Objects
   cube predictions(T + T_E_Y, D, P, fill::zeros);
   arma::field<cube> weights(T + 1);
+  cube loss_for(T, D, P, fill::zeros);
+  field<cube> loss_exp(T);
 
   // Learning parameters
-  arma::field<mat> hat_mats(X);
-  arma::field<mat> hat_mats_mv(X);
-  arma::field<sp_mat> basis_mats(X);
-  arma::field<sp_mat> basis_mats_mv(X);
   arma::field<cube> V(X);
   arma::field<cube> E(X);
   arma::field<cube> k(X);
@@ -479,162 +473,12 @@ Rcpp::List online_rcpp(
   arma::field<cube> beta(X);
   arma::field<cube> beta0field(X);
 
-  vec spline_basis_prob = regspace(1, P) / (P + 1);
-  vec spline_basis_mv = regspace(1, D) / (D + 1);
-
-  // Init hat and basis_matrices
-  for (unsigned int x = 0; x < X; x++)
-  {
-
-    // In second step: skip if recalc is not necessary:
-    if (x == 0)
-    {
-      basis_mats(x) = make_basis_matrix(spline_basis_prob,
-                                        params["basis_knot_distance"](x),       // kstep
-                                        params["basis_deg"](x),                 // degree
-                                        params["basis_knot_distance_power"](x), // uneven grid
-                                        P % 2 == 0);                            // even
-    }
-    else if (
-        params["basis_deg"](x) != params["basis_deg"](x - 1) ||
-        params["basis_knot_distance"](x) != params["basis_knot_distance"](x - 1) ||
-        params["basis_knot_distance_power"](x) != params["basis_knot_distance_power"](x - 1))
-    {
-      basis_mats(x) = make_basis_matrix(spline_basis_prob,
-                                        params["basis_knot_distance"](x),       // kstep
-                                        params["basis_deg"](x),                 // degree
-                                        params["basis_knot_distance_power"](x), // uneven grid
-                                        P % 2 == 0);                            // even
-    }
-
-    // In second step: skip if recalc is not necessary:
-    if (x == 0)
-    {
-      basis_mats_mv(x) = make_basis_matrix(spline_basis_mv,
-                                           params["mv_basis_knot_distance"](x),       // kstep
-                                           params["mv_basis_deg"](x),                 // degree
-                                           params["mv_basis_knot_distance_power"](x), // uneven
-                                           D % 2 == 0)
-                             .t(); // even
-    }
-    else if (params["mv_basis_knot_distance"](x) != params["mv_basis_knot_distance"](x - 1) ||
-             params["mv_basis_knot_distance_power"](x) != params["mv_basis_knot_distance_power"](x - 1) ||
-             params["mv_basis_deg"](x) != params["mv_basis_deg"](x - 1))
-    {
-      basis_mats_mv(x) = make_basis_matrix(spline_basis_mv,
-                                           params["mv_p_smooth_knot_distance_power"](x), // kstep
-                                           params["mv_basis_deg"](x),                    // degree
-                                           params["mv_basis_knot_distance_power"](x),    // uneven grid
-                                           D % 2 == 0)
-                             .t(); // even
-    }
-
-    if (x == 0)
-    {
-      if (params["p_smooth_lambda"](x) != -datum::inf)
-        hat_mats(x) = make_hat_matrix(spline_basis_prob,
-                                      params["p_smooth_knot_distance"](x),       // kstep
-                                      params["p_smooth_lambda"](x),              // lambda
-                                      params["smooth_diff"](x),                  // differences
-                                      params["p_smooth_deg"](x),                 // degree
-                                      params["p_smooth_knot_distance_power"](x), // uneven grid
-                                      P % 2 == 0);                               // even
-    }
-    else if (
-        params["p_smooth_knot_distance"](x) != params["p_smooth_knot_distance"](x - 1) ||
-        params["p_smooth_lambda"](x) != params["p_smooth_lambda"](x - 1) ||
-        params["smooth_diff"](x) != params["smooth_diff"](x - 1) ||
-        params["p_smooth_deg"](x) != params["p_smooth_deg"](x - 1) ||
-        params["p_smooth_knot_distance_power"](x) != params["p_smooth_knot_distance_power"](x - 1))
-    {
-      if (params["p_smooth_lambda"](x) != -datum::inf)
-        hat_mats(x) = make_hat_matrix(spline_basis_prob,
-                                      params["p_smooth_knot_distance"](x),       // kstep
-                                      params["p_smooth_lambda"](x),              // lambda
-                                      params["smooth_diff"](x),                  // differences
-                                      params["p_smooth_deg"](x),                 // degree
-                                      params["p_smooth_knot_distance_power"](x), // uneven grid
-                                      P % 2 == 0);                               // even
-    }
-
-    if (x == 0 ||
-        params["mv_p_smooth_knot_distance"](x) != params["mv_p_smooth_knot_distance"](x - 1) ||
-        params["mv_p_smooth_lambda"](x) != params["mv_p_smooth_lambda"](x - 1) ||
-        params["mv_p_smooth_ndiff"](x) != params["mv_p_smooth_ndiff"](x - 1) ||
-        params["mv_p_smooth_deg"](x) != params["mv_p_smooth_deg"](x - 1) ||
-        params["mv_p_smooth_knot_distance_power"](x) != params["mv_p_smooth_knot_distance_power"](x - 1))
-    {
-      if (params["mv_p_smooth_lambda"](x) != -datum::inf)
-        hat_mats_mv(x) = make_hat_matrix(spline_basis_mv,
-                                         params["mv_p_smooth_knot_distance"](x),       // kstep
-                                         params["mv_p_smooth_lambda"](x),              // lambda
-                                         params["mv_p_smooth_ndiff"](x),               // differences
-                                         params["mv_p_smooth_deg"](x),                 // degree
-                                         params["mv_p_smooth_knot_distance_power"](x), // uneven grid
-                                         D % 2 == 0);                                  // even
-        }
-    prog.increment();
-  }
-
-  // Note that this can't be parralelized due to basis_mats(x - 1)
-  for (unsigned int x = 0; x < X; x++)
-  {
-    if (x > 0)
-    {
-      if (
-          params["basis_deg"](x) == params["basis_deg"](x - 1) &&
-          params["basis_knot_distance"](x) == params["basis_knot_distance"](x - 1) &&
-          params["basis_knot_distance_power"](x) == params["basis_knot_distance_power"](x - 1))
-      {
-        basis_mats(x) = basis_mats(x - 1);
-      }
-
-      if (
-          params["p_smooth_knot_distance"](x) == params["p_smooth_knot_distance"](x - 1) &&
-          params["p_smooth_lambda"](x) == params["p_smooth_lambda"](x - 1) &&
-          params["smooth_diff"](x) == params["smooth_diff"](x - 1) &&
-          params["p_smooth_deg"](x) == params["p_smooth_deg"](x - 1) &&
-          params["p_smooth_knot_distance_power"](x) == params["p_smooth_knot_distance_power"](x - 1))
-      {
-        hat_mats(x) = hat_mats(x - 1);
-      }
-
-      if (
-          params["mv_basis_knot_distance"](x) == params["mv_basis_knot_distance"](x - 1) &&
-          params["mv_basis_knot_distance_power"](x) == params["mv_basis_knot_distance_power"](x - 1) &&
-          params["mv_basis_deg"](x) == params["mv_basis_deg"](x - 1))
-      {
-        basis_mats_mv(x) = basis_mats_mv(x - 1);
-      }
-
-      if (
-          params["mv_p_smooth_knot_distance"](x) == params["mv_p_smooth_knot_distance"](x - 1) &&
-          params["mv_p_smooth_lambda"](x) == params["mv_p_smooth_lambda"](x - 1) &&
-          params["mv_p_smooth_ndiff"](x) == params["mv_p_smooth_ndiff"](x - 1) &&
-          params["mv_p_smooth_deg"](x) == params["mv_p_smooth_deg"](x - 1) &&
-          params["mv_p_smooth_knot_distance_power"](x) == params["mv_p_smooth_knot_distance_power"](x - 1))
-      {
-        hat_mats_mv(x) = hat_mats_mv(x - 1);
-      }
-    }
-  }
-
   // #pragma omp parallel for
   for (unsigned int x = 0; x < X; x++)
   {
 
-    if (params["p_smooth_lambda"](x) != -datum::inf)
-    {
-      hat_mats(x) = basis_mats(x).t() * hat_mats(x);
-    }
-
-    if (params["mv_p_smooth_lambda"](x) != -datum::inf)
-    {
-      hat_mats_mv(x) = hat_mats_mv(x) * basis_mats_mv(x).t();
-    }
-
-    unsigned int Pr = basis_mats(x).n_cols;
-    unsigned int Dr = basis_mats_mv(x).n_rows;
+    unsigned int Pr = basis_pr(params["basis_pr_idx"](x)).n_cols;
+    unsigned int Dr = basis_mv(params["basis_mv_idx"](x)).n_cols;
 
     // Learning parameters
     V(x).zeros(Dr, Pr, K);
@@ -661,11 +505,17 @@ Rcpp::List online_rcpp(
 
     for (unsigned int k = 0; k < K; k++)
     {
-      R(x).slice(k) = basis_mats_mv(x) * R0.slice(k) * basis_mats(x);
-      R_reg(x).slice(k) = basis_mats_mv(x) * R0.slice(k) * basis_mats(x);
-      beta(x).slice(k) = pinv(mat(basis_mats_mv(x))).t() * w0.slice(k) * pinv(mat(basis_mats(x))).t();
+      R(x).slice(k) = basis_mv(params["basis_mv_idx"](x)).t() *
+                      R0.slice(k) *
+                      basis_pr(params["basis_pr_idx"](x));
+      R_reg(x).slice(k) = basis_mv(params["basis_mv_idx"](x)).t() *
+                          R0.slice(k) *
+                          basis_pr(params["basis_pr_idx"](x));
+      beta(x).slice(k) = pinv(
+                             mat(basis_mv(params["basis_mv_idx"](x)))) *
+                         w0.slice(k) *
+                         pinv(mat(basis_pr(params["basis_pr_idx"](x)))).t();
     }
-
     beta0field(x) = beta(x);
     prog.increment(); // Update progress
   }
@@ -706,9 +556,6 @@ Rcpp::List online_rcpp(
     past_performance(t).fill(datum::nan);
   }
 
-  cube loss_for(T, D, P, fill::zeros);
-  field<cube> loss_exp(T);
-
   const int start = lead_time;
   clock.tock("init");
 
@@ -742,10 +589,10 @@ Rcpp::List online_rcpp(
       V,
       E,
       eta,
-      hat_mats,
-      hat_mats_mv,
-      basis_mats,
-      basis_mats_mv,
+      hat_pr,
+      hat_mv,
+      basis_pr,
+      basis_mv,
       beta0field,
       beta,
       cum_performance,
@@ -794,10 +641,10 @@ Rcpp::List online_rcpp(
       Rcpp::Named("weights_tmp") = weights_tmp,
       Rcpp::Named("predictions_tmp") = predictions_tmp,
       Rcpp::Named("cum_performance") = cum_performance,
-      Rcpp::Named("hat_matrices") = hat_mats,
-      Rcpp::Named("hat_matrices_mv") = hat_mats_mv,
-      Rcpp::Named("basis_matrices") = basis_mats,
-      Rcpp::Named("basis_matrices_mv") = basis_mats_mv,
+      Rcpp::Named("hat_pr") = hat_pr,
+      Rcpp::Named("hat_mv") = hat_mv,
+      Rcpp::Named("basis_pr") = basis_pr,
+      Rcpp::Named("basis_mv") = basis_mv,
       Rcpp::Named("V") = V,
       Rcpp::Named("E") = E,
       Rcpp::Named("k") = k,
@@ -915,10 +762,10 @@ Rcpp::List update_online(
   arma::field<cube> weights(T + 1);
   weights.rows(0, start) = Rcpp::as<arma::field<cube>>(object["weights"]);
 
-  field<mat> hat_mats = model_objects["hat_matrices"];
-  field<sp_mat> basis_mats = model_objects["basis_matrices"];
-  field<mat> hat_mats_mv = model_objects["hat_matrices_mv"];
-  field<sp_mat> basis_mats_mv = model_objects["basis_matrices_mv"];
+  const field<sp_mat> hat_pr = model_objects["hat_pr"];
+  const field<sp_mat> hat_mv = model_objects["hat_mv"];
+  const field<sp_mat> basis_pr = model_objects["basis_pr"];
+  const field<sp_mat> basis_mv = model_objects["basis_mv"];
 
   arma::field<cube> V = model_objects["V"];
   arma::field<cube> E = model_objects["E"];
@@ -981,10 +828,10 @@ Rcpp::List update_online(
       V,
       E,
       eta,
-      hat_mats,
-      hat_mats_mv,
-      basis_mats,
-      basis_mats_mv,
+      hat_pr,
+      hat_mv,
+      basis_pr,
+      basis_mv,
       beta0field,
       beta,
       cum_performance,
