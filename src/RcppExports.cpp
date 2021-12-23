@@ -239,7 +239,7 @@ BEGIN_RCPP
 END_RCPP
 }
 
-RcppExport SEXP _rcpp_module_boot_RcppStudentEx();
+RcppExport SEXP _rcpp_module_boot_conlineEx();
 
 static const R_CallMethodDef CallEntries[] = {
     {"_profoc_batch_rcpp", (DL_FUNC) &_profoc_batch_rcpp, 17},
@@ -254,7 +254,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_make_hat_matrix", (DL_FUNC) &_profoc_make_hat_matrix, 7},
     {"_profoc_make_basis_matrix", (DL_FUNC) &_profoc_make_basis_matrix, 5},
     {"_profoc_make_basis_matrix2", (DL_FUNC) &_profoc_make_basis_matrix2, 3},
-    {"_rcpp_module_boot_RcppStudentEx", (DL_FUNC) &_rcpp_module_boot_RcppStudentEx, 0},
+    {"_rcpp_module_boot_conlineEx", (DL_FUNC) &_rcpp_module_boot_conlineEx, 0},
     {NULL, NULL, 0}
 };
 
