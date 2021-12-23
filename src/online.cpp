@@ -18,7 +18,8 @@
 
 using namespace arma;
 
-static void online_learning_core(
+static void
+online_learning_core(
     const unsigned int &T,
     const unsigned int &D,
     const unsigned int &P,
