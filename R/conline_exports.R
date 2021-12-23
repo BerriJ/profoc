@@ -12,7 +12,7 @@
 #' A `Student` object from the _C++_ Student Class.
 #'
 #' @examples
-#' TODO
+#' # TODO
 #' @name conline
 #' @export conline
 

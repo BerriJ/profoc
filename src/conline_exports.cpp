@@ -1,11 +1,11 @@
-// [[Rcpp::depends(RcppArmadillo)]]
+
 #include <RcppArmadillo.h>
 #include "conline.h"
 
-using namespace Rcpp; // Don't touch this!
-
 RCPP_MODULE(conlineEx)
 {
+  using namespace Rcpp;
+
   class_<conline>("conline")
       .constructor()
       .field("A", &conline::A)

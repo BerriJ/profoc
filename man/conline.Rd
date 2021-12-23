@@ -18,5 +18,5 @@ Allows for the creation of a Student Object in _C++_ from _R_
 using the _C++_ Student class.
 }
 \examples{
-TODO
+# TODO
 }
