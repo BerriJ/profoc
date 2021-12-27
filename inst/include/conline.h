@@ -6,10 +6,23 @@
 class conline
 {
 public:
-    conline() {} // Default initializer, somehow important for RcppModules
-    arma::mat A;
+    arma::mat y;
+    arma::field<arma::cube> experts{0};
+    const unsigned int &T = y.n_rows;
+    const unsigned int &D = experts(0).n_rows;
+    const unsigned int &P = experts(0).n_cols;
+    const unsigned int &K = experts(0).n_slices;
+
     double x;
-    double y;
+
+    // Constructors
+    conline() = default; // Default constructor
+
+    // Getters
+    inline int getT() { return T; }
+    inline int getD() { return D; }
+    inline int getP() { return P; }
+    inline int getK() { return K; }
 };
 
 #endif
