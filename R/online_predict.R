@@ -54,9 +54,12 @@ predict.online <- function(object, new_experts, update_model = TRUE, ...) {
             new_predictions,
             along = 1
         )
-        object$specification$data$experts <- rbind(
+        object$specification$data$experts <- c(
             object$specification$data$experts,
             array_to_list(new_experts)
+        )
+        dim(object$specification$data$experts) <- c(
+            length(object$specification$data$experts), 1, 1
         )
         return(object)
     } else {

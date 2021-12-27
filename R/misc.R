@@ -5,7 +5,7 @@ array_to_list <- function(x) {
         function(y, x) adrop(asub(x, idx = y, dims = 1, FALSE), drop = 1),
         x = x
     )
-    dim(x) <- c(length(x), 1)
+    dim(x) <- c(length(x), 1, 1)
     return(x)
 }
 

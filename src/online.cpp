@@ -1,8 +1,5 @@
-// [[Rcpp::depends(RcppArmadillo)]]
-// [[Rcpp::depends(RcppProgress)]]
-// [[Rcpp::plugins("cpp11")]]
-
 #define LOG(x) std::cout << x << std::endl
+#define RCPP_ARMADILLO_FIX_Field 1
 
 #include <misc.h>
 #include <loss.h>
