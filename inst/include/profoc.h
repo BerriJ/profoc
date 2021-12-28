@@ -5,4 +5,8 @@
 #define OMP_PROC_BIND true
 // #define OMP_DYNAMIC false
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #endif

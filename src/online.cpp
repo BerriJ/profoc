@@ -9,10 +9,6 @@
 #include <clock.h>
 #include <thread>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 using namespace arma;
 
 static void

@@ -6,6 +6,10 @@
 #include <string>
 #include <map>
 
+#ifndef _OPENMP
+inline int omp_get_thread_num() { return 0; }
+#endif
+
 namespace Rcpp
 {
     namespace sc = std::chrono;
