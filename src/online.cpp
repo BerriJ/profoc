@@ -293,18 +293,18 @@ online_learning_core(
       }   // dr
       clock.tock("learning");
 
-      clock.tick("smoothing");
 #pragma omp parallel for
       // Smoothing
       for (unsigned int k = 0; k < K; k++)
       {
+        clock.tick("smoothing");
         weights_tmp(x).slice(k) = hat_mv(params["hat_mv_idx"](x)) *
                                   basis_mv(params["basis_mv_idx"](x)) *
                                   beta(x).slice(k) *
                                   basis_pr(params["basis_pr_idx"](x)).t() *
                                   hat_pr(params["hat_pr_idx"](x));
+        clock.tock("smoothing");
       }
-      clock.tock("smoothing");
 
 #pragma omp parallel for
       // Enshure that constraints hold
@@ -669,8 +669,6 @@ Rcpp::List online_rcpp(
   out.attr("class") = "online";
 
   clock.tock("wrangle");
-
-  clock.stop("times");
 
   // Rcpp::List out;
   return out;

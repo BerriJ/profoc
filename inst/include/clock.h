@@ -13,42 +13,58 @@ namespace Rcpp
     class Clock
     {
         using tp = sc::high_resolution_clock::time_point;
-        using timesmap = std::map<std::string, tp>;
+        using keypair = std::pair<std::string, int>;
+        using timesmap = std::map<keypair, tp>;
 
     private:
+        std::string name;
         timesmap tickmap;
-        std::string key;
-        std::vector<std::string> keys;
         std::vector<double> timers;
+        std::vector<std::string> names;
 
     public:
+        // Init - Set name of R object
+        Clock() : name("times") {}
+        Clock(std::string name_) : name(name_) {}
+
         // start a timer - save time
         void tick(std::string name)
         {
-            tickmap.insert(
-                std::pair<std::string, tp>(name,
-                                           sc::high_resolution_clock::now()));
+            keypair key(name, omp_get_thread_num());
+#pragma omp critical
+            {
+                tickmap.insert(
+                    std::pair<keypair, tp>(
+                        key,
+                        sc::high_resolution_clock::now()));
+            }
         }
 
         // stop a timer - calculate time difference and save key
-        void tock(std::string name)
+        void
+        tock(std::string name)
         {
-            timers.push_back(
-                sc::duration_cast<sc::nanoseconds>(
-                    sc::high_resolution_clock::now() - tickmap[name])
-                    .count());
-            keys.push_back(name);
+            keypair key(name, omp_get_thread_num());
+#pragma omp critical
+            {
+                timers.push_back(
+                    sc::duration_cast<sc::nanoseconds>(
+                        sc::high_resolution_clock::now() -
+                        tickmap[key])
+                        .count());
+                names.push_back(name);
+            }
         }
 
-        // calculate timer durations
-        void stop(std::string var_name)
+        // Destroy - pass data to R
+        ~Clock()
         {
             DataFrame df = DataFrame::create(
-                Named("Name") = keys,
+                Named("Name") = names,
                 Named("Nanoseconds") = timers);
             df.attr("class") = "cppclock";
             Environment env = Environment::global_env();
-            env[var_name] = df;
+            env[name] = df;
         }
     };
 }
