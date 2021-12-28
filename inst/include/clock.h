@@ -6,14 +6,15 @@
 #include <string>
 #include <map>
 
-#define duration(a) std::chrono::duration_cast<std::chrono::nanoseconds>(a).count()
-
-typedef std::map<std::pair<std::string, int>, std::chrono::steady_clock::time_point> TimesMap;
-
 namespace Rcpp
 {
     class Clock
     {
+
+        typedef std::map<std::pair<std::string, int>,
+                         std::chrono::high_resolution_clock::time_point>
+            TimesMap;
+
     private:
         std::vector<double> timers;
         size_t ticks, tocks = 0;
@@ -27,7 +28,7 @@ namespace Rcpp
             key.first = name;
             key.second = ticks;
             tickmap.insert(
-                std::pair<std::pair<std::string, int>, std::chrono::steady_clock::time_point>(key, std::chrono::steady_clock::now()));
+                std::pair<std::pair<std::string, int>, std::chrono::high_resolution_clock::time_point>(key, std::chrono::high_resolution_clock::now()));
             ticks += 1;
         }
 
@@ -37,7 +38,7 @@ namespace Rcpp
             key.first = name;
             key.second = tocks;
             tockmap.insert(
-                std::pair<std::pair<std::string, int>, std::chrono::steady_clock::time_point>(key, std::chrono::steady_clock::now()));
+                std::pair<std::pair<std::string, int>, std::chrono::high_resolution_clock::time_point>(key, std::chrono::high_resolution_clock::now()));
             tocks += 1;
         }
 
@@ -46,7 +47,7 @@ namespace Rcpp
         {
             std::vector<std::string> keys;
             keys.reserve(tickmap.size());
-            std::vector<std::chrono::steady_clock::time_point> ticks;
+            std::vector<std::chrono::high_resolution_clock::time_point> ticks;
             ticks.reserve(tickmap.size());
             for (auto kv : tickmap)
             {
@@ -54,7 +55,7 @@ namespace Rcpp
                 ticks.push_back(kv.second);
             }
 
-            std::vector<std::chrono::steady_clock::time_point> tocks;
+            std::vector<std::chrono::high_resolution_clock::time_point> tocks;
             tocks.reserve(tockmap.size());
             for (auto kv : tockmap)
             {
