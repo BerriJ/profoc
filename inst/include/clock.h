@@ -7,7 +7,6 @@
 #include <map>
 
 #define duration(a) std::chrono::duration_cast<std::chrono::nanoseconds>(a).count()
-#define now() std::chrono::steady_clock::now()
 
 typedef std::map<std::pair<std::string, int>, std::chrono::steady_clock::time_point> TimesMap;
 
@@ -28,7 +27,7 @@ namespace Rcpp
             key.first = name;
             key.second = ticks;
             tickmap.insert(
-                std::pair<std::pair<std::string, int>, std::chrono::steady_clock::time_point>(key, now()));
+                std::pair<std::pair<std::string, int>, std::chrono::steady_clock::time_point>(key, std::chrono::steady_clock::now()));
             ticks += 1;
         }
 
@@ -38,7 +37,7 @@ namespace Rcpp
             key.first = name;
             key.second = tocks;
             tockmap.insert(
-                std::pair<std::pair<std::string, int>, std::chrono::steady_clock::time_point>(key, now()));
+                std::pair<std::pair<std::string, int>, std::chrono::steady_clock::time_point>(key, std::chrono::steady_clock::now()));
             tocks += 1;
         }
 
@@ -64,7 +63,10 @@ namespace Rcpp
 
             for (std::size_t i = 0; i < ticks.size(); ++i)
             {
-                timers.push_back(duration(tocks[i] - ticks[i]));
+                timers.push_back(
+                    std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        tocks[i] - ticks[i])
+                        .count());
             }
             DataFrame df = DataFrame::create(
                 Named("Name") = keys,
