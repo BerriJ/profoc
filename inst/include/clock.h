@@ -7,9 +7,9 @@
 #include <map>
 
 #define duration(a) std::chrono::duration_cast<std::chrono::nanoseconds>(a).count()
-#define now() std::chrono::high_resolution_clock::now()
+#define now() std::chrono::steady_clock::now()
 
-typedef std::map<std::pair<std::string, int>, std::chrono::high_resolution_clock::time_point> TimesMap;
+typedef std::map<std::pair<std::string, int>, std::chrono::steady_clock::time_point> TimesMap;
 
 namespace Rcpp
 {
@@ -28,7 +28,7 @@ namespace Rcpp
             key.first = name;
             key.second = ticks;
             tickmap.insert(
-                std::pair<std::pair<std::string, int>, std::chrono::high_resolution_clock::time_point>(key, now()));
+                std::pair<std::pair<std::string, int>, std::chrono::steady_clock::time_point>(key, now()));
             ticks += 1;
         }
 
@@ -38,7 +38,7 @@ namespace Rcpp
             key.first = name;
             key.second = tocks;
             tockmap.insert(
-                std::pair<std::pair<std::string, int>, std::chrono::high_resolution_clock::time_point>(key, now()));
+                std::pair<std::pair<std::string, int>, std::chrono::steady_clock::time_point>(key, now()));
             tocks += 1;
         }
 
@@ -47,7 +47,7 @@ namespace Rcpp
         {
             std::vector<std::string> keys;
             keys.reserve(tickmap.size());
-            std::vector<std::chrono::high_resolution_clock::time_point> ticks;
+            std::vector<std::chrono::steady_clock::time_point> ticks;
             ticks.reserve(tickmap.size());
             for (auto kv : tickmap)
             {
@@ -55,7 +55,7 @@ namespace Rcpp
                 ticks.push_back(kv.second);
             }
 
-            std::vector<std::chrono::high_resolution_clock::time_point> tocks;
+            std::vector<std::chrono::steady_clock::time_point> tocks;
             tocks.reserve(tockmap.size());
             for (auto kv : tockmap)
             {
@@ -66,8 +66,9 @@ namespace Rcpp
             {
                 timers.push_back(duration(tocks[i] - ticks[i]));
             }
-            DataFrame df = DataFrame::create(Named("ticker") = keys, Named("timer") = timers);
-            df.attr("class") = "RcppClock";
+            DataFrame df = DataFrame::create(
+                Named("Name") = keys,
+                Named("Nanoseconds") = timers);
             Environment env = Environment::global_env();
             env[var_name] = df;
         }
