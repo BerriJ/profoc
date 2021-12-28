@@ -8,13 +8,15 @@
 
 namespace Rcpp
 {
+    namespace sc = std::chrono;
+
     class Clock
     {
+        using tp = sc::high_resolution_clock::time_point;
+        using timesmap = std::map<std::string, tp>;
 
     private:
-        std::map<std::string,
-                 std::chrono::high_resolution_clock::time_point>
-            tickmap;
+        timesmap tickmap;
         std::string key;
         std::vector<std::string> keys;
         std::vector<double> timers;
@@ -24,15 +26,16 @@ namespace Rcpp
         void tick(std::string name)
         {
             tickmap.insert(
-                std::pair<std::string, std::chrono::high_resolution_clock::time_point>(name, std::chrono::high_resolution_clock::now()));
+                std::pair<std::string, tp>(name,
+                                           sc::high_resolution_clock::now()));
         }
 
         // stop a timer - calculate time difference and save key
         void tock(std::string name)
         {
             timers.push_back(
-                std::chrono::duration_cast<std::chrono::nanoseconds>(
-                    std::chrono::high_resolution_clock::now() - tickmap[name])
+                sc::duration_cast<sc::nanoseconds>(
+                    sc::high_resolution_clock::now() - tickmap[name])
                     .count());
             keys.push_back(name);
         }
