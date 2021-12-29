@@ -40,27 +40,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// makeOnline
-conline makeOnline();
-RcppExport SEXP _profoc_makeOnline() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(makeOnline());
-    return rcpp_result_gen;
-END_RCPP
-}
-// addtox
-void addtox(conline& x, double& z);
-RcppExport SEXP _profoc_addtox(SEXP xSEXP, SEXP zSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< conline& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< double& >::type z(zSEXP);
-    addtox(x, z);
-    return R_NilValue;
-END_RCPP
-}
 // loss
 double loss(const double& y, const double& x, const double& pred, const std::string method, const double& tau, const double& a, const bool& gradient);
 RcppExport SEXP _profoc_loss(SEXP ySEXP, SEXP xSEXP, SEXP predSEXP, SEXP methodSEXP, SEXP tauSEXP, SEXP aSEXP, SEXP gradientSEXP) {
@@ -266,8 +245,6 @@ RcppExport SEXP _rcpp_module_boot_conlineEx();
 
 static const R_CallMethodDef CallEntries[] = {
     {"_profoc_batch_rcpp", (DL_FUNC) &_profoc_batch_rcpp, 17},
-    {"_profoc_makeOnline", (DL_FUNC) &_profoc_makeOnline, 0},
-    {"_profoc_addtox", (DL_FUNC) &_profoc_addtox, 2},
     {"_profoc_loss", (DL_FUNC) &_profoc_loss, 7},
     {"_profoc_loss_grad_wrt_w", (DL_FUNC) &_profoc_loss_grad_wrt_w, 7},
     {"_profoc_online_rcpp", (DL_FUNC) &_profoc_online_rcpp, 20},

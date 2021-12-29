@@ -94,7 +94,7 @@ arma::sp_mat make_hat_matrix(
         for (double &e : H)
         {
             if (fabs(e) < 1E-10)
-                e = 0;
+                e = 0; // TODO use .clean( threshold ) instead
         }
     }
     else
@@ -123,7 +123,7 @@ arma::sp_mat make_basis_matrix(const arma::vec &x, const double &kstep, const in
         for (double &e : B)
         {
             if (fabs(e) < 1E-10)
-                e = 0;
+                e = 0; // TODO use .clean( threshold ) instead
         }
     }
     else
@@ -151,7 +151,7 @@ arma::sp_mat make_basis_matrix2(const arma::vec &x,
     for (double &e : B)
     {
         if (fabs(e) < 1E-10)
-            e = 0;
+            e = 0; // TODO use .clean( threshold ) instead
     }
 
     sp_mat out(B);

@@ -1,5 +1,16 @@
+#include <misc.h>
+#include <loss.h>
+
+#include <RcppArmadillo.h>
+#include <progress.hpp>
+#include <clock.h>
+#include <thread>
+
 //  Student.cpp
 #include "conline.h"
+
+// conline class was exposed via "profoc_types.h"
+// So we can use it here as input and output if necessary
 
 // Constructor
 
@@ -8,18 +19,21 @@
 // Methods
 
 // Functions
-// conline class was exposed via "profoc_types.h"
-// So we can use it here as input and output if necessary
-
-// [[Rcpp::export]]
-conline makeOnline()
+void conline::init_objects()
 {
-    conline d;
-    return d;
+    // Expand tau if necessary
+    if (tau.n_elem == 1)
+    {
+        tau.resize(P);
+        tau.fill(tau(0));
+    }
 }
 
-// [[Rcpp::export]]
-void addtox(conline &x, double &z)
-{
-    x.x += z;
-}
+// // [[Rcpp::export]]
+// arma::field<arma::mat> test()
+// {
+//     arma::mat A(3, 3);
+//     arma::field<arma::mat> F(1, 1, 1);
+//     F(0, 0, 0) = A;
+//     return (F);
+// }
