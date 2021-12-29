@@ -32,23 +32,20 @@ namespace Rcpp
         Clock(std::string name_) : name(name_) {}
 
         // start a timer - save time
-        void tick(std::string name)
+        void tick(std::string &&name)
         {
-            keypair key(name, omp_get_thread_num());
+            keypair key(std::move(name), omp_get_thread_num());
 #pragma omp critical
             {
-                tickmap.insert(
-                    std::pair<keypair, tp>(
-                        key,
-                        sc::high_resolution_clock::now()));
+                tickmap[key] = sc::high_resolution_clock::now();
             }
         }
 
         // stop a timer - calculate time difference and save key
         void
-        tock(std::string name)
+        tock(std::string &&name)
         {
-            keypair key(name, omp_get_thread_num());
+            keypair key(std::move(name), omp_get_thread_num());
 #pragma omp critical
             {
                 timers.push_back(
@@ -56,7 +53,7 @@ namespace Rcpp
                         sc::high_resolution_clock::now() -
                         tickmap[key])
                         .count());
-                names.push_back(name);
+                names.push_back(std::move(key.first));
             }
         }
 

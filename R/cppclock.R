@@ -3,8 +3,8 @@
 #' @export
 print.cppclock <- function(x, ...) {
     df <- data.frame(
-        Av_Nanosecs = tapply(x$Nanoseconds, x$Name, mean),
-        SD = tapply(x$Nanoseconds, x$Name, stats::sd),
+        Microsecs = round(tapply(x$Nanoseconds * 1e-3, x$Name, mean)),
+        SD = round(tapply(x$Nanoseconds * 1e-3, x$Name, stats::sd)),
         Obs = tapply(x$Nanoseconds, x$Name, length)
     )
     print(df, row.names = TRUE)
