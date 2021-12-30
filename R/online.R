@@ -337,34 +337,19 @@ online <- function(y, experts, tau,
             0,
             dim = c(D, P, K)
         )
-        model_instance$R0 <- init$R0
+        model_instance$R0 <- init$R0 # TODO init_objects()
     }
+
+    model_instance$allow_quantile_crossing <- allow_quantile_crossing
+    model_instance$loss_function <- loss_function
+    model_instance$loss_gradient <- loss_gradient
+    model_instance$loss_parameter <- loss_parameter
+    model_instance$method <- method
 
     model_instance$init_objects()
     model_instance$learn()
 
-    model <- online_rcpp(
-        y = y,
-        experts = experts,
-        tau = tau,
-        lead_time = lead_time,
-        loss_function = loss_function,
-        loss_parameter = loss_parameter,
-        loss_gradient = loss_gradient,
-        method = method,
-        param_grid = parametergrid,
-        basis_pr = basis_list_pr,
-        basis_mv = basis_list_mv,
-        hat_pr = hat_list_pr,
-        hat_mv = hat_list_mv,
-        forget_past_performance = forget_past_performance,
-        allow_quantile_crossing = allow_quantile_crossing,
-        w0 = init$init_weights,
-        R0 = init$R0,
-        loss_array = loss_array,
-        regret_array = regret_array,
-        trace = trace
-    )
+    model <- model_instance$output()
 
     dimnames(model$specification$data$y) <- dimnames(y)
 

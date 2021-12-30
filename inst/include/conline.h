@@ -9,7 +9,7 @@ class conline
 public:
     // Data
     arma::mat y;
-    arma::field<arma::cube> experts{1, 1, 1};
+    arma::field<arma::cube> experts;
     arma::vec tau;
 
     // Hyperparameters
@@ -39,8 +39,8 @@ public:
     arma::cube R0;
 
     // Externally specified loss/regret
-    arma::field<arma::cube> loss_array{1, 1, 1};
-    arma::field<arma::cube> regret_array{1, 1, 1};
+    arma::field<arma::cube> loss_array;
+    arma::field<arma::cube> regret_array;
 
     // Dimension shortcuts - for convenience
 #define T y.n_rows
@@ -85,10 +85,7 @@ public:
     Rcpp::Clock clock;
 
     // Constructors
-    conline()
-    {
-        clock.tick("init");
-    }; // Default constructor
+    conline(){}; // Default constructor
 
     // Getters
     inline int getT() { return T; }
@@ -100,6 +97,12 @@ public:
     // Methods
     void init_objects();
     void learn();
+    void init_update(
+        Rcpp::List &object,
+        arma::mat &new_y,
+        arma::field<arma::cube> &new_experts,
+        const bool trace);
+    Rcpp::List output();
 
     // Destructors
     ~conline(){}; // Default destructor

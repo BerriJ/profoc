@@ -57,6 +57,7 @@ void conline::init_objects()
 
     for (unsigned int x = 0; x < X; x++)
     {
+        clock.tick("init");
         unsigned int Pr = basis_pr(params["basis_pr_idx"](x)).n_cols;
         unsigned int Dr = basis_mv(params["basis_mv_idx"](x)).n_cols;
 
@@ -469,11 +470,173 @@ void conline::learn()
     clock.tock("core");
 }
 
-// // [[Rcpp::export]]
-// arma::field<arma::mat> test()
-// {
-//     arma::mat A(3, 3);
-//     arma::field<arma::mat> F(1, 1, 1);
-//     F(0, 0, 0) = A;
-//     return (F);
-// }
+Rcpp::List conline::output()
+{
+    clock.tick("wrangle");
+
+    // // 1-Indexing for R-Output
+    opt_index = opt_index + 1;
+
+    // Set unused values to NA
+    // if (lead_time > 0)
+    // {
+    //   chosen_params.rows(0, lead_time - 1).fill(datum::nan); # TODO
+    // }
+
+    // Rcpp::NumericMatrix parametergrid_out = Rcpp::wrap(param_grid);
+
+    // Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
+
+    Rcpp::List model_data = Rcpp::List::create(
+        Rcpp::Named("y") = y,
+        Rcpp::Named("experts") = experts,
+        Rcpp::Named("tau") = tau);
+
+    Rcpp::List model_parameters = Rcpp::List::create(
+        Rcpp::Named("lead_time") = lead_time,
+        Rcpp::Named("loss_function") = loss_function,
+        Rcpp::Named("loss_parameter") = loss_parameter,
+        Rcpp::Named("loss_gradient") = loss_gradient,
+        Rcpp::Named("method") = method,
+        Rcpp::Named("forget_past_performance") = forget_past_performance,
+        Rcpp::Named("allow_quantile_crossing") = allow_quantile_crossing);
+
+    Rcpp::List model_objects = Rcpp::List::create(
+        Rcpp::Named("weights_tmp") = weights_tmp,
+        Rcpp::Named("predictions_tmp") = predictions_tmp,
+        Rcpp::Named("cum_performance") = cum_performance,
+        Rcpp::Named("hat_pr") = hat_pr,
+        Rcpp::Named("hat_mv") = hat_mv,
+        Rcpp::Named("basis_pr") = basis_pr,
+        Rcpp::Named("basis_mv") = basis_mv,
+        Rcpp::Named("V") = V,
+        Rcpp::Named("E") = E,
+        Rcpp::Named("k") = k,
+        Rcpp::Named("eta") = eta,
+        Rcpp::Named("R") = R,
+        Rcpp::Named("R_reg") = R_reg,
+        Rcpp::Named("beta") = beta,
+        Rcpp::Named("beta0field") = beta0field);
+
+    Rcpp::List model_spec = Rcpp::List::create(
+        Rcpp::Named("data") = model_data,
+        Rcpp::Named("parameters") = model_parameters,
+        Rcpp::Named("objects") = model_objects);
+
+    Rcpp::List out = Rcpp::List::create(
+        Rcpp::Named("predictions") = predictions,
+        Rcpp::Named("weights") = weights,
+        Rcpp::Named("forecaster_loss") = loss_for,
+        Rcpp::Named("experts_loss") = loss_exp,
+        Rcpp::Named("past_performance") = past_performance,
+        // Rcpp::Named("chosen_parameters") = chosen_parameters,
+        Rcpp::Named("opt_index") = opt_index,
+        Rcpp::Named("parametergrid") = param_grid,
+        Rcpp::Named("specification") = model_spec);
+
+    out.attr("class") = "online";
+
+    clock.tock("wrangle");
+    // Rcpp::List out;
+    return out;
+}
+
+void conline::init_update(
+    Rcpp::List &object,
+    arma::mat &new_y,
+    arma::field<arma::cube> &new_experts,
+    const bool trace)
+{
+
+    clock.tick("init");
+
+    // This creates a references not copies
+    Rcpp::List specification = object["specification"];
+    Rcpp::List model_parameters = specification["parameters"];
+    Rcpp::List model_data = specification["data"];
+    Rcpp::List model_objects = specification["objects"];
+
+    // Data
+
+    // Join old and new expert_predictions
+    arma::field<cube> old_experts = model_data["experts"];
+    experts.set_size(old_experts.n_rows + new_experts.n_rows);
+    experts.rows(0, old_experts.n_rows - 1) = old_experts;
+    if (new_experts.n_rows > 0)
+    {
+        experts.rows(old_experts.n_rows, experts.n_rows - 1) = new_experts;
+    }
+
+    y = Rcpp::as<arma::mat>(model_data["y"]);
+    y.insert_rows(y.n_rows, new_y);
+    start = T - new_y.n_rows;
+
+    if (T_E_Y < 0)
+        Rcpp::stop("Number of provided expert predictions has to match or exceed observations.");
+
+    tau = Rcpp::as<arma::vec>(model_data["tau"]);
+
+    param_grid = Rcpp::as<Rcpp::NumericMatrix>(object["parametergrid"]);
+    params = mat_to_map(param_grid);
+
+    chosen_params.set_size(T, param_grid.cols()); // Just a placeholder fow now
+    // // mat chosen_params = object["chosen_parameters"];
+    // // chosen_params.resize(T, param_grid.cols()); # TODO
+    opt_index = Rcpp::as<arma::vec>(object["opt_index"]);
+    // Zero indexing in C++
+    opt_index -= 1;
+    opt_index.resize(T + 1);
+
+    past_performance.set_size(T);
+    past_performance.rows(0, start - 1) =
+        Rcpp::as<arma::field<cube>>(object["past_performance"]);
+
+    tmp_performance.zeros(X);
+    cum_performance = Rcpp::as<arma::vec>(model_objects["cum_performance"]);
+
+    weights_tmp =
+        Rcpp::as<arma::field<cube>>(model_objects["weights_tmp"]);
+
+    predictions_tmp.set_size(T + T_E_Y);
+    predictions_tmp.rows(0, old_experts.n_rows - 1) = Rcpp::as<arma::field<cube>>(model_objects["predictions_tmp"]);
+
+    // // Output Objects
+    predictions = Rcpp::as<arma::cube>(object["predictions"]);
+    predictions.resize(T + T_E_Y, D, P);
+    arma::field<cube> weights(T + 1);
+    weights.rows(0, start) = Rcpp::as<arma::field<cube>>(object["weights"]);
+
+    basis_pr = Rcpp::as<arma::field<arma::sp_mat>>(model_objects["basis_pr"]);
+    basis_mv = Rcpp::as<arma::field<arma::sp_mat>>(model_objects["basis_mv"]);
+    hat_pr = Rcpp::as<arma::field<arma::sp_mat>>(model_objects["hat_pr"]);
+    hat_mv = Rcpp::as<arma::field<arma::sp_mat>>(model_objects["hat_mv"]);
+
+    V = Rcpp::as<arma::field<cube>>(model_objects["V"]);
+    E = Rcpp::as<arma::field<cube>>(model_objects["E"]);
+    k = Rcpp::as<arma::field<cube>>(model_objects["k"]);
+    eta = Rcpp::as<arma::field<cube>>(model_objects["eta"]);
+    R = Rcpp::as<arma::field<cube>>(model_objects["R"]);
+    R_reg = Rcpp::as<arma::field<cube>>(model_objects["R_reg"]);
+    beta = Rcpp::as<arma::field<cube>>(model_objects["beta"]);
+    beta0field = Rcpp::as<arma::field<cube>>(model_objects["beta0field"]);
+
+    // //   // Misc parameters
+    lead_time = model_parameters["lead_time"];
+    loss_function = Rcpp::as<std::string>(model_parameters["loss_function"]);
+    loss_parameter = model_parameters["loss_parameter"];
+    loss_gradient = model_parameters["loss_gradient"];
+    method = Rcpp::as<std::string>(model_parameters["method"]);
+
+    forget_past_performance = model_parameters["forget_past_performance"];
+    allow_quantile_crossing = model_parameters["allow_quantile_crossing"];
+
+    loss_for.zeros(T, D, P);
+    loss_for.rows(0, start - 1) =
+        Rcpp::as<arma::cube>(object["forecaster_loss"]);
+
+    loss_exp.set_size(T);
+    loss_exp.rows(0, start - 1) =
+        Rcpp::as<arma::field<cube>>(object["experts_loss"]);
+
+    clock.tock("init");
+}
