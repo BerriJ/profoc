@@ -50,7 +50,9 @@
         // Make fancy screenshots
         "pnp.polacode",
         // Live Share
-        "ms-vsliveshare.vsliveshare"
+        "ms-vsliveshare.vsliveshare",
+        // Copilot
+        "github.copilot"
     ],
     // Set *default* container specific settings
     // Important for radian and latex

@@ -127,12 +127,17 @@ online <- function(y, experts, tau,
                    loss = NULL,
                    regret = NULL,
                    trace = TRUE) {
-    edim <- dim(experts)
+    model_instance <- new(conline)
 
+    model_instance$tau <- tau
+
+    edim <- dim(experts)
 
     if (is.vector(y)) {
         y <- matrix(y)
     }
+
+    model_instance$y <- y
 
     if (length(edim) == 3) {
         enames <- dimnames(experts)[[3]]
@@ -151,6 +156,7 @@ online <- function(y, experts, tau,
                 drop = TRUE
             )
             dim(experts) <- c(edim[1], 1)
+            model_instance$experts <- experts
         } else if (ncol(y) == 1) { # Probabilistic univariate
             experts <- lapply(seq_len(edim[1]),
                 asub,
@@ -159,6 +165,7 @@ online <- function(y, experts, tau,
                 drop = FALSE
             )
             dim(experts) <- c(edim[1], 1)
+            model_instance$experts <- experts
         }
     } else if (length(edim) == 4) { # multivariate probabilistic
         enames <- dimnames(experts)[[4]]
@@ -166,6 +173,7 @@ online <- function(y, experts, tau,
             enames <- paste0("E", 1:edim[4])
         }
         experts <- array_to_list(experts)
+        model_instance$experts <- experts
     }
     exdim <- dim(experts[[1]])
 
@@ -182,7 +190,10 @@ online <- function(y, experts, tau,
         stop("Number of expert predictions need to exceed lead_time.")
     }
 
+    model_instance$lead_time <- lead_time
+
     if (is.null(loss)) {
+        # TODO remove
         loss_array <- array(, dim = c(0, 0, 0, 0))
         loss_share <- 0
     } else if (is.array(loss)) {
@@ -192,6 +203,7 @@ online <- function(y, experts, tau,
         }
         dim(loss_array) <- c(T, 1)
         loss_share <- 1
+        model_instance$loss_array <- loss_array
     } else if (is.list(loss)) {
         loss_array <- list()
         for (i in 1:T) {
@@ -199,9 +211,11 @@ online <- function(y, experts, tau,
         }
         dim(loss_array) <- c(T, 1)
         loss_share <- loss$share
+        model_instance$loss_array <- loss_array
     }
 
     if (is.null(regret)) {
+        # TODO remove
         regret_array <- array(, dim = c(0, 0, 0, 0))
         regret_share <- 0
     } else if (is.array(regret)) {
@@ -211,6 +225,7 @@ online <- function(y, experts, tau,
         }
         dim(regret_array) <- c(T, 1)
         regret_share <- 1
+        model_instance$regret_array <- regret_array
     } else if (is.list(regret)) {
         regret_array <- list()
         for (i in 1:T) {
@@ -220,6 +235,7 @@ online <- function(y, experts, tau,
         }
         dim(regret_array) <- c(T, 1)
         regret_share <- regret$share
+        model_instance$regret_array <- regret_array
     }
 
     # Create basis and hat matix lists
@@ -231,6 +247,7 @@ online <- function(y, experts, tau,
         val_or_def(b_smooth_pr$deg, 1),
         P
     )
+    model_instance$basis_pr <- basis_list_pr # TODO move upwarts
 
     # Basis matrices for multivariate smoothing
     basis_list_mv <- make_basis_mats(
@@ -239,6 +256,8 @@ online <- function(y, experts, tau,
         val_or_def(b_smooth_mv$deg, 1),
         D
     )
+
+    model_instance$basis_mv <- basis_list_mv # TODO move upwarts
 
     hat_list_pr <- make_hat_mats(
         val_or_def(p_smooth_pr$knot_distance, 1 / (P + 1)),
@@ -249,6 +268,8 @@ online <- function(y, experts, tau,
         P
     )
 
+    model_instance$hat_pr <- hat_list_pr # TODO move upwarts
+
     hat_list_mv <- make_hat_mats(
         val_or_def(p_smooth_mv$knot_distance, 1 / (D + 1)),
         val_or_def(p_smooth_mv$knot_distance_power, 1),
@@ -257,6 +278,8 @@ online <- function(y, experts, tau,
         val_or_def(p_smooth_mv$diff, 1.5),
         D
     )
+
+    model_instance$hat_mv <- hat_list_mv # TODO move upwarts
 
     if (is.null(parametergrid)) {
         grid <- expand.grid(
@@ -290,6 +313,9 @@ online <- function(y, experts, tau,
         ), ]
     }
 
+    model_instance$param_grid <- parametergrid
+
+    # TODO Move this into  init_objects()
     if (is.null(init$init_weights)) {
         init$init_weights <- array(
             1 / K,
@@ -303,13 +329,18 @@ online <- function(y, experts, tau,
                 init$init_weights[d, p, ] / sum(init$init_weights[d, p, ])
         }
     }
+    model_instance$w0 <- init$init_weights
 
     if (is.null(init$R0)) {
+        # TODO replace by !is.null(init$R0 check)
         init$R0 <- array(
             0,
             dim = c(D, P, K)
         )
+        model_instance$R0 <- init$R0
     }
+
+    model_instance$init_objects()
 
     model <- online_rcpp(
         y = y,

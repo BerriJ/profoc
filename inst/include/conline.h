@@ -2,28 +2,30 @@
 #define conline_h
 
 #include <RcppArmadillo.h>
+#include "clock.h"
 
 class conline
 {
 public:
     // Data
     arma::mat y;
-    arma::field<arma::cube> experts{2, 3, 4};
+    arma::field<arma::cube> experts{1, 1, 1};
     arma::vec tau;
 
     // Hyperparameters
     unsigned int lead_time = 0;
 
-    std::string loss_function{"quantile"};
-    double loss_parameter;
-    bool loss_gradient;
+    std::string loss_function = "quantile";
+    double loss_parameter = 1.0;
+    bool loss_gradient = true;
 
-    std::string method;
+    std::string method = "bewa";
 
     Rcpp::NumericMatrix param_grid;
-    double forget_past_performance;
-    bool allow_quantile_crossing;
-    bool trace;
+    std::map<std::string, arma::vec> params;
+    double forget_past_performance = 0.0;
+    bool allow_quantile_crossing = false;
+    bool trace = true;
 
     // Smoothing matrices
     arma::field<arma::sp_dmat> basis_pr;
@@ -36,18 +38,56 @@ public:
     arma::cube R0;
 
     // Externally specified loss/regret
-    arma::field<arma::cube> loss_array{0};
-    arma::field<arma::cube> regret_array{0};
+    arma::field<arma::cube> loss_array{1, 1, 1};
+    arma::field<arma::cube> regret_array{1, 1, 1};
 
-    // Dimension references - for convenience
-    const unsigned int &T = y.n_rows;
-    const unsigned int &D = experts(0).n_rows;
-    const unsigned int &P = experts(0).n_cols;
-    const unsigned int &K = experts(0).n_slices;
-    const unsigned int &X = param_grid.rows();
+    // Dimension shortcuts - for convenience
+#define T y.n_rows
+#define D experts(0).n_rows
+#define P experts(0).n_cols
+#define K experts(0).n_slices
+#define X param_grid.rows()
+#define T_E_Y experts.n_rows - T
+
+    // Internal objects - TODO provide read access?
+
+    // Loss
+    arma::cube loss_for;
+    arma::field<arma::cube> loss_exp;
+
+    // Weights
+    arma::field<arma::cube> weights_tmp;
+    arma::field<arma::cube> weights;
+
+    // Predictions
+    arma::field<arma::cube> predictions_tmp;
+    arma::cube predictions;
+
+    // Performance related
+    arma::mat chosen_params;
+    arma::vec opt_index;
+    arma::field<arma::cube> past_performance;
+    arma::vec tmp_performance;
+    arma::vec cum_performance;
+
+    // Learning parameters
+    arma::field<arma::cube> V;
+    arma::field<arma::cube> E;
+    arma::field<arma::cube> k;
+    arma::field<arma::cube> eta;
+    arma::field<arma::cube> R;
+    arma::field<arma::cube> R_reg;
+    arma::field<arma::cube> beta;
+    arma::field<arma::cube> beta0field;
+
+    // For benchmarking
+    Rcpp::Clock clock;
 
     // Constructors
-    conline() = default; // Default constructor
+    conline()
+    {
+        clock.tick("init");
+    }; // Default constructor
 
     // Getters
     inline int getT() { return T; }
@@ -60,6 +100,10 @@ public:
     void init_objects();
 
     // Destructors
+    ~conline()
+    {
+        clock.tock("init");
+    }; // Default destructor
 };
 
 #endif
