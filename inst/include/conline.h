@@ -14,6 +14,7 @@ public:
 
     // Hyperparameters
     unsigned int lead_time = 0;
+    int start;
 
     std::string loss_function = "quantile";
     double loss_parameter = 1.0;
@@ -98,12 +99,10 @@ public:
 
     // Methods
     void init_objects();
+    void learn();
 
     // Destructors
-    ~conline()
-    {
-        clock.tock("init");
-    }; // Default destructor
+    ~conline(){}; // Default destructor
 };
 
 #endif

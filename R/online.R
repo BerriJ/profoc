@@ -341,6 +341,7 @@ online <- function(y, experts, tau,
     }
 
     model_instance$init_objects()
+    model_instance$learn()
 
     model <- online_rcpp(
         y = y,
