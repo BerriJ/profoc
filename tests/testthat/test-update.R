@@ -39,8 +39,10 @@ model_partial <- online(
     experts = experts[1:10, , , drop = FALSE],
     trace = FALSE
 )
-
-model_partial <- update(model_partial, new_y = matrix(y[11:15]), new_experts = experts[11:15, , , drop = FALSE])
+model_partial <- update(
+    object = model_partial,
+    new_y = matrix(y[11:15]), new_experts = experts[11:15, , , drop = FALSE]
+)
 # %%
 
 # %%

@@ -15,7 +15,6 @@ update.online <- function(object,
                           new_experts = NULL,
                           trace = FALSE, ...) {
     enames <- dimnames(object$experts_loss)[[4]]
-
     if (is.vector(new_y)) {
         new_y <- matrix(new_y)
     }
@@ -63,7 +62,15 @@ update.online <- function(object,
     object$past_performance <- array_to_list(object$past_performance)
     object$experts_loss <- array_to_list(object$experts_loss)
 
-    update_online(object, new_y, new_experts, trace)
+    model_instance <- new(conline)
+    model_instance$init_update(
+        object,
+        new_y,
+        new_experts,
+        trace
+    )
+    model_instance$learn()
+    object <- model_instance$output()
 
     dimnames(object$specification$data$y) <- dimnames(new_y)
 

@@ -74,50 +74,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// online_rcpp
-Rcpp::List online_rcpp(arma::mat& y, arma::field<arma::cube>& experts, arma::vec tau, const unsigned int& lead_time, const std::string loss_function, const double& loss_parameter, const bool& loss_gradient, const std::string method, Rcpp::NumericMatrix& param_grid, const arma::field<arma::sp_mat>& basis_pr, const arma::field<arma::sp_mat>& basis_mv, const arma::field<arma::sp_mat>& hat_pr, const arma::field<arma::sp_mat>& hat_mv, const double& forget_past_performance, bool allow_quantile_crossing, const arma::cube w0, const arma::cube R0, const arma::field<arma::cube>& loss_array, const arma::field<arma::cube>& regret_array, const bool trace);
-RcppExport SEXP _profoc_online_rcpp(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP lead_timeSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP loss_gradientSEXP, SEXP methodSEXP, SEXP param_gridSEXP, SEXP basis_prSEXP, SEXP basis_mvSEXP, SEXP hat_prSEXP, SEXP hat_mvSEXP, SEXP forget_past_performanceSEXP, SEXP allow_quantile_crossingSEXP, SEXP w0SEXP, SEXP R0SEXP, SEXP loss_arraySEXP, SEXP regret_arraySEXP, SEXP traceSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::field<arma::cube>& >::type experts(expertsSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< const unsigned int& >::type lead_time(lead_timeSEXP);
-    Rcpp::traits::input_parameter< const std::string >::type loss_function(loss_functionSEXP);
-    Rcpp::traits::input_parameter< const double& >::type loss_parameter(loss_parameterSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type loss_gradient(loss_gradientSEXP);
-    Rcpp::traits::input_parameter< const std::string >::type method(methodSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix& >::type param_grid(param_gridSEXP);
-    Rcpp::traits::input_parameter< const arma::field<arma::sp_mat>& >::type basis_pr(basis_prSEXP);
-    Rcpp::traits::input_parameter< const arma::field<arma::sp_mat>& >::type basis_mv(basis_mvSEXP);
-    Rcpp::traits::input_parameter< const arma::field<arma::sp_mat>& >::type hat_pr(hat_prSEXP);
-    Rcpp::traits::input_parameter< const arma::field<arma::sp_mat>& >::type hat_mv(hat_mvSEXP);
-    Rcpp::traits::input_parameter< const double& >::type forget_past_performance(forget_past_performanceSEXP);
-    Rcpp::traits::input_parameter< bool >::type allow_quantile_crossing(allow_quantile_crossingSEXP);
-    Rcpp::traits::input_parameter< const arma::cube >::type w0(w0SEXP);
-    Rcpp::traits::input_parameter< const arma::cube >::type R0(R0SEXP);
-    Rcpp::traits::input_parameter< const arma::field<arma::cube>& >::type loss_array(loss_arraySEXP);
-    Rcpp::traits::input_parameter< const arma::field<arma::cube>& >::type regret_array(regret_arraySEXP);
-    Rcpp::traits::input_parameter< const bool >::type trace(traceSEXP);
-    rcpp_result_gen = Rcpp::wrap(online_rcpp(y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, param_grid, basis_pr, basis_mv, hat_pr, hat_mv, forget_past_performance, allow_quantile_crossing, w0, R0, loss_array, regret_array, trace));
-    return rcpp_result_gen;
-END_RCPP
-}
-// update_online
-Rcpp::List update_online(Rcpp::List& object, arma::mat& new_y, arma::field<arma::cube>& new_experts, const bool trace);
-RcppExport SEXP _profoc_update_online(SEXP objectSEXP, SEXP new_ySEXP, SEXP new_expertsSEXP, SEXP traceSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::List& >::type object(objectSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type new_y(new_ySEXP);
-    Rcpp::traits::input_parameter< arma::field<arma::cube>& >::type new_experts(new_expertsSEXP);
-    Rcpp::traits::input_parameter< const bool >::type trace(traceSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_online(object, new_y, new_experts, trace));
-    return rcpp_result_gen;
-END_RCPP
-}
 // optimize_weights
 arma::vec optimize_weights(const arma::vec& truth, const arma::mat& experts, const bool& affine, const bool& positive, const bool& intercept, const bool& debias, const std::string& loss_function, const double& tau, const double& forget, const double& loss_scaling);
 RcppExport SEXP _profoc_optimize_weights(SEXP truthSEXP, SEXP expertsSEXP, SEXP affineSEXP, SEXP positiveSEXP, SEXP interceptSEXP, SEXP debiasSEXP, SEXP loss_functionSEXP, SEXP tauSEXP, SEXP forgetSEXP, SEXP loss_scalingSEXP) {
@@ -247,8 +203,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_batch_rcpp", (DL_FUNC) &_profoc_batch_rcpp, 17},
     {"_profoc_loss", (DL_FUNC) &_profoc_loss, 7},
     {"_profoc_loss_grad_wrt_w", (DL_FUNC) &_profoc_loss_grad_wrt_w, 7},
-    {"_profoc_online_rcpp", (DL_FUNC) &_profoc_online_rcpp, 20},
-    {"_profoc_update_online", (DL_FUNC) &_profoc_update_online, 4},
     {"_profoc_optimize_weights", (DL_FUNC) &_profoc_optimize_weights, 10},
     {"_profoc_optimize_betas", (DL_FUNC) &_profoc_optimize_betas, 13},
     {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 10},

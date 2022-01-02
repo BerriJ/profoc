@@ -143,7 +143,6 @@ void conline::learn()
     clock.tick("core");
     for (unsigned int t = start; t < T; t++)
     {
-
         weights(t).set_size(D, P, K);
         past_performance(t).set_size(D, P, X);
         predictions_tmp(t).set_size(D, P, X);
@@ -603,7 +602,7 @@ void conline::init_update(
     // // Output Objects
     predictions = Rcpp::as<arma::cube>(object["predictions"]);
     predictions.resize(T + T_E_Y, D, P);
-    arma::field<cube> weights(T + 1);
+    weights.set_size(T + 1);
     weights.rows(0, start) = Rcpp::as<arma::field<cube>>(object["weights"]);
 
     basis_pr = Rcpp::as<arma::field<arma::sp_mat>>(model_objects["basis_pr"]);

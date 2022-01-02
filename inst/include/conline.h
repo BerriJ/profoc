@@ -48,7 +48,7 @@ public:
 #define P experts(0).n_cols
 #define K experts(0).n_slices
 #define X param_grid.rows()
-#define T_E_Y experts.n_rows - T
+#define T_E_Y int(experts.n_rows - T)
 
     // Internal objects - TODO provide read access?
 

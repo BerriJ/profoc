@@ -13,14 +13,6 @@ loss_grad_wrt_w <- function(expert, pred, truth, tau, loss_function, a, w) {
     .Call(`_profoc_loss_grad_wrt_w`, expert, pred, truth, tau, loss_function, a, w)
 }
 
-online_rcpp <- function(y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, param_grid, basis_pr, basis_mv, hat_pr, hat_mv, forget_past_performance, allow_quantile_crossing, w0, R0, loss_array, regret_array, trace) {
-    .Call(`_profoc_online_rcpp`, y, experts, tau, lead_time, loss_function, loss_parameter, loss_gradient, method, param_grid, basis_pr, basis_mv, hat_pr, hat_mv, forget_past_performance, allow_quantile_crossing, w0, R0, loss_array, regret_array, trace)
-}
-
-update_online <- function(object, new_y, new_experts, trace) {
-    .Call(`_profoc_update_online`, object, new_y, new_experts, trace)
-}
-
 optimize_weights <- function(truth, experts, affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, loss_function = "quantile", tau = 0.5, forget = 0, loss_scaling = 1) {
     .Call(`_profoc_optimize_weights`, truth, experts, affine, positive, intercept, debias, loss_function, tau, forget, loss_scaling)
 }
