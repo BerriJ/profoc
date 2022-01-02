@@ -30,9 +30,7 @@ void conline::init_objects()
         tau.fill(tau(0));
     }
 
-    params = mat_to_map(param_grid); // TODO benchmark using the Rcpp matrix directly
-
-    chosen_params.resize(T, param_grid.cols());
+    chosen_params.resize(T, params.size());
     opt_index.zeros(T + 1);
     past_performance.set_size(T);
     tmp_performance.zeros(X);
@@ -530,7 +528,7 @@ Rcpp::List conline::output()
         Rcpp::Named("past_performance") = past_performance,
         // Rcpp::Named("chosen_parameters") = chosen_parameters,
         Rcpp::Named("opt_index") = opt_index,
-        Rcpp::Named("parametergrid") = param_grid,
+        Rcpp::Named("parametergrid") = this->getParams(),
         Rcpp::Named("specification") = model_spec);
 
     out.attr("class") = "online";
@@ -575,10 +573,9 @@ void conline::init_update(
 
     tau = Rcpp::as<arma::vec>(model_data["tau"]);
 
-    param_grid = Rcpp::as<Rcpp::NumericMatrix>(object["parametergrid"]);
-    params = mat_to_map(param_grid);
+    this->setParams(object["parametergrid"]);
 
-    chosen_params.set_size(T, param_grid.cols()); // Just a placeholder fow now
+    chosen_params.set_size(T, params.size()); // Just a placeholder fow now
     // // mat chosen_params = object["chosen_parameters"];
     // // chosen_params.resize(T, param_grid.cols()); # TODO
     opt_index = Rcpp::as<arma::vec>(object["opt_index"]);

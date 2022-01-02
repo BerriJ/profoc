@@ -16,7 +16,6 @@ RCPP_MODULE(conlineEx)
       .field("loss_parameter", &conline::loss_parameter)
       .field("loss_gradient", &conline::loss_gradient)
       .field("method", &conline::method)
-      .field("param_grid", &conline::param_grid)
       .field("forget_past_performance", &conline::forget_past_performance)
       .field("allow_quantile_crossing", &conline::allow_quantile_crossing)
       .field("trace", &conline::trace)
@@ -36,5 +35,7 @@ RCPP_MODULE(conlineEx)
       .method("getD", &conline::getD)
       .method("getP", &conline::getP)
       .method("getK", &conline::getK)
-      .method("getX", &conline::getX);
+      .method("getX", &conline::getX)
+      .method("getParams", &conline::getParams)
+      .method("setParams", &conline::setParams);
 }
