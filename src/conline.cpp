@@ -572,7 +572,7 @@ void conline::init_update(
 
     tau = Rcpp::as<arma::vec>(model_data["tau"]);
 
-    params = Rcpp::as<std::map<std::string, Rcpp::NumericVector>>(object["parametergrid"]);
+    params = Rcpp::as<std::map<std::string, arma::colvec>>(object["parametergrid"]);
 
     chosen_params.set_size(T, params.size()); // Just a placeholder fow now
     // // mat chosen_params = object["chosen_parameters"];

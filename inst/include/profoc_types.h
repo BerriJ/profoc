@@ -7,9 +7,9 @@
 namespace Rcpp
 {
     template <>
-    std::map<std::string, Rcpp::NumericVector> as(SEXP matsexp);
+    std::map<std::string, arma::colvec> as(SEXP matsexp);
     template <>
-    SEXP wrap(const std::map<std::string, Rcpp::NumericVector> &mymap);
+    SEXP wrap(const std::map<std::string, arma::colvec> &mymap);
 }
 
 #include "conline.h"

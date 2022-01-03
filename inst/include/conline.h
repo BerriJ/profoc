@@ -22,7 +22,7 @@ public:
 
     std::string method = "bewa";
 
-    std::map<std::string, Rcpp::NumericVector> params;
+    std::map<std::string, arma::colvec> params;
     double forget_past_performance = 0.0;
     bool allow_quantile_crossing = false;
     bool trace = true;
@@ -46,7 +46,7 @@ public:
 #define D experts(0).n_rows
 #define P experts(0).n_cols
 #define K experts(0).n_slices
-#define X params.begin()->second.size()
+#define X params.begin()->second.n_elem
 #define T_E_Y int(experts.n_rows - T)
 
     // Internal objects - TODO provide read access?
