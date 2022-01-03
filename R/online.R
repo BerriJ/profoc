@@ -313,7 +313,7 @@ online <- function(y, experts, tau,
         ), ]
     }
 
-    model_instance$setParams(parametergrid)
+    model_instance$params <- parametergrid
 
     # TODO Move this into  init_objects()
     if (is.null(init$init_weights)) {

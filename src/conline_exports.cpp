@@ -1,6 +1,7 @@
 
 #include <RcppArmadillo.h>
 #include "conline.h"
+#include "profoc_types.h"
 
 RCPP_MODULE(conlineEx)
 {
@@ -25,6 +26,7 @@ RCPP_MODULE(conlineEx)
       .field("hat_mv", &conline::hat_mv)
       .field("w0", &conline::w0)
       .field("R0", &conline::R0)
+      .field("params", &conline::params)
       .field("loss_array", &conline::loss_array)
       .field("regret_array", &conline::regret_array)
       .method("init_objects", &conline::init_objects)
@@ -35,7 +37,5 @@ RCPP_MODULE(conlineEx)
       .method("getD", &conline::getD)
       .method("getP", &conline::getP)
       .method("getK", &conline::getK)
-      .method("getX", &conline::getX)
-      .method("getParams", &conline::getParams)
-      .method("setParams", &conline::setParams);
+      .method("getX", &conline::getX);
 }

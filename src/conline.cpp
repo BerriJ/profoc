@@ -1,13 +1,12 @@
-#include <misc.h>
-#include <loss.h>
-
 #include <RcppArmadillo.h>
 #include <progress.hpp>
-#include <clock.h>
 #include <thread>
 
-//  Student.cpp
+#include "misc.h"
+#include "loss.h"
+#include "clock.h"
 #include "conline.h"
+#include "profoc_types.h"
 
 using namespace arma;
 
@@ -528,7 +527,7 @@ Rcpp::List conline::output()
         Rcpp::Named("past_performance") = past_performance,
         // Rcpp::Named("chosen_parameters") = chosen_parameters,
         Rcpp::Named("opt_index") = opt_index,
-        Rcpp::Named("parametergrid") = this->getParams(),
+        Rcpp::Named("parametergrid") = params,
         Rcpp::Named("specification") = model_spec);
 
     out.attr("class") = "online";
@@ -573,7 +572,7 @@ void conline::init_update(
 
     tau = Rcpp::as<arma::vec>(model_data["tau"]);
 
-    this->setParams(object["parametergrid"]);
+    params = Rcpp::as<std::map<std::string, Rcpp::NumericVector>>(object["parametergrid"]);
 
     chosen_params.set_size(T, params.size()); // Just a placeholder fow now
     // // mat chosen_params = object["chosen_parameters"];
