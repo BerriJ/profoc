@@ -49,7 +49,7 @@ public:
 #define X params.begin()->second.n_elem
 #define T_E_Y int(experts.n_rows - T)
 
-    // Internal objects - TODO provide read access?
+    // Internal objects
 
     // Loss
     arma::cube loss_for;

@@ -90,12 +90,7 @@ arma::sp_mat make_hat_matrix(
 
         P = (2 - bdiff) * P1 + (bdiff - 1) * P2;
         H = B * arma::pinv(B.t() * B + lambda * P) * B.t();
-
-        for (double &e : H)
-        {
-            if (fabs(e) < 1E-10)
-                e = 0; // TODO use .clean( threshold ) instead
-        }
+        H.clean(1E-10);
     }
     else
     {
@@ -119,12 +114,7 @@ arma::sp_mat make_basis_matrix(const arma::vec &x, const double &kstep, const in
         B = splines2_basis(x, knots, deg);
         // Remove columns without contribution
         B = B.cols(find(sum(B) >= 1E-6));
-
-        for (double &e : B)
-        {
-            if (fabs(e) < 1E-10)
-                e = 0; // TODO use .clean( threshold ) instead
-        }
+        B.clean(1E-10);
     }
     else
     {
@@ -147,12 +137,7 @@ arma::sp_mat make_basis_matrix2(const arma::vec &x,
     B = splines2_basis(x, knots, deg);
     // Remove columns without contribution
     B = B.cols(find(sum(B) >= 1E-6));
-
-    for (double &e : B)
-    {
-        if (fabs(e) < 1E-10)
-            e = 0; // TODO use .clean( threshold ) instead
-    }
+    B.clean(1E-10);
 
     sp_mat out(B);
 
