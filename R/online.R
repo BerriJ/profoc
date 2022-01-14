@@ -177,7 +177,7 @@ online <- function(y, experts, tau,
     }
     exdim <- dim(experts[[1]])
 
-    T <- dim(experts)[1] # TODO REMOVE?
+    T <- dim(experts)[1]
     D <- dim(experts[[1]])[1]
     P <- dim(experts[[1]])[2]
     K <- dim(experts[[1]])[3]
@@ -193,8 +193,6 @@ online <- function(y, experts, tau,
     model_instance$lead_time <- lead_time
 
     if (is.null(loss)) {
-        # TODO remove
-        loss_array <- array(, dim = c(0, 0, 0, 0))
         loss_share <- 0
     } else if (is.array(loss)) {
         loss_array <- list()
@@ -215,8 +213,6 @@ online <- function(y, experts, tau,
     }
 
     if (is.null(regret)) {
-        # TODO remove
-        regret_array <- array(, dim = c(0, 0, 0, 0))
         regret_share <- 0
     } else if (is.array(regret)) {
         regret_array <- list()
@@ -241,25 +237,22 @@ online <- function(y, experts, tau,
     # Create basis and hat matix lists
 
     # # Basis matrices for probabilistic smoothing
-    basis_list_pr <- make_basis_mats(
+    model_instance$basis_pr <- make_basis_mats(
         val_or_def(b_smooth_pr$knot_distance, 1 / (P + 1)),
         val_or_def(b_smooth_pr$knot_distance_power, 1),
         val_or_def(b_smooth_pr$deg, 1),
         P
     )
-    model_instance$basis_pr <- basis_list_pr # TODO move upwarts
 
     # Basis matrices for multivariate smoothing
-    basis_list_mv <- make_basis_mats(
+    model_instance$basis_mv <- make_basis_mats(
         val_or_def(b_smooth_mv$knot_distance, 1 / (D + 1)),
         val_or_def(b_smooth_mv$knot_distance_power, 1),
         val_or_def(b_smooth_mv$deg, 1),
         D
     )
 
-    model_instance$basis_mv <- basis_list_mv # TODO move upwarts
-
-    hat_list_pr <- make_hat_mats(
+    model_instance$hat_pr <- make_hat_mats(
         val_or_def(p_smooth_pr$knot_distance, 1 / (P + 1)),
         val_or_def(p_smooth_pr$knot_distance_power, 1),
         val_or_def(p_smooth_pr$deg, 1),
@@ -268,9 +261,7 @@ online <- function(y, experts, tau,
         P
     )
 
-    model_instance$hat_pr <- hat_list_pr # TODO move upwarts
-
-    hat_list_mv <- make_hat_mats(
+    model_instance$hat_mv <- make_hat_mats(
         val_or_def(p_smooth_mv$knot_distance, 1 / (D + 1)),
         val_or_def(p_smooth_mv$knot_distance_power, 1),
         val_or_def(p_smooth_mv$deg, 1),
@@ -279,21 +270,19 @@ online <- function(y, experts, tau,
         D
     )
 
-    model_instance$hat_mv <- hat_list_mv # TODO move upwarts
-
     if (is.null(parametergrid)) {
         grid <- expand.grid(
-            basis_pr_idx = (seq_len(dim(basis_list_pr)[1]) - 1),
+            basis_pr_idx = (seq_len(dim(model_instance$basis_pr)[1]) - 1),
             forget_regret = forget_regret,
             soft_threshold = soft_threshold,
             hard_threshold = hard_threshold,
             fixed_share = fixed_share,
-            hat_pr_idx = (seq_len(dim(hat_list_pr)[1]) - 1),
-            hat_mv_idx = (seq_len(dim(hat_list_mv)[1]) - 1),
+            hat_pr_idx = (seq_len(dim(model_instance$hat_pr)[1]) - 1),
+            hat_mv_idx = (seq_len(dim(model_instance$hat_mv)[1]) - 1),
             gamma = gamma,
             loss_share = loss_share,
             regret_share = regret_share,
-            basis_mv_idx = (seq_len(dim(basis_list_mv)[1]) - 1)
+            basis_mv_idx = (seq_len(dim(model_instance$basis_mv)[1]) - 1)
         )
 
         parametergrid <- as.matrix(grid)
@@ -332,7 +321,6 @@ online <- function(y, experts, tau,
     model_instance$w0 <- init$init_weights
 
     if (is.null(init$R0)) {
-        # TODO replace by !is.null(init$R0 check)
         init$R0 <- array(
             0,
             dim = c(D, P, K)
