@@ -19,8 +19,7 @@ using namespace arma;
 
 // Methods
 
-// Functions
-void conline::init_objects()
+void conline::set_defaults()
 {
     // Expand tau if necessary
     if (tau.n_elem == 1)
@@ -28,6 +27,16 @@ void conline::init_objects()
         tau.resize(P);
         tau.fill(tau(0));
     }
+
+    // Initial params
+    w0.ones(D, P, K);
+    w0 /= K;
+
+    R0.zeros(D, P, K);
+}
+
+void conline::set_grid_objects()
+{
 
     chosen_params.resize(T, params.size());
     opt_index.zeros(T + 1);
@@ -528,6 +537,10 @@ Rcpp::List conline::output()
         // Rcpp::Named("chosen_parameters") = chosen_parameters,
         Rcpp::Named("opt_index") = opt_index,
         Rcpp::Named("parametergrid") = params,
+        Rcpp::Named("params_basis_pr") = params_basis_pr,
+        Rcpp::Named("params_basis_mv") = params_basis_mv,
+        Rcpp::Named("params_hat_pr") = params_hat_pr,
+        Rcpp::Named("params_hat_mv") = params_hat_mv,
         Rcpp::Named("specification") = model_spec);
 
     out.attr("class") = "online";
@@ -573,6 +586,10 @@ void conline::init_update(
     tau = Rcpp::as<arma::vec>(model_data["tau"]);
 
     params = Rcpp::as<std::map<std::string, arma::colvec>>(object["parametergrid"]);
+    params_basis_pr = Rcpp::as<std::map<std::string, arma::colvec>>(object["params_basis_pr"]);
+    params_basis_mv = Rcpp::as<std::map<std::string, arma::colvec>>(object["params_basis_mv"]);
+    params_hat_pr = Rcpp::as<std::map<std::string, arma::colvec>>(object["params_hat_pr"]);
+    params_hat_mv = Rcpp::as<std::map<std::string, arma::colvec>>(object["params_hat_mv"]);
 
     chosen_params.set_size(T, params.size()); // Just a placeholder fow now
     // // mat chosen_params = object["chosen_parameters"];

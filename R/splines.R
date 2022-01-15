@@ -4,31 +4,27 @@ make_basis_mats <- function(knot_distance,
                             P_or_D) {
     sp_basis <- 1:P_or_D / (P_or_D + 1)
     params <- expand.grid(
-        knot_distance,
-        knot_distance_power,
-        deg
+        knot_distance = knot_distance,
+        knot_distance_power = knot_distance_power,
+        deg = deg
     )
+    params <- as.matrix(params)
     basis_list <- list()
 
     for (i in seq_len(nrow(params))) {
-        # knots <- make_knots(
-        #     params[i, 1],
-        #     params[i, 2],
-        #     params[i, 3],
-        #     P_or_D %% 2 == 0
-        # )
         basis_list[[i]] <-
             make_basis_matrix(
                 sp_basis,
-                params[i, 1],
-                params[i, 3],
-                params[i, 2],
+                params[i, "knot_distance"],
+                params[i, "deg"],
+                params[i, "knot_distance_power"],
                 P_or_D %% 2 == 0
             )
     }
     # Important for passing to C++ as arma::field object
     dim(basis_list) <- c(length(basis_list), 1)
-    return(basis_list)
+    out <- list(basis = basis_list, params = params)
+    return(out)
 }
 
 make_hat_mats <- function(knot_distance,
@@ -39,29 +35,31 @@ make_hat_mats <- function(knot_distance,
                           P_or_D) {
     sp_basis <- 1:P_or_D / (P_or_D + 1)
     params <- expand.grid(
-        knot_distance,
-        knot_distance_power,
-        deg,
-        lambda,
-        diff
+        knot_distance = knot_distance,
+        knot_distance_power = knot_distance_power,
+        deg = deg,
+        lambda = lambda,
+        diff = diff
     )
+    params <- as.matrix(params)
+
     hat_list <- list()
 
     for (i in seq_len(nrow(params))) {
         knots <- make_knots(
-            params[i, 1],
-            params[i, 2],
-            params[i, 3],
+            params[i, "knot_distance"],
+            params[i, "knot_distance_power"],
+            params[i, "deg"],
             P_or_D %% 2 == 0
         )
         if (params[i, 4] != -Inf) {
             hat_list[[i]] <- make_hat_matrix(
                 sp_basis,
-                params[i, 1], # Kstep
-                params[i, 4], # lambda
-                params[i, 5], # bdiff
-                params[i, 3], # deg
-                params[i, 2], # knot_distance_power
+                params[i, "knot_distance"],
+                params[i, "lambda"],
+                params[i, "diff"],
+                params[i, "deg"],
+                params[i, "knot_distance_power"],
                 P_or_D %% 2 == 0
             )
         } else {
@@ -74,5 +72,6 @@ make_hat_mats <- function(knot_distance,
     }
     # Important for passing to C++ as arma::field object
     dim(hat_list) <- c(length(hat_list), 1)
-    return(hat_list)
+    out <- list(hat = hat_list, params = params)
+    return(out)
 }

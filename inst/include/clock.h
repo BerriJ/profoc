@@ -58,7 +58,7 @@ namespace Rcpp
         }
 
         // Destroy - pass data to R
-        ~Clock()
+        void stop()
         {
             DataFrame df = DataFrame::create(
                 Named("Name") = names,

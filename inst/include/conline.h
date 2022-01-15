@@ -23,6 +23,10 @@ public:
     std::string method = "bewa";
 
     std::map<std::string, arma::colvec> params;
+    std::map<std::string, arma::colvec> params_basis_pr;
+    std::map<std::string, arma::colvec> params_basis_mv;
+    std::map<std::string, arma::colvec> params_hat_pr;
+    std::map<std::string, arma::colvec> params_hat_mv;
     double forget_past_performance = 0.0;
     bool allow_quantile_crossing = false;
     bool trace = true;
@@ -92,7 +96,8 @@ public:
     inline int getK() { return K; }
     inline int getX() { return X; }
     // Methods
-    void init_objects();
+    void set_defaults();
+    void set_grid_objects();
     void learn();
     void init_update(
         Rcpp::List &object,
@@ -100,7 +105,10 @@ public:
         arma::field<arma::cube> &new_experts,
         const bool trace);
     Rcpp::List output();
-
+    void teardown()
+    {
+        clock.stop();
+    };
     ~conline() = default; // Default destructor
 };
 

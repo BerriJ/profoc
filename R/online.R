@@ -237,22 +237,27 @@ online <- function(y, experts, tau,
     # Create basis and hat matix lists
 
     # # Basis matrices for probabilistic smoothing
-    model_instance$basis_pr <- make_basis_mats(
+    tmp <- make_basis_mats(
         val_or_def(b_smooth_pr$knot_distance, 1 / (P + 1)),
         val_or_def(b_smooth_pr$knot_distance_power, 1),
         val_or_def(b_smooth_pr$deg, 1),
         P
     )
+    model_instance$basis_pr <- tmp$basis
+    model_instance$params_basis_pr <- tmp$params
+
 
     # Basis matrices for multivariate smoothing
-    model_instance$basis_mv <- make_basis_mats(
+    tmp <- make_basis_mats(
         val_or_def(b_smooth_mv$knot_distance, 1 / (D + 1)),
         val_or_def(b_smooth_mv$knot_distance_power, 1),
         val_or_def(b_smooth_mv$deg, 1),
         D
     )
+    model_instance$basis_mv <- tmp$basis
+    model_instance$params_basis_mv <- tmp$params
 
-    model_instance$hat_pr <- make_hat_mats(
+    tmp <- make_hat_mats(
         val_or_def(p_smooth_pr$knot_distance, 1 / (P + 1)),
         val_or_def(p_smooth_pr$knot_distance_power, 1),
         val_or_def(p_smooth_pr$deg, 1),
@@ -260,8 +265,10 @@ online <- function(y, experts, tau,
         val_or_def(p_smooth_pr$diff, 1.5),
         P
     )
+    model_instance$hat_pr <- tmp$hat
+    model_instance$params_hat_pr <- tmp$params
 
-    model_instance$hat_mv <- make_hat_mats(
+    tmp <- make_hat_mats(
         val_or_def(p_smooth_mv$knot_distance, 1 / (D + 1)),
         val_or_def(p_smooth_mv$knot_distance_power, 1),
         val_or_def(p_smooth_mv$deg, 1),
@@ -269,6 +276,9 @@ online <- function(y, experts, tau,
         val_or_def(p_smooth_mv$diff, 1.5),
         D
     )
+    model_instance$hat_mv <- tmp$hat
+    model_instance$params_hat_mv <- tmp$params
+
 
     if (is.null(parametergrid)) {
         grid <- expand.grid(
@@ -303,44 +313,42 @@ online <- function(y, experts, tau,
     }
 
     model_instance$params <- parametergrid
-
-    # TODO Move this into  init_objects()
-    if (is.null(init$init_weights)) {
-        init$init_weights <- array(
-            1 / K,
-            dim = c(D, P, K)
-        )
-    }
-    init$init_weights <- pmax(init$init_weights, exp(-350))
-    for (d in 1:D) {
-        for (p in 1:P) {
-            init$init_weights[d, p, ] <-
-                init$init_weights[d, p, ] / sum(init$init_weights[d, p, ])
-        }
-    }
-    model_instance$w0 <- init$init_weights
-
-    if (is.null(init$R0)) {
-        init$R0 <- array(
-            0,
-            dim = c(D, P, K)
-        )
-        model_instance$R0 <- init$R0 # TODO init_objects()
-    }
-
     model_instance$allow_quantile_crossing <- allow_quantile_crossing
     model_instance$loss_function <- loss_function
     model_instance$loss_gradient <- loss_gradient
     model_instance$loss_parameter <- loss_parameter
     model_instance$method <- method
 
-    model_instance$init_objects()
+    # Populate default values for w0, R0 etc.
+    model_instance$set_defaults()
+
+    # Overwrite defaults if user specified explicitly
+    if (!is.null(init$init_weights)) {
+        init$init_weights <- pmax(init$init_weights, exp(-350))
+        for (d in 1:D) {
+            for (p in 1:P) {
+                init$init_weights[d, p, ] <-
+                    init$init_weights[d, p, ] / sum(init$init_weights[d, p, ])
+            }
+        }
+        model_instance$w0 <- init$init_weights
+    }
+
+    if (!is.null(init$R0)) model_instance$R0 <- init$R0
+
+    # Populates default values to grid-sized values
+    model_instance$set_grid_objects()
+
+    # Execute online learning
     model_instance$learn()
 
+    # Generate output
     model <- model_instance$output()
 
-    dimnames(model$specification$data$y) <- dimnames(y)
+    model_instance$teardown()
 
+    # TODO make post-processing function
+    dimnames(model$specification$data$y) <- dimnames(y)
     model$weights <- list_to_array(model$weights)
     model$past_performance <- list_to_array(model$past_performance)
     model$experts_loss <- list_to_array(model$experts_loss)
