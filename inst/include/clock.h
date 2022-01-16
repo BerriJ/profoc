@@ -57,7 +57,7 @@ namespace Rcpp
             }
         }
 
-        // Destroy - pass data to R
+        // Ppass data to R
         void stop()
         {
             DataFrame df = DataFrame::create(
@@ -66,6 +66,12 @@ namespace Rcpp
             df.attr("class") = "cppclock";
             Environment env = Environment::global_env();
             env[name] = df;
+        }
+
+        // Destructor
+        ~Clock()
+        {
+            stop();
         }
     };
 }
