@@ -134,10 +134,18 @@ arma::sp_mat make_basis_matrix2(const arma::vec &x,
 {
     mat B;
 
-    B = splines2_basis(x, knots, deg);
-    // Remove columns without contribution
-    B = B.cols(find(sum(B) >= 1E-6));
-    B.clean(1E-10);
+    if (knots.n_elem == 1)
+    {
+        mat B_(x.n_elem, 1, fill::ones);
+        B = B_;
+    }
+    else
+    {
+        B = splines2_basis(x, knots, deg);
+        // Remove columns without contribution
+        B = B.cols(find(sum(B) >= 1E-6));
+        B.clean(1E-10);
+    }
 
     sp_mat out(B);
 

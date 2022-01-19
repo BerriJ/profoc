@@ -91,9 +91,11 @@ online <- function(y, experts, tau,
                    loss_gradient = TRUE,
                    method = "bewa",
                    b_smooth_pr = list(
-                       knot_distance = 1 / (P + 1),
-                       knot_distance_power = 1,
-                       deg = 1
+                       knots = P,
+                       beta_a = 1,
+                       beta_b = 1,
+                       deg = 1,
+                       outer = TRUE
                    ),
                    p_smooth_pr = list(
                        lambda = -Inf,
@@ -103,9 +105,11 @@ online <- function(y, experts, tau,
                        ndiff = 1.5
                    ),
                    b_smooth_mv = list(
-                       knot_distance = 1 / (D + 1),
-                       knot_distance_power = 1,
-                       deg = 1
+                       knots = D,
+                       beta_a = 1,
+                       beta_b = 1,
+                       deg = 1,
+                       outer = TRUE
                    ),
                    p_smooth_mv = list(
                        lambda = -Inf,
@@ -238,10 +242,12 @@ online <- function(y, experts, tau,
 
     # # Basis matrices for probabilistic smoothing
     tmp <- make_basis_mats(
-        val_or_def(b_smooth_pr$knot_distance, 1 / (P + 1)),
-        val_or_def(b_smooth_pr$knot_distance_power, 1),
-        val_or_def(b_smooth_pr$deg, 1),
-        P
+        x = 1:P / (P + 1),
+        n = val_or_def(b_smooth_pr$knots, P),
+        beta_a = val_or_def(b_smooth_pr$beta_a, 1),
+        beta_b = val_or_def(b_smooth_pr$beta_b, 1),
+        deg = val_or_def(b_smooth_pr$deg, 1),
+        outer = val_or_def(b_smooth_pr$outer, TRUE)
     )
     model_instance$basis_pr <- tmp$basis
     model_instance$params_basis_pr <- tmp$params
@@ -249,10 +255,12 @@ online <- function(y, experts, tau,
 
     # Basis matrices for multivariate smoothing
     tmp <- make_basis_mats(
-        val_or_def(b_smooth_mv$knot_distance, 1 / (D + 1)),
-        val_or_def(b_smooth_mv$knot_distance_power, 1),
-        val_or_def(b_smooth_mv$deg, 1),
-        D
+        x = 1:D / (D + 1),
+        n = val_or_def(b_smooth_mv$knots, D),
+        beta_a = val_or_def(b_smooth_mv$beta_a, 1),
+        beta_b = val_or_def(b_smooth_mv$beta_b, 1),
+        deg = val_or_def(b_smooth_mv$deg, 1),
+        outer = val_or_def(b_smooth_mv$outer, TRUE)
     )
     model_instance$basis_mv <- tmp$basis
     model_instance$params_basis_mv <- tmp$params

@@ -21,7 +21,7 @@ model <- online(
     y = matrix(y),
     experts = experts,
     tau = prob_grid,
-    b_smooth_pr = list(knot_distance = 1),
+    b_smooth_pr = list(knots = 1, outer = FALSE),
     trace = FALSE
 )
 
