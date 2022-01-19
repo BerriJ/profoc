@@ -14,11 +14,11 @@ online(
   loss_gradient = TRUE,
   method = "bewa",
   b_smooth_pr = list(knots = P, beta_a = 1, beta_b = 1, deg = 1, outer = TRUE),
-  p_smooth_pr = list(lambda = -Inf, knot_distance = 1/(P + 1), knot_distance_power = 1,
-    deg = 1, ndiff = 1.5),
+  p_smooth_pr = list(knots = P, beta_a = 1, beta_b = 1, deg = 1, outer = TRUE, ndiff =
+    1.5, lambda = -Inf),
   b_smooth_mv = list(knots = D, beta_a = 1, beta_b = 1, deg = 1, outer = TRUE),
-  p_smooth_mv = list(lambda = -Inf, knot_distance = 1/(D + 1), knot_distance_power = 1,
-    deg = 1, ndiff = 1.5),
+  p_smooth_mv = list(knots = P, beta_a = 1, beta_b = 1, deg = 1, outer = TRUE, ndiff =
+    1.5, lambda = -Inf),
   forget_regret = 0,
   soft_threshold = -Inf,
   hard_threshold = -Inf,

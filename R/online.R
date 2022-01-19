@@ -98,11 +98,13 @@ online <- function(y, experts, tau,
                        outer = TRUE
                    ),
                    p_smooth_pr = list(
-                       lambda = -Inf,
-                       knot_distance = 1 / (P + 1),
-                       knot_distance_power = 1,
+                       knots = P,
+                       beta_a = 1,
+                       beta_b = 1,
                        deg = 1,
-                       ndiff = 1.5
+                       outer = TRUE,
+                       ndiff = 1.5,
+                       lambda = -Inf
                    ),
                    b_smooth_mv = list(
                        knots = D,
@@ -112,11 +114,13 @@ online <- function(y, experts, tau,
                        outer = TRUE
                    ),
                    p_smooth_mv = list(
-                       lambda = -Inf,
-                       knot_distance = 1 / (D + 1),
-                       knot_distance_power = 1,
+                       knots = P,
+                       beta_a = 1,
+                       beta_b = 1,
                        deg = 1,
-                       ndiff = 1.5
+                       outer = TRUE,
+                       ndiff = 1.5,
+                       lambda = -Inf
                    ),
                    forget_regret = 0,
                    soft_threshold = -Inf,
@@ -266,23 +270,27 @@ online <- function(y, experts, tau,
     model_instance$params_basis_mv <- tmp$params
 
     tmp <- make_hat_mats(
-        val_or_def(p_smooth_pr$knot_distance, 1 / (P + 1)),
-        val_or_def(p_smooth_pr$knot_distance_power, 1),
-        val_or_def(p_smooth_pr$deg, 1),
-        val_or_def(p_smooth_pr$lambda, -Inf),
-        val_or_def(p_smooth_pr$diff, 1.5),
-        P
+        x = 1:P / (P + 1),
+        n = val_or_def(p_smooth_pr$knots, P),
+        beta_a = val_or_def(p_smooth_pr$beta_a, 1),
+        beta_b = val_or_def(p_smooth_pr$beta_b, 1),
+        deg = val_or_def(p_smooth_pr$deg, 1),
+        outer = val_or_def(p_smooth_pr$outer, TRUE),
+        diff = val_or_def(p_smooth_pr$diff, 1.5),
+        lambda = val_or_def(p_smooth_pr$lambda, -Inf)
     )
     model_instance$hat_pr <- tmp$hat
     model_instance$params_hat_pr <- tmp$params
 
     tmp <- make_hat_mats(
-        val_or_def(p_smooth_mv$knot_distance, 1 / (D + 1)),
-        val_or_def(p_smooth_mv$knot_distance_power, 1),
-        val_or_def(p_smooth_mv$deg, 1),
-        val_or_def(p_smooth_mv$lambda, -Inf),
-        val_or_def(p_smooth_mv$diff, 1.5),
-        D
+        x = 1:D / (D + 1),
+        n = val_or_def(p_smooth_mv$knots, D),
+        beta_a = val_or_def(p_smooth_mv$beta_a, 1),
+        beta_b = val_or_def(p_smooth_mv$beta_b, 1),
+        deg = val_or_def(p_smooth_mv$deg, 1),
+        outer = val_or_def(p_smooth_mv$outer, TRUE),
+        diff = val_or_def(p_smooth_mv$diff, 1.5),
+        lambda = val_or_def(p_smooth_mv$lambda, -Inf)
     )
     model_instance$hat_mv <- tmp$hat
     model_instance$params_hat_mv <- tmp$params

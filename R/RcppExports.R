@@ -77,3 +77,7 @@ make_basis_matrix2 <- function(x, knots, deg) {
     .Call(`_profoc_make_basis_matrix2`, x, knots, deg)
 }
 
+make_hat_matrix2 <- function(x, knots, deg, bdiff, lambda) {
+    .Call(`_profoc_make_hat_matrix2`, x, knots, deg, bdiff, lambda)
+}
+

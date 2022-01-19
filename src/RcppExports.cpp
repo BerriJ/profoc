@@ -196,6 +196,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// make_hat_matrix2
+arma::sp_mat make_hat_matrix2(const arma::vec& x, const arma::vec& knots, const int deg, const double& bdiff, const double& lambda);
+RcppExport SEXP _profoc_make_hat_matrix2(SEXP xSEXP, SEXP knotsSEXP, SEXP degSEXP, SEXP bdiffSEXP, SEXP lambdaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type knots(knotsSEXP);
+    Rcpp::traits::input_parameter< const int >::type deg(degSEXP);
+    Rcpp::traits::input_parameter< const double& >::type bdiff(bdiffSEXP);
+    Rcpp::traits::input_parameter< const double& >::type lambda(lambdaSEXP);
+    rcpp_result_gen = Rcpp::wrap(make_hat_matrix2(x, knots, deg, bdiff, lambda));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 RcppExport SEXP _rcpp_module_boot_conlineEx();
 
@@ -210,6 +225,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_make_hat_matrix", (DL_FUNC) &_profoc_make_hat_matrix, 7},
     {"_profoc_make_basis_matrix", (DL_FUNC) &_profoc_make_basis_matrix, 5},
     {"_profoc_make_basis_matrix2", (DL_FUNC) &_profoc_make_basis_matrix2, 3},
+    {"_profoc_make_hat_matrix2", (DL_FUNC) &_profoc_make_hat_matrix2, 5},
     {"_rcpp_module_boot_conlineEx", (DL_FUNC) &_rcpp_module_boot_conlineEx, 0},
     {NULL, NULL, 0}
 };

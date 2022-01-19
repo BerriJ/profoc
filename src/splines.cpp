@@ -151,3 +151,36 @@ arma::sp_mat make_basis_matrix2(const arma::vec &x,
 
     return out;
 }
+
+// [[Rcpp::export]]
+arma::sp_mat make_hat_matrix2(
+    const arma::vec &x,
+    const arma::vec &knots,
+    const int deg,
+    const double &bdiff,
+    const double &lambda)
+{
+
+    mat H;
+
+    int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
+
+    mat B = splines2_basis(x, knots, deg);
+
+    mat P1(m + deg + 1, m + deg + 1);
+    mat P2(m + deg + 1, m + deg + 1);
+    mat P(m + deg + 1, m + deg + 1);
+
+    mat D1 = make_difference_matrix(knots, 1, deg);
+    P1 = D1.t() * D1;
+
+    mat D2 = make_difference_matrix(knots, 2, deg);
+    P2 = D2.t() * D2;
+
+    P = (2 - bdiff) * P1 + (bdiff - 1) * P2;
+    H = B * arma::pinv(B.t() * B + lambda * P) * B.t();
+    H.clean(1E-10);
+
+    arma::sp_mat sp_H = sp_mat(H); // Return hat matrix
+    return sp_H;
+}
