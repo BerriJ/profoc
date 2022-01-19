@@ -298,17 +298,17 @@ online <- function(y, experts, tau,
 
     if (is.null(parametergrid)) {
         grid <- expand.grid(
-            basis_pr_idx = (seq_len(dim(model_instance$basis_pr)[1]) - 1),
+            basis_pr_idx = (seq_len(dim(model_instance$basis_pr)[1])),
             forget_regret = forget_regret,
             soft_threshold = soft_threshold,
             hard_threshold = hard_threshold,
             fixed_share = fixed_share,
-            hat_pr_idx = (seq_len(dim(model_instance$hat_pr)[1]) - 1),
-            hat_mv_idx = (seq_len(dim(model_instance$hat_mv)[1]) - 1),
+            hat_pr_idx = (seq_len(dim(model_instance$hat_pr)[1])),
+            hat_mv_idx = (seq_len(dim(model_instance$hat_mv)[1])),
             gamma = gamma,
             loss_share = loss_share,
             regret_share = regret_share,
-            basis_mv_idx = (seq_len(dim(model_instance$basis_mv)[1]) - 1)
+            basis_mv_idx = (seq_len(dim(model_instance$basis_mv)[1]))
         )
 
         parametergrid <- as.matrix(grid)

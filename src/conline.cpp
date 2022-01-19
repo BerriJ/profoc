@@ -64,8 +64,8 @@ void conline::set_grid_objects()
     for (unsigned int x = 0; x < X; x++)
     {
         clock.tick("init");
-        unsigned int Pr = basis_pr(params["basis_pr_idx"](x)).n_cols;
-        unsigned int Dr = basis_mv(params["basis_mv_idx"](x)).n_cols;
+        unsigned int Pr = basis_pr(params["basis_pr_idx"](x) - 1).n_cols;
+        unsigned int Dr = basis_mv(params["basis_mv_idx"](x) - 1).n_cols;
 
         // Learning parameters
         V(x).zeros(Dr, Pr, K);
@@ -92,16 +92,16 @@ void conline::set_grid_objects()
 
         for (unsigned int k = 0; k < K; k++)
         {
-            R(x).slice(k) = basis_mv(params["basis_mv_idx"](x)).t() *
+            R(x).slice(k) = basis_mv(params["basis_mv_idx"](x) - 1).t() *
                             R0.slice(k) *
-                            basis_pr(params["basis_pr_idx"](x));
-            R_reg(x).slice(k) = basis_mv(params["basis_mv_idx"](x)).t() *
+                            basis_pr(params["basis_pr_idx"](x) - 1);
+            R_reg(x).slice(k) = basis_mv(params["basis_mv_idx"](x) - 1).t() *
                                 R0.slice(k) *
-                                basis_pr(params["basis_pr_idx"](x));
+                                basis_pr(params["basis_pr_idx"](x) - 1);
             beta(x).slice(k) = pinv(
-                                   mat(basis_mv(params["basis_mv_idx"](x)))) *
+                                   mat(basis_mv(params["basis_mv_idx"](x) - 1))) *
                                w0.slice(k) *
-                               pinv(mat(basis_pr(params["basis_pr_idx"](x)))).t();
+                               pinv(mat(basis_pr(params["basis_pr_idx"](x) - 1))).t();
         }
         beta0field(x) = beta(x);
     }
@@ -189,8 +189,8 @@ void conline::learn()
             mat lexp(P, K);     // Experts loss
             vec lfor(P);        // Forecasters loss
             cube regret_tmp(D, P, K);
-            cube regret(basis_mv(params["basis_mv_idx"](x)).n_cols,
-                        basis_pr(params["basis_pr_idx"](x)).n_cols,
+            cube regret(basis_mv(params["basis_mv_idx"](x) - 1).n_cols,
+                        basis_pr(params["basis_pr_idx"](x) - 1).n_cols,
                         K); // Dr x Pr x K
 
             for (unsigned int d = 0; d < D; d++)
@@ -249,7 +249,7 @@ void conline::learn()
                 if (params["regret_share"](x) != 1)
                 {
                     regret_int = (lfor - lexp_int.each_col()).t();
-                    regret_int *= double(basis_pr(params["basis_pr_idx"](x)).n_cols) / double(P);
+                    regret_int *= double(basis_pr(params["basis_pr_idx"](x) - 1).n_cols) / double(P);
 
                     if (params["regret_share"](x) == 0)
                     {
@@ -259,7 +259,7 @@ void conline::learn()
                     {
                         regret_ext = regret_array(t).row(d);
                         regret_ext = regret_ext.t();
-                        regret_ext *= double(basis_pr(params["basis_pr_idx"](x)).n_cols) / double(P);
+                        regret_ext *= double(basis_pr(params["basis_pr_idx"](x) - 1).n_cols) / double(P);
                         regret_tmp.row(d) = ((1 - params["regret_share"](x)) * regret_int + params["regret_share"](x) * regret_ext).t();
                     }
                 }
@@ -267,7 +267,7 @@ void conline::learn()
                 {
                     regret_ext = regret_array(t).row(d);
                     regret_ext = regret_ext.t();
-                    regret_ext *= double(basis_pr(params["basis_pr_idx"](x)).n_cols) / double(P);
+                    regret_ext *= double(basis_pr(params["basis_pr_idx"](x) - 1).n_cols) / double(P);
                     regret_tmp.row(d) = regret_ext.t();
                 }
             }
@@ -275,7 +275,7 @@ void conline::learn()
 #pragma omp parallel for
             for (unsigned int k = 0; k < K; k++)
             {
-                regret.slice(k) = basis_mv(params["basis_mv_idx"](x)).t() * regret_tmp.slice(k) * basis_pr(params["basis_pr_idx"](x));
+                regret.slice(k) = basis_mv(params["basis_mv_idx"](x) - 1).t() * regret_tmp.slice(k) * basis_pr(params["basis_pr_idx"](x) - 1);
             }
 
             clock.tock("regret");
@@ -382,11 +382,11 @@ void conline::learn()
             for (unsigned int k = 0; k < K; k++)
             {
                 clock.tick("smoothing");
-                weights_tmp(x).slice(k) = hat_mv(params["hat_mv_idx"](x)) *
-                                          basis_mv(params["basis_mv_idx"](x)) *
+                weights_tmp(x).slice(k) = hat_mv(params["hat_mv_idx"](x) - 1) *
+                                          basis_mv(params["basis_mv_idx"](x) - 1) *
                                           beta(x).slice(k) *
-                                          basis_pr(params["basis_pr_idx"](x)).t() *
-                                          hat_pr(params["hat_pr_idx"](x));
+                                          basis_pr(params["basis_pr_idx"](x) - 1).t() *
+                                          hat_pr(params["hat_pr_idx"](x) - 1);
                 clock.tock("smoothing");
             }
 
@@ -413,7 +413,6 @@ void conline::learn()
         cum_performance = (1 - forget_past_performance) * cum_performance + tmp_performance;
 
         opt_index(t + 1) = cum_performance.index_min();
-        // chosen_params.row(t) = param_grid.row(opt_index(t + 1));
         // prog.increment(); // Update progress
 
     } // t

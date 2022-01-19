@@ -4,7 +4,7 @@ devtools::build()
 devtools::check(cran = TRUE)
 devtools::test()
 
-# Release TODO:
+# Release:
 
 # Bump Version Number in Description
 # Update the Date field in Description
