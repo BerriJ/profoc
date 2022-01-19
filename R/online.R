@@ -363,13 +363,7 @@ online <- function(y, experts, tau,
 
     model_instance$teardown()
 
-    # TODO make post-processing function
-    dimnames(model$specification$data$y) <- dimnames(y)
-    model$weights <- list_to_array(model$weights)
-    model$past_performance <- list_to_array(model$past_performance)
-    model$experts_loss <- list_to_array(model$experts_loss)
-
-    dimnames(model$experts_loss)[[4]] <- enames
+    model <- post_process_model(model, y, enames)
 
     return(model)
 }

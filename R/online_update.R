@@ -14,6 +14,7 @@ update.online <- function(object,
                           new_y,
                           new_experts = NULL,
                           trace = FALSE, ...) {
+    y <- object$specification$data$y
     enames <- dimnames(object$experts_loss)[[4]]
     if (is.vector(new_y)) {
         new_y <- matrix(new_y)
@@ -72,41 +73,7 @@ update.online <- function(object,
     model_instance$learn()
     object <- model_instance$output()
 
-    dimnames(object$specification$data$y) <- dimnames(new_y)
-
-    object$weights <- list_to_array(object$weights)
-    object$past_performance <- list_to_array(object$past_performance)
-    object$experts_loss <- list_to_array(object$experts_loss)
-
-    dimnames(object$experts_loss)[[4]] <- enames
-
-    parnames <- c(
-        "basis_knot_distance",
-        "basis_knot_distance_power",
-        "basis_deg",
-        "forget_regret",
-        "threshold_soft",
-        "threshold_hard",
-        "fixed_share",
-        "p_smooth_lambda",
-        "p_smooth_knot_distance",
-        "p_smooth_knot_distance_power",
-        "p_smooth_deg",
-        "smooth_diff",
-        "gamma",
-        "loss_share",
-        "regret_share",
-        "mv_basis_knot_distance",
-        "mv_basis_knot_distance_power",
-        "mv_basis_deg",
-        "mv_p_smooth_lambda",
-        "mv_p_smooth_knot_distance",
-        "mv_p_smooth_knot_distance_power",
-        "mv_p_smooth_deg",
-        "mv_p_smooth_ndiff"
-    )
-
-    # colnames(object$chosen_parameters) <- parnames
+    object <- post_process_model(model = object, y = y, enames = enames)
 
     return(object)
 }
