@@ -5,13 +5,13 @@ namespace Rcpp
 {
 
     template <>
-    std::map<std::string, arma::colvec> as(SEXP matsexp)
+    std::unordered_map<std::string, arma::colvec> as(SEXP matsexp)
     {
         Rcpp::NumericMatrix mat(matsexp);
 
         std::vector<std::string> cn = Rcpp::as<std::vector<std::string>>(Rcpp::colnames(mat));
 
-        std::map<std::string, arma::colvec> mymap;
+        std::unordered_map<std::string, arma::colvec> mymap;
 
         for (int n = 0; n < mat.ncol(); n++)
         {
@@ -22,7 +22,7 @@ namespace Rcpp
     }
 
     template <>
-    SEXP wrap(const std::map<std::string, arma::colvec> &mymap)
+    SEXP wrap(const std::unordered_map<std::string, arma::colvec> &mymap)
     {
         Rcpp::NumericMatrix mat(mymap.begin()->second.n_elem, mymap.size());
         // Get all keys of the map

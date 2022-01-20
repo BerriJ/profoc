@@ -113,11 +113,11 @@ inline arma::colvec softmax_c(arma::colvec x)
     return expvec;
 }
 
-inline std::map<std::string, arma::vec> mat_to_map(const Rcpp::NumericMatrix &x)
+inline std::unordered_map<std::string, arma::vec> mat_to_map(const Rcpp::NumericMatrix &x)
 {
     std::vector<std::string> cn = Rcpp::as<std::vector<std::string>>(Rcpp::colnames(x));
     const unsigned int N = x.ncol();
-    std::map<std::string, arma::vec> map;
+    std::unordered_map<std::string, arma::vec> map;
 
     for (unsigned int n = 0; n < N; n++)
     {
