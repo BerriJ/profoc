@@ -584,11 +584,11 @@ void conline::init_update(
 
     tau = Rcpp::as<arma::vec>(model_data["tau"]);
 
-    params = Rcpp::as<std::unordered_map<std::string, arma::colvec>>(object["parametergrid"]);
-    params_basis_pr = Rcpp::as<std::unordered_map<std::string, arma::colvec>>(object["params_basis_pr"]);
-    params_basis_mv = Rcpp::as<std::unordered_map<std::string, arma::colvec>>(object["params_basis_mv"]);
-    params_hat_pr = Rcpp::as<std::unordered_map<std::string, arma::colvec>>(object["params_hat_pr"]);
-    params_hat_mv = Rcpp::as<std::unordered_map<std::string, arma::colvec>>(object["params_hat_mv"]);
+    params = Rcpp::as<std::map<std::string, arma::colvec>>(object["parametergrid"]);
+    params_basis_pr = Rcpp::as<std::map<std::string, arma::colvec>>(object["params_basis_pr"]);
+    params_basis_mv = Rcpp::as<std::map<std::string, arma::colvec>>(object["params_basis_mv"]);
+    params_hat_pr = Rcpp::as<std::map<std::string, arma::colvec>>(object["params_hat_pr"]);
+    params_hat_mv = Rcpp::as<std::map<std::string, arma::colvec>>(object["params_hat_mv"]);
 
     chosen_params.set_size(T, params.size()); // Just a placeholder fow now
     // // mat chosen_params = object["chosen_parameters"];

@@ -22,11 +22,11 @@ public:
 
     std::string method = "bewa";
 
-    std::unordered_map<std::string, arma::colvec> params;
-    std::unordered_map<std::string, arma::colvec> params_basis_pr;
-    std::unordered_map<std::string, arma::colvec> params_basis_mv;
-    std::unordered_map<std::string, arma::colvec> params_hat_pr;
-    std::unordered_map<std::string, arma::colvec> params_hat_mv;
+    std::map<std::string, arma::colvec> params;
+    std::map<std::string, arma::colvec> params_basis_pr;
+    std::map<std::string, arma::colvec> params_basis_mv;
+    std::map<std::string, arma::colvec> params_hat_pr;
+    std::map<std::string, arma::colvec> params_hat_mv;
     double forget_past_performance = 0.0;
     bool allow_quantile_crossing = false;
     bool trace = true;

@@ -7,9 +7,9 @@
 namespace Rcpp
 {
     template <>
-    std::unordered_map<std::string, arma::colvec> as(SEXP matsexp);
+    std::map<std::string, arma::colvec> as(SEXP matsexp);
     template <>
-    SEXP wrap(const std::unordered_map<std::string, arma::colvec> &mymap);
+    SEXP wrap(const std::map<std::string, arma::colvec> &mymap);
 }
 
 #include "conline.h"
