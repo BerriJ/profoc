@@ -17,7 +17,7 @@ online(
   p_smooth_pr = list(knots = P, beta_a = 1, beta_b = 1, deg = 1, outer = TRUE, ndiff =
     1.5, lambda = -Inf),
   b_smooth_mv = list(knots = D, beta_a = 1, beta_b = 1, deg = 1, outer = TRUE),
-  p_smooth_mv = list(knots = P, beta_a = 1, beta_b = 1, deg = 1, outer = TRUE, ndiff =
+  p_smooth_mv = list(knots = D, beta_a = 1, beta_b = 1, deg = 1, outer = TRUE, ndiff =
     1.5, lambda = -Inf),
   forget_regret = 0,
   soft_threshold = -Inf,
@@ -36,8 +36,8 @@ online(
 }
 \arguments{
 \item{y}{A numeric matrix of realizations. In probabilistic
-settings a matrix of dimension Tx1. In multivariate setting
-a TxP matrix can be used. In the latter case, each slice of
+settings a matrix of dimension Tx1, in multivariate settings
+a TxP matrix. In the latter case, each slice of
 the expert's array gets evaluated using the corresponding
 column of the y matrix.}
 
@@ -60,13 +60,21 @@ to t+1+h at time t. The weight updates delay accordingly.}
 order refinement of boa, but updating weights with the simple
  exponential weighting.}
 
-\item{b_smooth_pr}{tbd}
+\item{b_smooth_pr}{A named list determining how the B-Spline matrices for
+probabilistic smoothing are created. Default corresponds to no probabilistic
+smoothing. See details.}
 
-\item{p_smooth_pr}{tbd}
+\item{p_smooth_pr}{A named list determining how the hat matrices  for
+probabilistic P-Spline smoothing are created. Default corresponds to
+no smoothing. See details.}
 
-\item{b_smooth_mv}{tbd}
+\item{b_smooth_mv}{A named list determining how the B-Spline matrices  for
+multivariate smoothing are created. Default corresponds to no probabilistic
+smoothing. See details.}
 
-\item{p_smooth_mv}{tbd}
+\item{p_smooth_mv}{A named list determining how the hat matrices  for
+probabilistic P-Spline smoothing are created. Default corresponds to
+no smoothing. See details.}
 
 \item{forget_regret}{Share of past regret not to be considered, resp. to be
 forgotten in every iteration of the algorithm. Defaults to 0.}
@@ -135,11 +143,36 @@ Returns predictions and weights calculated by online-learning algorithms
 using CRPS Learning.
 }
 \details{
-online can tune various parameters automatically based on
-the past loss. For this, lambda, forget, fixed_share, gamma, ndiff,
-deg and knot_distance can be specified as numeric vectors containing
-parameters to consider. online will automatically try all possible
-combinations of values provide.
+online selects various parameters automatically based on
+the past loss. For this, lambda, forget, fixed_share, gamma, and the
+smoothing parameters (see below) can be specified as numeric vectors
+containing values to consider.
+
+This package offers 2 optios for smoothing (Basis Smoothing
+and P-Splines). Both options can be used to apply smoothing the weights
+over dimension D (covariates) or P (quantiles) or both.
+Parameters \code{b_smooth_pr} and \code{b_smooth_mv} take named lists to create
+the corresponding basis matrices. The arguments include are: \code{knots}
+which determines the number of knots to be created (excluding outer
+knots which are added additionally), \code{beta_a} and \code{beta_b} correspond
+to the parameters
+of the beta distribution which defined how the knots are distributed
+(see \code{?make_knots} for details) both default to 1 which will create an
+equidistant knot sequence, \code{deg} sets the degree of the spline function
+and also influences how many outer knots will be used, \code{outer_knots}
+determines if outer knots should be created, this defaults to TRUE.
+It's possible to provide vectors of values for each of these parameters.
+In that case, all parametercombinations will be used to create the
+respective matrices and all candidates will be considered during
+online-learning.
+Parameters \code{p_smooth_pr} and \code{p_smooth_mv} determine the hat-matrix
+cretion fot P-Spline smoothing. In addition to the inputs mentioned
+before, they require to provide \code{ndiff} which determines the degree
+of differentiation applied to the basis-matrix (can take any value
+between and including 1 and 2), \code{lambda} which determines the degree
+of penalization applied to the smoothing, higher values will give
+smoother weight functions. As for the other parameters, it is possible
+to provide multiple values.
 }
 \examples{
 \dontrun{

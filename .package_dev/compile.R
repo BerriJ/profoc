@@ -25,3 +25,8 @@ devtools::release()
 # PKG_CXXFLAGS=-fno-gnu-unique in src/Makevars
 
 devtools::load_all()
+
+devtools::build()
+devtools::install()
+library(profoc)
+?online

@@ -12,10 +12,18 @@
 #'
 #' @template param_method
 #'
-#' @param b_smooth_pr tbd
-#' @param p_smooth_pr tbd
-#' @param b_smooth_mv tbd
-#' @param p_smooth_mv tbd
+#' @param b_smooth_pr A named list determining how the B-Spline matrices for
+#' probabilistic smoothing are created. Default corresponds to no probabilistic
+#' smoothing. See details.
+#' @param p_smooth_pr A named list determining how the hat matrices  for
+#' probabilistic P-Spline smoothing are created. Default corresponds to
+#' no smoothing. See details.
+#' @param b_smooth_mv A named list determining how the B-Spline matrices  for
+#' multivariate smoothing are created. Default corresponds to no probabilistic
+#' smoothing. See details.
+#' @param p_smooth_mv A named list determining how the hat matrices  for
+#' probabilistic P-Spline smoothing are created. Default corresponds to
+#' no smoothing. See details.
 #'
 #' @param forget_regret Share of past regret not to be considered, resp. to be
 #' forgotten in every iteration of the algorithm. Defaults to 0.
@@ -48,6 +56,8 @@
 #' profoc. 1 means, only the provided regret will be used. share can also be
 #' vector of shares to consider.
 #' @template param_trace
+#'
+#' @template details_online
 #'
 #' @examples
 #' \dontrun{
@@ -114,7 +124,7 @@ online <- function(y, experts, tau,
                        outer = TRUE
                    ),
                    p_smooth_mv = list(
-                       knots = P,
+                       knots = D,
                        beta_a = 1,
                        beta_b = 1,
                        deg = 1,
