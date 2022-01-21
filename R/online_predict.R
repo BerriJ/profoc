@@ -34,7 +34,6 @@ predict.online <- function(object, new_experts, update_model = TRUE, ...) {
     w <- abind::adrop(tail(object$weights, 1), 1)
     new_predictions <- array(NA, dim = dim(new_experts)[-4])
     for (i in seq_len(nrow(new_experts))) {
-
         # Predict
         new_predictions[i, , ] <-
             apply(w * abind::adrop(

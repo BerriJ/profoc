@@ -76,21 +76,21 @@
 #' model <- online(
 #'     y = matrix(y),
 #'     experts = experts,
-#'     p_smooth_lambda = 10
+#'     tau = prob_grid,
+#'     p_smooth_pr = list(lambda = 10)
 #' )
 #'
 #' print(model)
 #' plot(model)
-#' autoplot(model)
 #'
 #' new_y <- matrix(rnorm(1)) # Realized
 #' new_experts <- experts[T, , , drop = FALSE]
 #'
-#' # Update will update the model object, no need for new assignment
-#' update(model, new_y = new_y, new_experts = new_experts)
+#' # Update will update the models weights etc if you provide new realizations
+#' model <- update(model, new_y = new_y, new_experts = new_experts)
 #'
-#' # Use predict to combine new_experts, model$predictions will be extended
-#' predict(model, new_experts = new_experts)
+#' # Predict will expand \code{model$predictions} by default
+#' model <- predict(model, new_experts = new_experts, update_model = TRUE)
 #' }
 #' @importFrom abind asub
 #' @export
