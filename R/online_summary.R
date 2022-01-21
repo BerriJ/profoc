@@ -5,8 +5,6 @@
 #' @param ...  further arguments are ignored
 #' @export
 summary.online <- function(object, ...) {
-
-    #  expert_names <- dimnames(object$experts_loss)[[4]]
     experts_loss <- round(apply(object$experts_loss, 4, mean), 5)
     forecaster_loss <- mean(object$forecaster_loss)
 
@@ -15,6 +13,16 @@ summary.online <- function(object, ...) {
     chosen_basis_mv <- object$params_basis_mv[pargrid[, "basis_mv_idx"], ]
     chosen_hat_pr <- object$params_hat_pr[pargrid[, "hat_pr_idx"], ]
     chosen_hat_mv <- object$params_hat_mv[pargrid[, "hat_mv_idx"], ]
+
+    lt <- object$specification$parameters$lead_time
+    # Set unused values to NA
+    if (lead_time > 0) {
+        pargrid[1:lt, ] <- NA
+        chosen_basis_pr[1:lt, ] <- NA
+        chosen_basis_mv[1:lt, ] <- NA
+        chosen_hat_pr[1:lt, ] <- NA
+        chosen_hat_mv[1:lt, ] <- NA
+    }
 
     value <- as.numeric(tail(pargrid, 1))
 

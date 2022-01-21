@@ -38,7 +38,6 @@ void conline::set_defaults()
 void conline::set_grid_objects()
 {
 
-    chosen_params.resize(T, params.size());
     opt_index.zeros(T + 1);
     past_performance.set_size(T);
     tmp_performance.zeros(X);
@@ -481,15 +480,7 @@ Rcpp::List conline::output()
     // // 1-Indexing for R-Output
     opt_index = opt_index + 1;
 
-    // Set unused values to NA
-    // if (lead_time > 0)
-    // {
-    //   chosen_params.rows(0, lead_time - 1).fill(datum::nan); # TODO
-    // }
-
     // Rcpp::NumericMatrix parametergrid_out = Rcpp::wrap(param_grid);
-
-    // Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
 
     Rcpp::List model_data = Rcpp::List::create(
         Rcpp::Named("y") = y,
@@ -590,9 +581,6 @@ void conline::init_update(
     params_hat_pr = Rcpp::as<std::map<std::string, arma::colvec>>(object["params_hat_pr"]);
     params_hat_mv = Rcpp::as<std::map<std::string, arma::colvec>>(object["params_hat_mv"]);
 
-    chosen_params.set_size(T, params.size()); // Just a placeholder fow now
-    // // mat chosen_params = object["chosen_parameters"];
-    // // chosen_params.resize(T, param_grid.cols()); # TODO
     opt_index = Rcpp::as<arma::vec>(object["opt_index"]);
     // Zero indexing in C++
     opt_index -= 1;

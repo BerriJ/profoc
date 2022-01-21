@@ -68,7 +68,6 @@ public:
     arma::cube predictions;
 
     // Performance related
-    arma::mat chosen_params;
     arma::vec opt_index;
     arma::field<arma::cube> past_performance;
     arma::vec tmp_performance;
