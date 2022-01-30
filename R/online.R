@@ -176,7 +176,7 @@ online <- function(y, experts, tau,
             )
             dim(experts) <- c(edim[1], 1)
             model_instance$experts <- experts
-        } else if (ncol(y) == 1) { # Probabilistic univariate
+        } else if (ncol(y) == 1) { # univariate probabilistic
             experts <- lapply(seq_len(edim[1]),
                 asub,
                 x = experts,
@@ -195,6 +195,8 @@ online <- function(y, experts, tau,
         model_instance$experts <- experts
     }
     exdim <- dim(experts[[1]])
+
+    # TODO set dimnames for second dim of experts
 
     T <- dim(experts)[1]
     D <- dim(experts[[1]])[1]

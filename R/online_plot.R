@@ -79,33 +79,24 @@ plot.online <- function(x, ...) {
         )
         readline(prompt = "Showing Plot 1/2. Press [enter] to continue")
     } else if (dx[2] != 1 && dx[3] == 1) {
-        # Univariate probabilistic forecasts
+        # Multivariate point forecasts
         w <- abind::adrop(x$weights, 3)[nrow(x$weights), , ]
-        w <- t(apply(w, 1, cumsum))
-        w <- cbind(0, w)
+        w <- t(w)
+        # w <- cbind(0, w)
         idx <- seq_len(nrow(w))
         cols <- darken(rainbow(n = dim(w)[2]), 1.2)
-        plot(idx, idx * NA,
+        barplot(
+            height = w,
             ylim = c(0, 1),
             ylab = "Weights",
-            xlab = "Probability",
+            xlab = "Variable",
             main = "Most Recent Weights of the Experts for all Variables",
-            xlim = range(idx)
-        ) # TODO: Replace with bar chart
-        grid()
-        for (i in 2:dim(w)[2]) {
-            polygon(
-                c(idx, rev(idx)),
-                c(w[, i - 1], rev(w[, i])),
-                col = cols[i],
-                border = cols[i],
-                lwd = 1
-            )
-        }
+            col = cols
+        ) # TODO use dimnames for D dimension
         legend(
-            min(idx), 1,
+            "topleft", 1,
             legend = enames,
-            col = cols[-1],
+            col = cols,
             lwd = 2,
             cex = 1,
         )
