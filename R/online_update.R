@@ -64,11 +64,11 @@ update.online <- function(object,
     object$experts_loss <- array_to_list(object$experts_loss)
 
     model_instance <- new(conline)
+    model_instance$trace <- trace
     model_instance$init_update(
         object,
         new_y,
-        new_experts,
-        trace
+        new_experts
     )
     model_instance$learn()
     object <- model_instance$output()

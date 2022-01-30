@@ -101,8 +101,7 @@ public:
     void init_update(
         Rcpp::List &object,
         arma::mat &new_y,
-        arma::field<arma::cube> &new_experts,
-        const bool trace);
+        arma::field<arma::cube> &new_experts);
     Rcpp::List output();
     void teardown()
     {

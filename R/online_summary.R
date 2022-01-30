@@ -16,7 +16,7 @@ summary.online <- function(object, ...) {
 
     lt <- object$specification$parameters$lead_time
     # Set unused values to NA
-    if (lead_time > 0) {
+    if (lt > 0) {
         pargrid[1:lt, ] <- NA
         chosen_basis_pr[1:lt, ] <- NA
         chosen_basis_mv[1:lt, ] <- NA

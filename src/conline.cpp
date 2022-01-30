@@ -145,6 +145,7 @@ void conline::set_grid_objects()
 
 void conline::learn()
 {
+    Progress prog(T, trace);
     clock.tick("core");
     for (unsigned int t = start; t < T; t++)
     {
@@ -412,7 +413,7 @@ void conline::learn()
         cum_performance = (1 - forget_past_performance) * cum_performance + tmp_performance;
 
         opt_index(t + 1) = cum_performance.index_min();
-        // prog.increment(); // Update progress
+        prog.increment(); // Update progress
 
     } // t
 
@@ -543,8 +544,7 @@ Rcpp::List conline::output()
 void conline::init_update(
     Rcpp::List &object,
     arma::mat &new_y,
-    arma::field<arma::cube> &new_experts,
-    const bool trace)
+    arma::field<arma::cube> &new_experts)
 {
 
     clock.tick("init");

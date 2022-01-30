@@ -147,6 +147,7 @@ online <- function(y, experts, tau,
                    trace = TRUE) {
     model_instance <- new(conline)
 
+    model_instance$trace <- trace
     model_instance$tau <- tau
 
     edim <- dim(experts)
@@ -372,7 +373,7 @@ online <- function(y, experts, tau,
     model <- model_instance$output()
 
     model_instance$teardown()
-
+    rm(model_instance)
     model <- post_process_model(model, y, enames)
 
     return(model)
