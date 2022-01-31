@@ -1,9 +1,24 @@
+profoc 0.9.0 (Release date: TBD)
+==============
+
+## Changes:
+
+* `online` can now be used with multivariate data
+  * Just pass a TxK matrix as `y` and a TxDxPxK array as `experts`
+* Smoothing was improved. See the documentation for details on the revised interface.
+* `summary.online` can be used to obtain selected parameters of `online` models
+
+### Internal changes
+
+* `online` uses Rcpp Modules to bundle data and functionality into an exposed C++ class
+* Improvements to plot methods
+
 profoc 0.8.5 (Release date: 22.10.2021)
 ==============
 
 ## Changes:
 
-* `initial_weights` argument is replaces by `init`
+* `initial_weights` argument is replaced by `init`
   * `init` takes a named list and currently `intial_weights` and `R0` the initial weights and the initial cumulative regret can be provided. They have to be PxK or 1xK. 
 
 ### Internal changes
