@@ -113,50 +113,41 @@ plot.online <- function(x, ...) {
         \nInput:")
             if (decision == "1") {
                 # Weights vs probabilities
-                vars <- seq_len(dx[2])
-                # decision_var <- readline(prompt = paste0(
-                #     "Choose a variable: [",
-                #     vars[1], "-",
-                #     vars[length(vars)],
-                #     "] or \nType 'all' to cycle threw them. \nInput:"
-                # ))
-                # if (decision_var == "all") {
-                for (d in vars) {
-                    w <- x$weights[nrow(x$weights), d, , ]
-                    w <- t(apply(w, 1, cumsum))
-                    w <- cbind(0, w)
-                    idx <- seq_len(nrow(w))
-                    cols <- darken(rainbow(n = dim(w)[2]), 1.2)
-                    plot(idx, idx * NA,
-                        ylim = c(0, 1),
-                        ylab = "Weights",
-                        xlab = "",
-                        main = paste0("Recent weights of the Experts for Variable ", d, "."),
-                        xlim = range(idx)
+                p <- readline(prompt = paste0(
+                    "Choose variable index: [",
+                    1, "-",
+                    dx[2],
+                    "]"
+                ))
+                w <- x$weights[nrow(x$weights), d, , ]
+                w <- t(apply(w, 1, cumsum))
+                w <- cbind(0, w)
+                idx <- seq_len(nrow(w))
+                cols <- darken(rainbow(n = dim(w)[2]), 1.2)
+                plot(idx, idx * NA,
+                    ylim = c(0, 1),
+                    ylab = "weights",
+                    xlab = "probability",
+                    main = paste0("Recent weights of the Experts for Variable ", d, "."),
+                    xlim = range(idx)
+                )
+                grid()
+                for (i in 2:dim(w)[2]) {
+                    polygon(
+                        c(idx, rev(idx)),
+                        c(w[, i - 1], rev(w[, i])),
+                        col = cols[i],
+                        border = cols[i],
+                        lwd = 1
                     )
-                    grid()
-                    for (i in 2:dim(w)[2]) {
-                        polygon(
-                            c(idx, rev(idx)),
-                            c(w[, i - 1], rev(w[, i])),
-                            col = cols[i],
-                            border = cols[i],
-                            lwd = 1
-                        )
-                    }
-                    legend(
-                        min(idx), 1,
-                        legend = enames,
-                        col = cols[-1],
-                        lwd = 2,
-                        cex = 1,
-                    )
-                    readline(prompt = paste0(
-                        "Showing Plot ", d, "/",
-                        max(vars), ". Press [enter] to continue"
-                    ))
-                    #     }
                 }
+                legend(
+                    min(idx), 1,
+                    legend = enames,
+                    col = cols[-1],
+                    lwd = 2,
+                    cex = 1,
+                )
             } else if (decision == "2") {
                 # Weights vs variables
                 probs <- seq_len(dx[3])
