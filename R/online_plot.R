@@ -14,7 +14,7 @@ plot.online <- function(x, ...) {
     ) # TxDxPxK
     dnames <- x$specification$data$names$experts[[2]]
     enames <- x$specification$data$names$experts[[4]]
-
+    tau <- x$specification$data$tau
     # Univariate point forecasts
     if (dx[2] == 1 && dx[3] == 1) {
         w <- abind::adrop(x$weights, c(2, 3))
@@ -112,7 +112,7 @@ plot.online <- function(x, ...) {
         \n(3) Skip
         \nInput:")
             if (decision == "1") {
-                # Weights vs variables
+                # Weights vs probabilities
                 vars <- seq_len(dx[2])
                 # decision_var <- readline(prompt = paste0(
                 #     "Choose a variable: [",
@@ -160,49 +160,34 @@ plot.online <- function(x, ...) {
             } else if (decision == "2") {
                 # Weights vs variables
                 probs <- seq_len(dx[3])
-                # decision_var <- readline(prompt = paste0(
-                #     "Choose a variable: [",
-                #     vars[1], "-",
-                #     vars[length(vars)],
-                #     "] or \nType 'all' to cycle threw them. \nInput:"
-                # ))
-                # if (decision_var == "all") {
-                for (p in probs) {
-                    w <- x$weights[nrow(x$weights), , p, ]
-                    w <- t(apply(w, 1, cumsum))
-                    w <- cbind(0, w)
-                    idx <- seq_len(nrow(w))
-                    cols <- darken(rainbow(n = dim(w)[2]), 1.2)
-                    plot(idx, idx * NA,
-                        ylim = c(0, 1),
-                        ylab = "Weights",
-                        xlab = "",
-                        main = paste0("Recent weights of the experts for probability ", p, "."),
-                        xlim = range(idx)
-                    )
-                    grid()
-                    for (i in 2:dim(w)[2]) {
-                        polygon(
-                            c(idx, rev(idx)),
-                            c(w[, i - 1], rev(w[, i])),
-                            col = cols[i],
-                            border = cols[i],
-                            lwd = 1
-                        )
-                    }
-                    legend(
-                        min(idx), 1,
-                        legend = enames,
-                        col = cols[-1],
-                        lwd = 2,
-                        cex = 1,
-                    )
-                    readline(prompt = paste0(
-                        "Showing Plot ", p, "/",
-                        max(probs), ". Press [enter] to continue"
-                    ))
-                    #     }
-                }
+                p <- readline(prompt = paste0(
+                    "Choose tau index: [",
+                    1, "-",
+                    length(tau),
+                    "]"
+                ))
+                p <- as.numeric(p)
+                print(p)
+                w <- x$weights[nrow(x$weights), , p, ]
+                w <- t(w)
+                idx <- seq_len(nrow(w))
+                cols <- darken(rainbow(n = dim(w)[2]), 1.2)
+                colnames(w) <- dnames
+                barplot(
+                    height = w,
+                    ylim = c(0, 1),
+                    ylab = "Weights",
+                    xlab = "Variable",
+                    main = paste0("Recent weights of the experts for probability ", p, "."),
+                    col = cols
+                )
+                legend(
+                    "topleft", 1,
+                    legend = enames,
+                    col = cols,
+                    lwd = 2,
+                    cex = 1,
+                )
             }
         }
     }
