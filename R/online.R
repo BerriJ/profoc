@@ -146,7 +146,6 @@ online <- function(y, experts, tau,
                    regret = NULL,
                    trace = TRUE) {
     model_instance <- new(conline)
-
     model_instance$trace <- trace
     model_instance$tau <- tau
 
@@ -158,12 +157,21 @@ online <- function(y, experts, tau,
 
     model_instance$y <- y
 
+    # preserve names
+    names <- list(y = dimnames(y))
+    names$experts <- list(NULL)
+
     if (length(edim) == 3) {
         enames <- dimnames(experts)[[3]]
         if (is.null(enames)) {
             enames <- paste0("E", 1:edim[3])
         }
         if (ncol(y) > 1) { # multivariate point
+            if (is.null(dimnames(experts)[[2]])) {
+                dnames <- paste0("D", 1:edim[2])
+            } else {
+                dnames <- dimnames(experts)[[2]]
+            }
             experts <- array(
                 unlist(experts),
                 dim = c(edim[1], edim[2], 1, edim[3])
@@ -177,6 +185,7 @@ online <- function(y, experts, tau,
             dim(experts) <- c(edim[1], 1)
             model_instance$experts <- experts
         } else if (ncol(y) == 1) { # univariate probabilistic
+            dnames <- "D1"
             experts <- lapply(seq_len(edim[1]),
                 asub,
                 x = experts,
@@ -187,6 +196,11 @@ online <- function(y, experts, tau,
             model_instance$experts <- experts
         }
     } else if (length(edim) == 4) { # multivariate probabilistic
+        if (is.null(dimnames(experts)[[2]])) {
+            dnames <- paste0("D", 1:edim[2])
+        } else {
+            dnames <- dimnames(experts)[[2]]
+        }
         enames <- dimnames(experts)[[4]]
         if (is.null(enames)) {
             enames <- paste0("E", 1:edim[4])
@@ -194,9 +208,8 @@ online <- function(y, experts, tau,
         experts <- array_to_list(experts)
         model_instance$experts <- experts
     }
-    exdim <- dim(experts[[1]])
-
-    # TODO set dimnames for second dim of experts
+    names$experts[[2]] <- dnames
+    names$experts[[4]] <- enames
 
     T <- dim(experts)[1]
     D <- dim(experts[[1]])[1]
@@ -210,6 +223,8 @@ online <- function(y, experts, tau,
     if (nrow(y) <= lead_time) {
         stop("Number of expert predictions need to exceed lead_time.")
     }
+
+    if (is.null(names$y[[2]])) names$y[[2]] <- paste0(1:D, "D")
 
     model_instance$lead_time <- lead_time
 
@@ -376,7 +391,7 @@ online <- function(y, experts, tau,
 
     model_instance$teardown()
     rm(model_instance)
-    model <- post_process_model(model, y, enames)
+    model <- post_process_model(model, names)
 
     return(model)
 }

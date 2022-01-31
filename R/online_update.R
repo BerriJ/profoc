@@ -15,7 +15,7 @@ update.online <- function(object,
                           new_experts = NULL,
                           trace = FALSE, ...) {
     y <- object$specification$data$y
-    enames <- dimnames(object$experts_loss)[[4]]
+    names <- object$specification$data$names
     if (is.vector(new_y)) {
         new_y <- matrix(new_y)
     }
@@ -72,8 +72,9 @@ update.online <- function(object,
     )
     model_instance$learn()
     object <- model_instance$output()
-
-    object <- post_process_model(model = object, y = y, enames = enames)
+    model_instance$teardown()
+    rm(model_instance)
+    object <- post_process_model(model = object, names = names)
 
     return(object)
 }

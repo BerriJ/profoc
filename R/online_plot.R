@@ -3,7 +3,7 @@
 #' Plots the most recent weights in each quantile.
 #' @param x Object of class inheriting from 'online'
 #' @param ...  further arguments are ignored
-#' @importFrom graphics matplot legend grid polygon
+#' @importFrom graphics barplot matplot legend grid polygon
 #' @importFrom grDevices rainbow col2rgb rgb
 #' @importFrom stats ts.plot
 #' @export
@@ -12,7 +12,8 @@ plot.online <- function(x, ...) {
         dim(x$specification$data$experts)[1],
         dim(x$specification$data$experts[[1]])
     ) # TxDxPxK
-    enames <- dimnames(x$experts_loss)[[4]]
+    dnames <- x$specification$data$names$experts[[2]]
+    enames <- x$specification$data$names$experts[[4]]
 
     # Univariate point forecasts
     if (dx[2] == 1 && dx[3] == 1) {
@@ -85,6 +86,7 @@ plot.online <- function(x, ...) {
         # w <- cbind(0, w)
         idx <- seq_len(nrow(w))
         cols <- darken(rainbow(n = dim(w)[2]), 1.2)
+        colnames(w) <- dnames
         barplot(
             height = w,
             ylim = c(0, 1),
@@ -92,7 +94,7 @@ plot.online <- function(x, ...) {
             xlab = "Variable",
             main = "Most Recent Weights of the Experts for all Variables",
             col = cols
-        ) # TODO use dimnames for D dimension
+        )
         legend(
             "topleft", 1,
             legend = enames,
@@ -211,7 +213,8 @@ plot.online <- function(x, ...) {
     )
     loss <- apply(loss, 2, cumsum)
     ts.plot(loss,
-        xlab = "",
+        xlab = "time",
+        ylab = "loss",
         main = "Cumulative Loss",
         col = cols,
         lwd = 2
