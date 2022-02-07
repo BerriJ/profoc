@@ -113,7 +113,7 @@ plot.online <- function(x, ...) {
         \nInput:")
             if (decision == "1") {
                 # Weights vs probabilities
-                p <- readline(prompt = paste0(
+                d <- readline(prompt = paste0(
                     "Choose variable index: [",
                     1, "-",
                     dx[2],
