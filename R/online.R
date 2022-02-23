@@ -102,33 +102,37 @@ online <- function(y, experts, tau,
                    method = "bewa",
                    b_smooth_pr = list(
                        knots = P,
-                       beta_a = 1,
-                       beta_b = 1,
-                       deg = 1,
-                       outer = TRUE
+                       mu = 0.5,
+                       sigma = 1,
+                       nonc = 0,
+                       tailweight = 1,
+                       deg = 1
                    ),
                    p_smooth_pr = list(
                        knots = P,
-                       beta_a = 1,
-                       beta_b = 1,
+                       mu = 0.5,
+                       sigma = 1,
+                       nonc = 0,
+                       tailweight = 1,
                        deg = 1,
-                       outer = TRUE,
                        ndiff = 1.5,
                        lambda = -Inf
                    ),
                    b_smooth_mv = list(
                        knots = D,
-                       beta_a = 1,
-                       beta_b = 1,
-                       deg = 1,
-                       outer = TRUE
+                       mu = 0.5,
+                       sigma = 1,
+                       nonc = 0,
+                       tailweight = 1,
+                       deg = 1
                    ),
                    p_smooth_mv = list(
                        knots = D,
-                       beta_a = 1,
-                       beta_b = 1,
+                       mu = 0.5,
+                       sigma = 1,
+                       nonc = 0,
+                       tailweight = 1,
                        deg = 1,
-                       outer = TRUE,
                        ndiff = 1.5,
                        lambda = -Inf
                    ),
@@ -276,23 +280,24 @@ online <- function(y, experts, tau,
     tmp <- make_basis_mats(
         x = 1:P / (P + 1),
         n = val_or_def(b_smooth_pr$knots, P),
-        beta_a = val_or_def(b_smooth_pr$beta_a, 1),
-        beta_b = val_or_def(b_smooth_pr$beta_b, 1),
-        deg = val_or_def(b_smooth_pr$deg, 1),
-        outer = val_or_def(b_smooth_pr$outer, TRUE)
+        mu = val_or_def(b_smooth_pr$mu, 0.5),
+        sigma = val_or_def(b_smooth_pr$sigma, 1),
+        nonc = val_or_def(b_smooth_pr$nonc, 0),
+        tailw = val_or_def(b_smooth_pr$tailweight, 1),
+        deg = val_or_def(b_smooth_pr$deg, 1)
     )
     model_instance$basis_pr <- tmp$basis
     model_instance$params_basis_pr <- tmp$params
-
 
     # Basis matrices for multivariate smoothing
     tmp <- make_basis_mats(
         x = 1:D / (D + 1),
         n = val_or_def(b_smooth_mv$knots, D),
-        beta_a = val_or_def(b_smooth_mv$beta_a, 1),
-        beta_b = val_or_def(b_smooth_mv$beta_b, 1),
-        deg = val_or_def(b_smooth_mv$deg, 1),
-        outer = val_or_def(b_smooth_mv$outer, TRUE)
+        mu = val_or_def(b_smooth_mv$mu, 0.5),
+        sigma = val_or_def(b_smooth_mv$sigma, 1),
+        nonc = val_or_def(b_smooth_mv$nonc, 0),
+        tailw = val_or_def(b_smooth_mv$tailweight, 1),
+        deg = val_or_def(b_smooth_mv$deg, 1)
     )
     model_instance$basis_mv <- tmp$basis
     model_instance$params_basis_mv <- tmp$params
@@ -300,10 +305,11 @@ online <- function(y, experts, tau,
     tmp <- make_hat_mats(
         x = 1:P / (P + 1),
         n = val_or_def(p_smooth_pr$knots, P),
-        beta_a = val_or_def(p_smooth_pr$beta_a, 1),
-        beta_b = val_or_def(p_smooth_pr$beta_b, 1),
+        mu = val_or_def(p_smooth_pr$mu, 0.5),
+        sigma = val_or_def(p_smooth_pr$sigma, 1),
+        nonc = val_or_def(p_smooth_pr$nonc, 0),
+        tailw = val_or_def(p_smooth_pr$tailweight, 1),
         deg = val_or_def(p_smooth_pr$deg, 1),
-        outer = val_or_def(p_smooth_pr$outer, TRUE),
         diff = val_or_def(p_smooth_pr$diff, 1.5),
         lambda = val_or_def(p_smooth_pr$lambda, -Inf)
     )
@@ -313,10 +319,11 @@ online <- function(y, experts, tau,
     tmp <- make_hat_mats(
         x = 1:D / (D + 1),
         n = val_or_def(p_smooth_mv$knots, D),
-        beta_a = val_or_def(p_smooth_mv$beta_a, 1),
-        beta_b = val_or_def(p_smooth_mv$beta_b, 1),
+        mu = val_or_def(p_smooth_mv$mu, 0.5),
+        sigma = val_or_def(p_smooth_mv$sigma, 1),
+        nonc = val_or_def(p_smooth_mv$nonc, 0),
+        tailw = val_or_def(p_smooth_mv$tailweight, 1),
         deg = val_or_def(p_smooth_mv$deg, 1),
-        outer = val_or_def(p_smooth_mv$outer, TRUE),
         diff = val_or_def(p_smooth_mv$diff, 1.5),
         lambda = val_or_def(p_smooth_mv$lambda, -Inf)
     )

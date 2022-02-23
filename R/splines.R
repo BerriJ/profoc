@@ -1,49 +1,86 @@
-#' @importFrom stats pbeta
-make_knots2 <- function(n, a, b, deg, outer = TRUE) {
-    new_n <- n + ifelse(outer, 2 * (deg + 1), 0)
-    if (new_n == 1) {
-        seq1 <- 0.5
+pgbeta <- function(x, mu = .5, sig = 1, nonc = 0) {
+    if (nonc >= 0) {
+        a <- mu * sig * 2
+        b <- (1 - mu) * sig * 2
+        c <- nonc
+        return(pbeta(x, a, b, c))
     } else {
-        seq1 <- seq(from = 0, to = 1, length.out = new_n)
+        a <- (1 - mu) * sig * 2
+        b <- mu * sig * 2
+        c <- abs(nonc)
+        return(pbeta(1 - x, a, b, c))
     }
-    av <- mean(seq1)
-    seq_beta <- pbeta(seq1, a, b)
-    seq2 <- (seq_beta - av) * ((n + 2 * deg + 1) / (n + 1))
-    knots <- seq2 + av
+}
+
+#' @importFrom stats pbeta
+make_knots2 <- function(n, mu = .5, sig = 1, nonc = 0, tailw = 0, deg = 1) {
+    if (n < 0) {
+        return(NULL)
+    }
+    seq_n <- seq(from = 0, to = 1, length.out = n + 2)
+    seq_beta <- pgbeta(seq_n, mu, sig, nonc)
+    knots <- c(
+        abs(tailw) * diff(head(seq_beta, 2)) * (-deg:-1),
+        seq_beta,
+        1 + diff(tail(seq_beta, 2)) * (1:(deg) * abs(tailw))
+    )
     return(knots)
 }
 
 make_basis_mats <- function(x, # Splines basis
                             n = length(x), # (vec of) Number of knots
-                            beta_a = 1, # (vec of) Beta dist. alpha
-                            beta_b = 1, # (vec of) Beta dist. beta
-                            deg = 1, # (vec of) Degree of splines
-                            outer = TRUE # (vec of) Whether to add outer knots
+                            mu = 0.5, # (vec of) Beta dist. mu
+                            sigma = 1, # (vec of) Beta dist. variance param
+                            nonc = 0, # (vec of) Beta dist. noncentrality
+                            tailw = 0, # (vec of) Tailweight
+                            deg = 1 # (vec of) Degree of splines
 ) {
     params <- expand.grid(
         n = n,
-        beta_a = beta_a,
-        beta_b = beta_b,
-        deg = deg,
-        outer = outer
+        mu = mu,
+        sigma = sigma,
+        nonc = nonc,
+        tailw = tailw,
+        deg = deg
     )
     params <- as.matrix(params)
     basis_list <- list()
 
     for (i in seq_len(nrow(params))) {
+        deg_ <- params[i, "deg"]
+        n_ <- params[i, "n"]
+
+        # Calculate temporary number of knots to enshure unity in the tails
+        n_ <- n_ - (deg_ + 1) + 2
+        if (n_ < 0) {
+            if (deg_ + n_ >= 1) {
+                print("n too small reduce deg_ by n-(deg_+1)")
+                deg_ <- deg_ + n_
+                n_ <- 0
+            } else {
+                print("n=1, constant case")
+                n_ <- -1
+            }
+        }
+
         knots <- make_knots2(
-            n = params[i, "n"],
-            a = params[i, "beta_a"],
-            b = params[i, "beta_b"],
-            deg = params[i, "deg"],
-            outer = params[i, "outer"]
+            n = n_,
+            mu = params[i, "mu"],
+            sig = params[i, "sigma"],
+            nonc = params[i, "nonc"],
+            tailw = params[i, "tailw"],
+            deg = deg_
         )
 
-        basis_list[[i]] <- make_basis_matrix2(
-            x = x,
-            knots = knots,
-            deg = params[i, 4]
-        )
+        if (is.null(knots)) {
+            basis_list[[i]] <- Matrix::Matrix(rep.int(1, length(x)), sparse = TRUE)
+        } else {
+            basis_list[[i]] <- make_basis_matrix2(
+                x = x,
+                knots = knots,
+                deg = deg_
+            )
+        }
     }
     # Important for passing to C++ as arma::field object
     dim(basis_list) <- c(length(basis_list), 1)
@@ -53,18 +90,20 @@ make_basis_mats <- function(x, # Splines basis
 
 make_hat_mats <- function(x,
                           n = length(x),
-                          beta_a = 1,
-                          beta_b = 1,
+                          mu = 0.5,
+                          sigma = 1,
+                          nonc = 0,
+                          tailw = 0,
                           deg = 1,
-                          outer = TRUE,
                           diff = 1.5,
                           lambda = -Inf) {
     params <- expand.grid(
         n = n,
-        beta_a = beta_a,
-        beta_b = beta_b,
+        mu = mu,
+        sigma = sigma,
+        nonc = nonc,
+        tailw = tailw,
         deg = deg,
-        outer = outer,
         diff = diff,
         lambda = lambda
     )
@@ -73,18 +112,37 @@ make_hat_mats <- function(x,
     hat_list <- list()
 
     for (i in seq_len(nrow(params))) {
+        deg_ <- params[i, "deg"]
+        n_ <- params[i, "n"]
+
+        # Calculate temporary number of knots to enshure unity in the tails
+        n_ <- n_ - (deg_ + 1) + 2
+
+        if (n_ < 0) {
+            if (deg_ + n_ >= 1) {
+                print("n too small reduce deg_ by n-(deg_+1)")
+                deg_ <- deg_ + n_
+                n_ <- 0
+            } else {
+                print("n=1, constant case")
+                n_ <- -1
+            }
+        }
+
         knots <- make_knots2(
-            n = params[i, "n"],
-            a = params[i, "beta_a"],
-            b = params[i, "beta_b"],
-            deg = params[i, "deg"],
-            outer = params[i, "outer"]
+            n = n_,
+            mu = params[i, "mu"],
+            sig = params[i, "sigma"],
+            nonc = params[i, "nonc"],
+            tailw = params[i, "tailw"],
+            deg = deg_
         )
+
         if (params[i, "lambda"] != -Inf) {
             hat_list[[i]] <- make_hat_matrix2(
                 x = x,
                 knots = knots,
-                deg = params[i, "deg"],
+                deg = deg_,
                 bdiff = params[i, "diff"],
                 lambda = params[i, "lambda"]
             )
