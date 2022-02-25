@@ -1,3 +1,10 @@
+profoc 0.9.1 (Release date: 25.02.2022)
+==============
+
+## Changes:
+
+* Basis matrices are created differently now. This solves an issue where basis functions did not always sum to 1 when non-equidistant knot sequences were used.
+
 profoc 0.9.0 (Release date: 07.02.2022)
 ==============
 
