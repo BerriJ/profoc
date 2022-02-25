@@ -13,7 +13,9 @@ pgbeta <- function(x, mu = .5, sig = 1, nonc = 0) {
 }
 
 #' @importFrom stats pbeta
-make_knots2 <- function(n, mu = .5, sig = 1, nonc = 0, tailw = 0, deg = 1) {
+#' @importFrom utils head
+#' @importFrom utils tail
+make_knots2 <- function(n, mu = .5, sig = 1, nonc = 0, tailw = 1, deg = 1) {
     if (n < 0) {
         return(NULL)
     }
@@ -32,7 +34,7 @@ make_basis_mats <- function(x, # Splines basis
                             mu = 0.5, # (vec of) Beta dist. mu
                             sigma = 1, # (vec of) Beta dist. variance param
                             nonc = 0, # (vec of) Beta dist. noncentrality
-                            tailw = 0, # (vec of) Tailweight
+                            tailw = 1, # (vec of) Tailweight
                             deg = 1 # (vec of) Degree of splines
 ) {
     params <- expand.grid(
@@ -58,7 +60,6 @@ make_basis_mats <- function(x, # Splines basis
                 deg_ <- deg_ + n_
                 n_ <- 0
             } else {
-                print("n=1, constant case")
                 n_ <- -1
             }
         }
@@ -93,7 +94,7 @@ make_hat_mats <- function(x,
                           mu = 0.5,
                           sigma = 1,
                           nonc = 0,
-                          tailw = 0,
+                          tailw = 1,
                           deg = 1,
                           diff = 1.5,
                           lambda = -Inf) {

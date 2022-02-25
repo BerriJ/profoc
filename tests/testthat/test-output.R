@@ -1,4 +1,4 @@
-# skip_if(debug_mode)
+skip_if(debug_mode)
 
 set.seed(1)
 
