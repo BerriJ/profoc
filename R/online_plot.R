@@ -15,8 +15,8 @@ plot.online <- function(x, ...) {
     dnames <- x$specification$data$names$experts[[2]]
     enames <- x$specification$data$names$experts[[4]]
     tau <- x$specification$data$tau
-    # Univariate point forecasts
-    if (dx[2] == 1 && dx[3] == 1) {
+
+    if (dx[2] == 1 && dx[3] == 1) { # Univariate point
         w <- abind::adrop(x$weights, c(2, 3))
         w <- t(apply(w, 1, cumsum))
         w <- cbind(0, w)
@@ -47,8 +47,7 @@ plot.online <- function(x, ...) {
             cex = 1,
         )
         readline(prompt = "Showing Plot 1/2. Press [enter] to continue")
-    } else if (dx[2] == 1 && dx[3] != 1) {
-        # Univariate probabilistic forecasts
+    } else if (dx[2] == 1 && dx[3] != 1) { # Univariate probabilistic
         w <- abind::adrop(x$weights, 2)[nrow(x$weights), , ]
         w <- t(apply(w, 1, cumsum))
         w <- cbind(0, w)
@@ -79,8 +78,7 @@ plot.online <- function(x, ...) {
             cex = 1,
         )
         readline(prompt = "Showing Plot 1/2. Press [enter] to continue")
-    } else if (dx[2] != 1 && dx[3] == 1) {
-        # Multivariate point forecasts
+    } else if (dx[2] != 1 && dx[3] == 1) { # Multivariate point
         w <- abind::adrop(x$weights, 3)[nrow(x$weights), , ]
         w <- t(w)
         # w <- cbind(0, w)
@@ -103,7 +101,7 @@ plot.online <- function(x, ...) {
             cex = 1,
         )
         readline(prompt = "Showing Plot 1/2. Press [enter] to continue")
-    } else if (dx[2] != 1 && dx[3] != 1) {
+    } else if (dx[2] != 1 && dx[3] != 1) { # Multivariate probabilistic
         decision <- 0
         while (decision != "3") {
             decision <- readline(prompt = "Choose one of the following:
@@ -119,6 +117,7 @@ plot.online <- function(x, ...) {
                     dx[2],
                     "]"
                 ))
+                d <- as.numeric(d)
                 w <- x$weights[nrow(x$weights), d, , ]
                 w <- t(apply(w, 1, cumsum))
                 w <- cbind(0, w)
@@ -188,6 +187,7 @@ plot.online <- function(x, ...) {
         apply(x$experts_loss, c(1, 4), mean)
     )
     loss <- apply(loss, 2, cumsum)
+    cols <- darken(rainbow(n = dim(loss)[2]), 1.2)
     ts.plot(loss,
         xlab = "time",
         ylab = "loss",

@@ -1,8 +1,8 @@
 Package: profoc
 Type: Package
 Title: Probabilistic Forecast Combination Using CRPS Learning
-Version: 0.9.1
-Date: 2022-02-25
+Version: 0.9.2
+Date: 2022-03-17
 Authors@R: c(
     person(given = "Jonathan",
              family = "Berrisch",
@@ -14,7 +14,7 @@ Authors@R: c(
              role = "aut",
              comment = c(ORCID = "0000-0002-2974-2660"))
     )
-Description: Combine probabilistic forecasts using CRPS learning algorithms proposed in Berrisch, Ziel (2021) <arXiv:2102.00968>. The package implements multiple online learning algorithms like Bernstein online aggregation; see Wintenberger (2014) <arXiv:1404.1356>. Quantile regression is also implemented for comparison purposes. Model parameters can be tuned automatically with respect to the loss of the forecast combination. Methods like predict(), update(), plot() and print() are available for convenience. This package utilizes the optim C++ library for numeric optimization <https://github.com/kthohr/optim>.
+Description: Combine probabilistic forecasts using CRPS learning algorithms proposed in Berrisch, Ziel (2021) <arXiv:2102.00968> <doi:10.1016/j.jeconom.2021.11.008>. The package implements multiple online learning algorithms like Bernstein online aggregation; see Wintenberger (2014) <arXiv:1404.1356>. Quantile regression is also implemented for comparison purposes. Model parameters can be tuned automatically with respect to the loss of the forecast combination. Methods like predict(), update(), plot() and print() are available for convenience. This package utilizes the optim C++ library for numeric optimization <https://github.com/kthohr/optim>.
 License: GPL (>= 3)
 Encoding: UTF-8
 Depends: R (>= 3.0.2)

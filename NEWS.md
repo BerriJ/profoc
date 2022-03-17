@@ -1,3 +1,10 @@
+profoc 0.9.2 (Release date: 17.03.2022)
+==============
+
+## Fixes:
+
+* Resolved a problem with plotting multivariate probabilistic models
+
 profoc 0.9.1 (Release date: 25.02.2022)
 ==============
 

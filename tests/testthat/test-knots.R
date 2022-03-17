@@ -116,7 +116,7 @@ foo <- online(
     trace = FALSE
 )
 
-plot(foo$weights[T, 1, , 1], type = "l")
+# plot(foo$weights[T, 1, , 1], type = "l")
 
 # Test b_smooth_pr
 foo2 <- online(
@@ -130,7 +130,7 @@ foo2 <- online(
     trace = FALSE
 )
 
-lines(foo2$weights[T, 1, , 1], type = "l", col = 2)
+# lines(foo2$weights[T, 1, , 1], type = "l", col = 2)
 
 # Test p_smooth_pr
 foo3 <- online(
@@ -147,7 +147,7 @@ foo3 <- online(
     trace = FALSE
 )
 
-lines(foo3$weights[T, 1, , 1], type = "l", col = 2)
+# lines(foo3$weights[T, 1, , 1], type = "l", col = 2)
 
 # Test b_smooth_mv note that we use more knots > D which is generally possible
 foo2 <- online(

@@ -92,7 +92,7 @@
 #' # Predict will expand \code{model$predictions} by default
 #' model <- predict(model, new_experts = new_experts, update_model = TRUE)
 #' }
-#' @importFrom abind asub
+#' @importFrom abind adrop asub
 #' @export
 online <- function(y, experts, tau,
                    lead_time = 0,
@@ -184,8 +184,9 @@ online <- function(y, experts, tau,
                 asub,
                 x = experts,
                 dims = 1,
-                drop = TRUE
+                drop = FALSE
             )
+            experts <- lapply(experts, adrop, drop = 1)
             dim(experts) <- c(edim[1], 1)
             model_instance$experts <- experts
         } else if (ncol(y) == 1) { # univariate probabilistic
