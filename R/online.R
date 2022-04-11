@@ -152,6 +152,8 @@ online <- function(y, experts, tau,
     model_instance <- new(conline)
     model_instance$trace <- trace
     model_instance$tau <- tau
+    model_instance$forget_past_performance <- forget_past_performance
+
 
     edim <- dim(experts)
 

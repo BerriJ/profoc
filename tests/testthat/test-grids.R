@@ -62,3 +62,42 @@ boa_smooth <- online(
 expect_true(
     all(!duplicated(apply(boa_smooth$past_performance, 3, mean)))
 )
+
+# Test forget_past_performance
+# We expect that grids do effect the performance:
+without_forget <- online(
+    y = matrix(y),
+    tau = prob_grid,
+    experts = experts,
+    p_smooth_pr = list(
+        knots = c(5, 10, 20),
+        lambda = c(1, 10, 100, 1000),
+        ndiff = c(1, 1.5, 2),
+        deg = c(1, 2, 3)
+    ),
+    forget_past_performance = 0,
+    trace = FALSE
+)
+
+loss_without <- mean(without_forget$forecaster_loss)
+smooth_mat_without <- as.numeric(without_forget$opt_index)
+
+with_forget <- online(
+    y = matrix(y),
+    tau = prob_grid,
+    experts = experts,
+    p_smooth_pr = list(
+        knots = c(5, 10, 20),
+        lambda = c(1, 10, 100, 1000),
+        ndiff = c(1, 1.5, 2),
+        deg = c(1, 2, 3)
+    ),
+    forget_past_performance = 0.01,
+    trace = FALSE
+)
+
+loss_with <- mean(with_forget$forecaster_loss)
+smooth_mat_with <- as.numeric(with_forget$opt_index)
+
+expect_true(loss_without != loss_with)
+expect_true(!all(smooth_mat_without == smooth_mat_with))
