@@ -4,6 +4,7 @@ profoc 0.9.3
 ## Fixes:
 
 * `forget_past_performance` had no effect in `online()` 
+* Improved and fixed documentation
 
 profoc 0.9.2
 ==============
@@ -127,7 +128,7 @@ profoc 0.6.0
 
 * If more expert forecasts than observations are provided, the excessive expert forecasts are used for prediction using the most recent weights.
 * `tau` is now optional. It defaults to 1:P/(P+1). A scalar given to tau will be repeated P times. The latter is useful in multivariate settings.
-* The pinball_loss and loss_pred functions were replaced by a more flexible function called `loss`.
+* The `pinball_loss` and `loss_pred` functions were replaced by a more flexible function called `loss`.
 * The `weights` object is changed from a $(\text{T}+1 \times \text{K} \times \text{P})$ array to a $(\text{T}+1 \times \text{P} \times \text{K})$ array to match other objects' dimensions. Now the following indexing scheme is consistent throughout the package: (Time, Probabilities, Experts, Parameter combination)
 * Fixed Bug that caused single quantile calculations to fail.
 * Various internal changes to improve readability and performance.

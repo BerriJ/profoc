@@ -41,8 +41,8 @@ a TxP matrix. In the latter case, each slice of
 the expert's array gets evaluated using the corresponding
 column of the y matrix.}
 
-\item{experts}{An array of predictions with dimension
-(Observations, Quantiles, Experts).}
+\item{experts}{An array of predictions with dimension T x D x P x K
+(Observations x Variables x Quantiles x Experts) or T x D x K or T x P x K.}
 
 \item{tau}{A numeric vector of probabilities.}
 

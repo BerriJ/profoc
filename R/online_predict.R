@@ -5,7 +5,7 @@
 #' use update instead. The latter updates and weights and computes predictions.
 #' @param object Object of class inheriting from 'online'
 #' @param new_experts new expert predictions
-#' @param update_model Defines wether the model object should be updated or not.
+#' @param update_model Defines whether the model object should be updated or not.
 #' If TRUE, new forecaster and expert predictions are appended onto
 #' the respective object items. Defaults to TRUE.
 #' @param ...  further arguments are ignored

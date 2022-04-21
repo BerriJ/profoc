@@ -11,7 +11,7 @@
 
 \item{new_experts}{new expert predictions}
 
-\item{update_model}{Defines wether the model object should be updated or not.
+\item{update_model}{Defines whether the model object should be updated or not.
 If TRUE, new forecaster and expert predictions are appended onto
 the respective object items. Defaults to TRUE.}
 

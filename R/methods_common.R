@@ -4,7 +4,7 @@
 #' particular class in a single command. This defines the S3 generic that
 #' other classes and packages can extend.
 #'
-#' @param object an object, whose class will determine the behaviour of autoplot
+#' @param object an object, whose class will determine the behavior of autoplot
 #' @param ... other arguments passed to specific methods
 #' @return a ggplot object
 #' @seealso [autolayer()], [ggplot()] and [fortify()]

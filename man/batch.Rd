@@ -75,7 +75,7 @@ an expanding window.}
 
 \item{loss_parameter}{Optional parameter scaling the power of the loss function.}
 
-\item{qw_crps}{Decides wether the sum of quantile scores (FALSE) or
+\item{qw_crps}{Decides whether the sum of quantile scores (FALSE) or
 the quantile weighted CRPS (TRUE) should be minimized.
 Defaults to FALSE. Which corresponds to Berrisch & Ziel (2021)}
 

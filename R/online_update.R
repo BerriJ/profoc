@@ -4,7 +4,7 @@
 #' @param object Object of class inheriting from 'online'
 #' @param new_y new observations
 #' @param new_experts new expert predictions. This must be left unspecified
-#' @param trace If a progressbar shall be shown. Defaults to FALSE
+#' @param trace If a progress bar shall be shown. Defaults to FALSE
 #' if the model already contains the expert predictions corresponding to new_y.
 #' @param ...  further arguments are ignored
 #' @return \code{update.online} produces an updated model object.

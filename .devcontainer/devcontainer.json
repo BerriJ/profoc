@@ -38,7 +38,7 @@
         "rdebugger.r-debugger",
         // Latex
         "james-yu.latex-workshop",
-        "znck.grammarly",
+        // "znck.grammarly",
         // Git
         "npxms.hide-gitignored",
         "eamodio.gitlens",

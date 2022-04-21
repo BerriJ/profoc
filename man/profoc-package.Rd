@@ -14,8 +14,6 @@ Use multiple online-aggregation algorithms to combine probabilistic forecasts us
 }
 \author{
 
-\packageAuthor{profoc}
-
 Maintainer: Jonathan Berrisch \url{mailto:Jonathan@Berrisch.biz}
 
 Co-Author: Florian Ziel

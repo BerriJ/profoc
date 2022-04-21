@@ -1,8 +1,8 @@
 Package: profoc
 Type: Package
 Title: Probabilistic Forecast Combination Using CRPS Learning
-Version: 0.9.2
-Date: 2022-03-17
+Version: 0.9.3
+Date: 2022-04-21
 Authors@R: c(
     person(given = "Jonathan",
              family = "Berrisch",
@@ -24,6 +24,7 @@ SystemRequirements: C++11
 URL: https://profoc.berrisch.biz/, https://github.com/BerriJ/profoc
 BugReports: https://github.com/BerriJ/profoc/issues
 RoxygenNote: 7.1.2
+Language: en-US
 Suggests: 
     testthat (>= 3.0.0),
     gamlss.dist,

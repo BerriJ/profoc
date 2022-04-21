@@ -1,7 +1,8 @@
 #' @template function_online
 #'
 #' @template param_y
-#' @template param_experts
+#' @param experts An array of predictions with dimension T x D x P x K
+#' (Observations x Variables x Quantiles x Experts) or T x D x K or T x P x K.
 #' @template param_tau
 #'
 #' @template param_lead_time

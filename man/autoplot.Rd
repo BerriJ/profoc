@@ -7,7 +7,7 @@
 autoplot(object, ...)
 }
 \arguments{
-\item{object}{an object, whose class will determine the behaviour of autoplot}
+\item{object}{an object, whose class will determine the behavior of autoplot}
 
 \item{...}{other arguments passed to specific methods}
 }
