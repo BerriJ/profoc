@@ -18,7 +18,7 @@ using CRPS Learning."><!-- mathjax --><script src="https://cdnjs.cloudflare.com/
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">profoc</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.9.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.9.3</span>
       </span>
     </div>
 
@@ -95,8 +95,8 @@ a TxP matrix. In the latter case, each slice of
 the expert's array gets evaluated using the corresponding
 column of the y matrix.</p></dd>
 <dt>experts</dt>
-<dd><p>An array of predictions with dimension
-(Observations, Quantiles, Experts).</p></dd>
+<dd><p>An array of predictions with dimension T x D x P x K
+(Observations x Variables x Quantiles x Experts) or T x D x K or T x P x K.</p></dd>
 <dt>tau</dt>
 <dd><p>A numeric vector of probabilities.</p></dd>
 <dt>lead_time</dt>
