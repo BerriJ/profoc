@@ -249,7 +249,6 @@ void conline::learn()
                 if (params["regret_share"](x) != 1)
                 {
                     regret_int = (lfor - lexp_int.each_col()).t();
-                    regret_int *= double(basis_pr(params["basis_pr_idx"](x) - 1).n_cols) / double(P);
 
                     if (params["regret_share"](x) == 0)
                     {
@@ -259,7 +258,6 @@ void conline::learn()
                     {
                         regret_ext = regret_array(t).row(d);
                         regret_ext = regret_ext.t();
-                        regret_ext *= double(basis_pr(params["basis_pr_idx"](x) - 1).n_cols) / double(P);
                         regret_tmp.row(d) = ((1 - params["regret_share"](x)) * regret_int + params["regret_share"](x) * regret_ext).t();
                     }
                 }
@@ -267,7 +265,6 @@ void conline::learn()
                 {
                     regret_ext = regret_array(t).row(d);
                     regret_ext = regret_ext.t();
-                    regret_ext *= double(basis_pr(params["basis_pr_idx"](x) - 1).n_cols) / double(P);
                     regret_tmp.row(d) = regret_ext.t();
                 }
             }
@@ -276,13 +273,15 @@ void conline::learn()
             for (unsigned int k = 0; k < K; k++)
             {
                 regret.slice(k) = basis_mv(params["basis_mv_idx"](x) - 1).t() * regret_tmp.slice(k) * basis_pr(params["basis_pr_idx"](x) - 1);
+                regret.slice(k) *= double(basis_pr(params["basis_pr_idx"](x) - 1).n_cols) / double(P);
+                regret.slice(k) *= double(basis_mv(params["basis_mv_idx"](x) - 1).n_cols) / double(D);
             }
 
             clock.tock("regret");
             clock.tick("learning");
 #pragma omp parallel for collapse(2)
             for (unsigned int dr = 0; dr < regret.n_rows; dr++)
-            { // This is subject to change if D will be reduces using another basis
+            {
                 for (unsigned int pr = 0; pr < regret.n_cols; pr++)
                 {
 

@@ -34,7 +34,7 @@
         "ms-python.python",
         "visualstudioexptteam.vscodeintellicode",
         // R
-        "ikuyadeu.r",
+        "REditorSupport.r",
         "rdebugger.r-debugger",
         // Latex
         "james-yu.latex-workshop",
