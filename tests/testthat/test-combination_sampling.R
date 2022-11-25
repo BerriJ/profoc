@@ -31,4 +31,4 @@ expect_warning(boa <- online(
     ),
     parametergrid_max_combinations = 3,
     trace = FALSE
-), "Warning: Too many parameter combinations possible. 3 combinations were randomly sampled. Results may depend on sampling.")
+), "Warning: Too many parameter combinations possible. 3 combinations were randomly sampled. Results depend on sampling.")

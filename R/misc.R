@@ -41,3 +41,45 @@ post_process_model <- function(model, names) {
     dimnames(model$experts_loss)[[4]] <- names$experts[[4]]
     return(model)
 }
+
+expand_grid_sample <- function(vecs,
+                               n = NULL,
+                               idx = NULL,
+                               verbose = FALSE) {
+    v_len <- sapply(vecs, length)
+    N <- prod(v_len)
+
+    if (is.null(idx) & is.null(n)) {
+        return(as.matrix(expand.grid(vecs)))
+    } else if (!is.null(idx) & !is.null(n)) {
+        stop("Only one of n or idx can be specified")
+    } else if (is.null(n)) {
+        n <- length(idx)
+    }
+
+    if (n >= N) {
+        return(as.matrix(expand.grid(vecs)))
+    } else if (verbose == TRUE) {
+        warning(
+            paste(
+                "Warning: Too many parameter combinations possible.",
+                n,
+                "combinations were randomly sampled. Results depend on sampling."
+            )
+        )
+    }
+
+    if (is.null(idx)) {
+        idx <- sort(sample(1:N, n, replace = FALSE))
+    }
+
+    grid_sample <- sapply(
+        seq_along(vecs),
+        function(i) {
+            vecs[[i]][((ceiling(idx / prod(v_len[seq_len(i - 1)])) - 1)
+            %% (v_len[i]) + 1)]
+        }
+    )
+    colnames(grid_sample) <- names(vecs)
+    return(grid_sample)
+}

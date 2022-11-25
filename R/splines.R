@@ -35,17 +35,23 @@ make_basis_mats <- function(x, # Splines basis
                             sigma = 1, # (vec of) Beta dist. variance param
                             nonc = 0, # (vec of) Beta dist. noncentrality
                             tailw = 1, # (vec of) Tailweight
-                            deg = 1 # (vec of) Degree of splines
-) {
-    params <- expand.grid(
-        n = n,
-        mu = mu,
-        sigma = sigma,
-        nonc = nonc,
-        tailw = tailw,
-        deg = deg
-    )
-    params <- as.matrix(params)
+                            deg = 1, # (vec of) Degree of splines
+                            idx = NULL,
+                            params = NULL) {
+    if (is.null(params)) {
+        params <- expand_grid_sample(
+            list(
+                n = n,
+                mu = mu,
+                sigma = sigma,
+                nonc = nonc,
+                tailw = tailw,
+                deg = deg
+            ),
+            idx = idx
+        )
+    }
+
     basis_list <- list()
 
     for (i in seq_len(nrow(params))) {
@@ -97,18 +103,24 @@ make_hat_mats <- function(x,
                           tailw = 1,
                           deg = 1,
                           diff = 1.5,
-                          lambda = -Inf) {
-    params <- expand.grid(
-        n = n,
-        mu = mu,
-        sigma = sigma,
-        nonc = nonc,
-        tailw = tailw,
-        deg = deg,
-        diff = diff,
-        lambda = lambda
-    )
-    params <- as.matrix(params)
+                          lambda = -Inf,
+                          idx = NULL,
+                          params = NULL) {
+    if (is.null(params)) {
+        params <- expand_grid_sample(
+            list(
+                n = n,
+                mu = mu,
+                sigma = sigma,
+                nonc = nonc,
+                tailw = tailw,
+                deg = deg,
+                diff = diff,
+                lambda = lambda
+            ),
+            idx = idx
+        )
+    }
 
     hat_list <- list()
 
