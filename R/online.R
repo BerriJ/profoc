@@ -349,7 +349,7 @@ online <- function(y, experts, tau,
         nonc = val_or_def(b_smooth_pr$nonc, 0),
         tailw = val_or_def(b_smooth_pr$tailweight, 1),
         deg = val_or_def(b_smooth_pr$deg, 1),
-        idx = unique(parametergrid[, "basis_pr_idx"]),
+        idx = sort(unique(parametergrid[, "basis_pr_idx"])),
         params = NULL
     )
     model_instance$basis_pr <- tmp$basis
@@ -364,7 +364,7 @@ online <- function(y, experts, tau,
         nonc = val_or_def(b_smooth_mv$nonc, 0),
         tailw = val_or_def(b_smooth_mv$tailweight, 1),
         deg = val_or_def(b_smooth_mv$deg, 1),
-        idx = unique(parametergrid[, "basis_mv_idx"]),
+        idx = sort(unique(parametergrid[, "basis_mv_idx"])),
         params = NULL
     )
     model_instance$basis_mv <- tmp$basis
@@ -380,7 +380,7 @@ online <- function(y, experts, tau,
         deg = val_or_def(p_smooth_pr$deg, 1),
         diff = val_or_def(p_smooth_pr$diff, 1.5),
         lambda = val_or_def(p_smooth_pr$lambda, -Inf),
-        idx = unique(parametergrid[, "hat_pr_idx"]),
+        idx = sort(unique(parametergrid[, "hat_pr_idx"])),
         params = NULL
     )
     model_instance$hat_pr <- tmp$hat
@@ -396,7 +396,7 @@ online <- function(y, experts, tau,
         deg = val_or_def(p_smooth_mv$deg, 1),
         diff = val_or_def(p_smooth_mv$diff, 1.5),
         lambda = val_or_def(p_smooth_mv$lambda, -Inf),
-        idx = unique(parametergrid[, "hat_mv_idx"]),
+        idx = sort(unique(parametergrid[, "hat_mv_idx"])),
         params = NULL
     )
     model_instance$hat_mv <- tmp$hat
