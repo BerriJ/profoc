@@ -25,7 +25,8 @@ online(
   fixed_share = 0,
   gamma = 1,
   parametergrid_max_combinations = 100,
-  parametergrid = NULL,
+  parametergrids = list(general = NULL, b_smooth_pr = NULL, p_smooth_pr = NULL,
+    b_smooth_mv = NULL, p_smooth_mv = NULL),
   forget_past_performance = 0,
   allow_quantile_crossing = FALSE,
   init = NULL,
@@ -103,13 +104,23 @@ number of parameter combinations that should be considered. If
 the number of possible combinations exceeds this threshold,
 the maximum allowed number is randomly sampled. Defaults to 100.}
 
-\item{parametergrid}{User supplied grid of parameters. Can be used if not
-all combinations of the input vectors should be considered. Must be a matrix
-with 13 columns (online) or 12 columns batch with the following order:
-basis_knot_distance, basis_knot_distance_power, basis_deg, forget_regret,
-soft_threshold, hard_threshold, fixed_share, p_smooth_lambda,
-p_smooth_knot_distance, p_smooth_knot_distance_power, p_smooth_deg,
-p_smooth_ndiff, gamma.}
+\item{parametergrids}{User supplied grids of parameters. Can be used if not
+all combinations of the input vectors should be considered. Must be a named
+list of five matrices. The matrices in list must be named as: "general",
+"b_smooth_pr", "b_smooth_mv", "p_smooth_pr", "p_smooth_mv".
+The "general" matrix must contan 11 named columns:
+"forget_regret", "soft_threshold", "hard_threshold", "fixed_share",
+"basis_pr_idx", "basis_mv_idx", "hat_pr_idx", "hat_mv_idx",
+"gamma", "loss_share", "regret_share".
+The matrices determining the basis smoothing (b_smooth_pr, b_smooth_mv) must
+contain the following named columns:
+n, mu, sigma, nonc, tailw, deg.
+In addition to the columns of the basis smoothing matrices, the matrices
+determining the penalized smoothing (p_smooth_pr, p_smooth_mv) must contain
+the following columns:
+diff, lambda.
+The *_idx columns in the general matrix determine which row of the
+corresponding smoothing matrix is used.}
 
 \item{forget_past_performance}{Share of past performance not to be considered, resp. to be
 forgotten in every iteration of the algorithm when selecting the best parameter

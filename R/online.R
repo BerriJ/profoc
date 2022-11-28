@@ -38,7 +38,7 @@
 #' @param gamma Scaling parameter for the learning rate.
 #'
 #' @template param_parametergrid_max_combinations
-#' @template param_parametergrid
+#' @template param_parametergrids
 #' @template param_forget_past_performance
 #'
 #' @template param_allow_quantile_crossing
@@ -143,7 +143,12 @@ online <- function(y, experts, tau,
                    fixed_share = 0,
                    gamma = 1,
                    parametergrid_max_combinations = 100,
-                   parametergrid = NULL,
+                   parametergrids = list(
+                       general = NULL,
+                       b_smooth_pr = NULL,
+                       p_smooth_pr = NULL, b_smooth_mv = NULL,
+                       p_smooth_mv = NULL
+                   ),
                    forget_past_performance = 0,
                    allow_quantile_crossing = FALSE,
                    init = NULL,
@@ -289,6 +294,7 @@ online <- function(y, experts, tau,
         tailw = val_or_def(b_smooth_pr$tailweight, 1),
         deg = val_or_def(b_smooth_pr$deg, 1)
     )
+    pars_basis_pr_n <- prod(sapply(pars_basis_pr, length))
 
     pars_basis_mv <- list(
         n = val_or_def(b_smooth_mv$knots, D),
@@ -298,6 +304,7 @@ online <- function(y, experts, tau,
         tailw = val_or_def(b_smooth_mv$tailweight, 1),
         deg = val_or_def(b_smooth_mv$deg, 1)
     )
+    pars_basis_mv_n <- prod(sapply(pars_basis_mv, length))
 
     pars_hat_pr <- list(
         n = val_or_def(p_smooth_pr$knots, P),
@@ -309,6 +316,7 @@ online <- function(y, experts, tau,
         diff = val_or_def(p_smooth_pr$diff, 1.5),
         lambda = val_or_def(p_smooth_pr$lambda, -Inf)
     )
+    pars_hat_pr_n <- prod(sapply(pars_hat_pr, length))
 
     pars_hat_mv <- list(
         n = val_or_def(p_smooth_mv$knots, D),
@@ -320,23 +328,28 @@ online <- function(y, experts, tau,
         diff = val_or_def(p_smooth_mv$diff, 1.5),
         lambda = val_or_def(p_smooth_mv$lambda, -Inf)
     )
+    pars_hat_mv_n <- prod(sapply(pars_hat_mv, length))
 
-    parametergrid <- expand_grid_sample(list(
-        basis_pr_idx = seq_len(prod(sapply(pars_basis_pr, length))),
-        forget_regret = forget_regret,
-        soft_threshold = soft_threshold,
-        hard_threshold = hard_threshold,
-        fixed_share = fixed_share,
-        hat_pr_idx = seq_len(prod(sapply(pars_hat_pr, length))),
-        hat_mv_idx = seq_len(prod(sapply(pars_hat_mv, length))),
-        gamma = gamma,
-        loss_share = loss_share,
-        regret_share = regret_share,
-        basis_mv_idx = seq_len(prod(sapply(pars_basis_mv, length)))
-    ),
-    n = parametergrid_max_combinations,
-    verbose = TRUE
-    )
+    if (is.null(parametergrids$general)) {
+        parametergrid <- expand_grid_sample(list(
+            forget_regret = forget_regret,
+            soft_threshold = soft_threshold,
+            hard_threshold = hard_threshold,
+            fixed_share = fixed_share,
+            basis_pr_idx = seq_len(pars_basis_pr_n),
+            basis_mv_idx = seq_len(pars_basis_mv_n),
+            hat_pr_idx = seq_len(pars_hat_pr_n),
+            hat_mv_idx = seq_len(pars_hat_mv_n),
+            gamma = gamma,
+            loss_share = loss_share,
+            regret_share = regret_share
+        ),
+        n = parametergrid_max_combinations,
+        verbose = TRUE
+        )
+    } else {
+        parametergrid <- parametergrids$general
+    }
 
     # Create basis and hat matix lists
 
@@ -350,7 +363,7 @@ online <- function(y, experts, tau,
         tailw = val_or_def(b_smooth_pr$tailweight, 1),
         deg = val_or_def(b_smooth_pr$deg, 1),
         idx = sort(unique(parametergrid[, "basis_pr_idx"])),
-        params = NULL
+        params = parametergrids$b_smooth_pr
     )
     model_instance$basis_pr <- tmp$basis
     model_instance$params_basis_pr <- tmp$params
@@ -365,7 +378,7 @@ online <- function(y, experts, tau,
         tailw = val_or_def(b_smooth_mv$tailweight, 1),
         deg = val_or_def(b_smooth_mv$deg, 1),
         idx = sort(unique(parametergrid[, "basis_mv_idx"])),
-        params = NULL
+        params = parametergrids$b_smooth_mv
     )
     model_instance$basis_mv <- tmp$basis
     model_instance$params_basis_mv <- tmp$params
@@ -381,7 +394,7 @@ online <- function(y, experts, tau,
         diff = val_or_def(p_smooth_pr$diff, 1.5),
         lambda = val_or_def(p_smooth_pr$lambda, -Inf),
         idx = sort(unique(parametergrid[, "hat_pr_idx"])),
-        params = NULL
+        params = parametergrids$p_smooth_pr
     )
     model_instance$hat_pr <- tmp$hat
     model_instance$params_hat_pr <- tmp$params
@@ -397,12 +410,12 @@ online <- function(y, experts, tau,
         diff = val_or_def(p_smooth_mv$diff, 1.5),
         lambda = val_or_def(p_smooth_mv$lambda, -Inf),
         idx = sort(unique(parametergrid[, "hat_mv_idx"])),
-        params = NULL
+        params = parametergrids$p_smooth_mv
     )
     model_instance$hat_mv <- tmp$hat
     model_instance$params_hat_mv <- tmp$params
 
-    # Fix basis / hat index vals while retaining original order
+    # Fix basis / hat idx while retaining original order
     parametergrid[, "basis_pr_idx"] <- match(
         parametergrid[, "basis_pr_idx"],
         sort(unique(parametergrid[, "basis_pr_idx"]))
@@ -447,7 +460,7 @@ online <- function(y, experts, tau,
 
     if (!is.null(init$R0)) model_instance$R0 <- init$R0
 
-    # Populates default values to grid-sized values
+    # Populates default values to grid-sized objects
     model_instance$set_grid_objects()
 
     # Execute online learning
