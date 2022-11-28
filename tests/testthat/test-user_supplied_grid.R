@@ -49,29 +49,6 @@ grid <- expand.grid(
 grid <- as.matrix(grid)
 # %%
 
-# %% Check if custom grid is used
-# res <- online(
-#     matrix(y),
-#     experts,
-#     tau = prob_grid,
-#     parametergrid = grid,
-#     trace = FALSE
-# )
-
-# expect_true(
-#     all(res$parametergrid == grid)
-# )
-# %%
-
-# %% Check dimension error
-# expect_error(online(
-#     matrix(y),
-#     experts,
-#     parametergrid = grid[, -1],
-#     trace = FALSE
-# ), "Please provide a parametergrid with 15 columns.")
-# %%
-
 # %% Batch setting
 res <- batch(
     matrix(y),
@@ -92,4 +69,74 @@ expect_error(batch(
     parametergrid = grid[, -c(12:13)], # No gamma parameter in batch
     trace = FALSE
 ), "Please provide a parametergrid with 12 columns.")
+# %%
+
+# %% Online setting
+
+grids <- list()
+
+grids$general <- as.matrix(expand.grid(
+    "forget_regret" = 0,
+    "soft_threshold" = 0,
+    "hard_threshold" = 0,
+    "fixed_share" = 0,
+    "basis_pr_idx" = c(1, 2),
+    "basis_mv_idx" = 1,
+    "hat_pr_idx" = 1,
+    "hat_mv_idx" = 1,
+    "gamma" = 1,
+    "loss_share" = 0,
+    "regret_share" = 0
+))
+
+grids$b_smooth_pr <- as.matrix(expand.grid(
+    n = 9,
+    mu = c(0.1, 0.2),
+    sigma = 1,
+    nonc = 0,
+    tailw = 1,
+    deg = 1
+))
+
+grids$b_smooth_mv <- as.matrix(expand.grid(
+    n = 9,
+    mu = 0.5,
+    sigma = 1,
+    nonc = 0,
+    tailw = 1,
+    deg = 1
+))
+
+grids$p_smooth_pr <- as.matrix(expand.grid(
+    n = 1,
+    mu = 0.5,
+    sigma = 1,
+    nonc = 0,
+    tailw = 1,
+    deg = 1,
+    diff = 1.5,
+    lambda = -Inf
+))
+
+grids$p_smooth_mv <- as.matrix(expand.grid(
+    n = 1,
+    mu = 0.5,
+    sigma = 1,
+    nonc = 0,
+    tailw = 1,
+    deg = 1,
+    diff = 1.5,
+    lambda = -Inf
+))
+
+mod <- online(
+    y = matrix(y),
+    tau = prob_grid,
+    experts = experts,
+    parametergrids = grids,
+    trace = FALSE
+)
+
+expect_true(all(mod$parametergrid[, "basis_pr_idx"] == grids$general[, "basis_pr_idx"]))
+
 # %%
