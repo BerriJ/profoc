@@ -70,7 +70,7 @@ expand_grid_sample <- function(vecs,
     }
 
     if (is.null(idx)) {
-        idx <- sort(sample(1:N, n, replace = FALSE))
+        idx <- sort(sample.int(N, n, replace = FALSE))
     }
 
     grid_sample <- sapply(
