@@ -70,7 +70,11 @@ expand_grid_sample <- function(vecs,
     }
 
     if (is.null(idx)) {
-        idx <- sort(sample.int(N, n, replace = FALSE))
+        if (N <= 10^15) {
+            idx <- sort(sample.int(N, n, replace = FALSE))
+        } else {
+            idx <- sample_int(N, n)
+        }
     }
 
     grid_sample <- sapply(

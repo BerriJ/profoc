@@ -74,6 +74,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// sample_int
+std::set<unsigned long long int> sample_int(unsigned long long int N, unsigned long long int size);
+RcppExport SEXP _profoc_sample_int(SEXP NSEXP, SEXP sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< unsigned long long int >::type N(NSEXP);
+    Rcpp::traits::input_parameter< unsigned long long int >::type size(sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_int(N, size));
+    return rcpp_result_gen;
+END_RCPP
+}
 // optimize_weights
 arma::vec optimize_weights(const arma::vec& truth, const arma::mat& experts, const bool& affine, const bool& positive, const bool& intercept, const bool& debias, const std::string& loss_function, const double& tau, const double& forget, const double& loss_scaling);
 RcppExport SEXP _profoc_optimize_weights(SEXP truthSEXP, SEXP expertsSEXP, SEXP affineSEXP, SEXP positiveSEXP, SEXP interceptSEXP, SEXP debiasSEXP, SEXP loss_functionSEXP, SEXP tauSEXP, SEXP forgetSEXP, SEXP loss_scalingSEXP) {
@@ -218,6 +230,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_batch_rcpp", (DL_FUNC) &_profoc_batch_rcpp, 17},
     {"_profoc_loss", (DL_FUNC) &_profoc_loss, 7},
     {"_profoc_loss_grad_wrt_w", (DL_FUNC) &_profoc_loss_grad_wrt_w, 7},
+    {"_profoc_sample_int", (DL_FUNC) &_profoc_sample_int, 2},
     {"_profoc_optimize_weights", (DL_FUNC) &_profoc_optimize_weights, 10},
     {"_profoc_optimize_betas", (DL_FUNC) &_profoc_optimize_betas, 13},
     {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 10},

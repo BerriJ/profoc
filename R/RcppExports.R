@@ -13,6 +13,10 @@ loss_grad_wrt_w <- function(expert, pred, truth, tau, loss_function, a, w) {
     .Call(`_profoc_loss_grad_wrt_w`, expert, pred, truth, tau, loss_function, a, w)
 }
 
+sample_int <- function(N, size) {
+    .Call(`_profoc_sample_int`, N, size)
+}
+
 optimize_weights <- function(truth, experts, affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, loss_function = "quantile", tau = 0.5, forget = 0, loss_scaling = 1) {
     .Call(`_profoc_optimize_weights`, truth, experts, affine, positive, intercept, debias, loss_function, tau, forget, loss_scaling)
 }
