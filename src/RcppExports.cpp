@@ -75,13 +75,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // sample_int
-std::set<unsigned long long int> sample_int(unsigned long long int N, unsigned long long int size);
+std::set<uint64_t> sample_int(uint64_t N, uint64_t size);
 RcppExport SEXP _profoc_sample_int(SEXP NSEXP, SEXP sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< unsigned long long int >::type N(NSEXP);
-    Rcpp::traits::input_parameter< unsigned long long int >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< uint64_t >::type N(NSEXP);
+    Rcpp::traits::input_parameter< uint64_t >::type size(sizeSEXP);
     rcpp_result_gen = Rcpp::wrap(sample_int(N, size));
     return rcpp_result_gen;
 END_RCPP
