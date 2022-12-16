@@ -13,7 +13,7 @@ profoc 0.9.4
 * `parametergrids` lets you provide custom grids of parameters in `online()` 
 
 ### Internal changes
-* Significantly improved the initialisation efficiency in `online()` when using large grids of parameters
+* Significantly improved the initialization efficiency in `online()` when using large grids of parameters
 
 profoc 0.9.3
 ==============
