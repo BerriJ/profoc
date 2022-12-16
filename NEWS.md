@@ -1,3 +1,10 @@
+profoc 0.9.5
+==============
+
+## Internal changes
+* Now `online()` is able to sample from grids of up to 2^64-1 rows.
+* The new cpp sampling function `sample_int()` works similar to `sample.int()` and also respects seeds set by `set.seed()`. 
+
 profoc 0.9.4
 ==============
 

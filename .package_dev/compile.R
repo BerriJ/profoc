@@ -25,3 +25,6 @@ devtools::release()
 # PKG_CXXFLAGS=-fno-gnu-unique in src/Makevars
 
 devtools::load_all()
+
+set.seed(2)
+sample_int(10^5, 11, get_seed())

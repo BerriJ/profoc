@@ -1,3 +1,6 @@
+get_seed <- function() {
+    sample.int(.Machine$integer.max, 1)
+}
 
 #' @importFrom abind asub adrop
 array_to_list <- function(x) {
@@ -60,9 +63,9 @@ expand_grid_sample <- function(vecs,
     if (n >= N) {
         return(as.matrix(expand.grid(vecs)))
     } else if (verbose == TRUE) {
-        warning(
+        message(
             paste(
-                "Warning: Too many parameter combinations possible.",
+                "Too many parameter combinations possible.",
                 n,
                 "combinations were randomly sampled. Results depend on sampling."
             )
@@ -73,7 +76,7 @@ expand_grid_sample <- function(vecs,
         if (N <= 10^15) {
             idx <- sort(sample.int(N, n, replace = FALSE))
         } else {
-            idx <- sample_int(N, n)
+            idx <- sample_int(N, n, get_seed())
         }
     }
 

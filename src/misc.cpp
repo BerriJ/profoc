@@ -6,9 +6,10 @@
 // [[Rcpp::export]]
 std::set<uint64_t> sample_int(
     uint64_t N,
-    uint64_t size)
+    uint64_t size,
+    uint32_t seed)
 {
-    std::mt19937_64 rng(std::random_device{}());
+    std::mt19937_64 rng(seed);
 
     // Create an empty set of integers.
     std::set<uint64_t> set;

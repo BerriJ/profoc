@@ -75,14 +75,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // sample_int
-std::set<uint64_t> sample_int(uint64_t N, uint64_t size);
-RcppExport SEXP _profoc_sample_int(SEXP NSEXP, SEXP sizeSEXP) {
+std::set<uint64_t> sample_int(uint64_t N, uint64_t size, uint32_t seed);
+RcppExport SEXP _profoc_sample_int(SEXP NSEXP, SEXP sizeSEXP, SEXP seedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< uint64_t >::type N(NSEXP);
     Rcpp::traits::input_parameter< uint64_t >::type size(sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(sample_int(N, size));
+    Rcpp::traits::input_parameter< uint32_t >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_int(N, size, seed));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -230,7 +231,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_batch_rcpp", (DL_FUNC) &_profoc_batch_rcpp, 17},
     {"_profoc_loss", (DL_FUNC) &_profoc_loss, 7},
     {"_profoc_loss_grad_wrt_w", (DL_FUNC) &_profoc_loss_grad_wrt_w, 7},
-    {"_profoc_sample_int", (DL_FUNC) &_profoc_sample_int, 2},
+    {"_profoc_sample_int", (DL_FUNC) &_profoc_sample_int, 3},
     {"_profoc_optimize_weights", (DL_FUNC) &_profoc_optimize_weights, 10},
     {"_profoc_optimize_betas", (DL_FUNC) &_profoc_optimize_betas, 13},
     {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 10},

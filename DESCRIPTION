@@ -1,8 +1,8 @@
 Package: profoc
 Type: Package
 Title: Probabilistic Forecast Combination Using CRPS Learning
-Version: 0.9.4
-Date: 2022-11-30
+Version: 0.9.5
+Date: 2022-12-16
 Authors@R: c(
     person(given = "Jonathan",
              family = "Berrisch",
