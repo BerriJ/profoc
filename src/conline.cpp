@@ -39,8 +39,12 @@ void conline::set_grid_objects()
 {
 
     opt_index.zeros(T + 1);
-    past_performance.set_size(T);
-    tmp_performance.zeros(X);
+    if(save_past_performance){
+        past_performance.set_size(T);
+    }else{
+        past_performance.set_size(1);
+    }
+    tmp_performance.zeros(D, P);
     cum_performance.zeros(X);
 
     predictions.zeros(T + T_E_Y, D, P);
@@ -110,7 +114,12 @@ void conline::set_grid_objects()
     {
 
         weights(t).set_size(D, P, K);
-        past_performance(t).set_size(D, P, X);
+
+        if(save_past_performance){
+            past_performance(t).set_size(D, P, X);
+            past_performance(t).fill(datum::nan);
+        }
+        
         predictions_tmp(t).set_size(D, P, X);
 
         for (unsigned int d = 0; d < D; d++)
@@ -135,8 +144,6 @@ void conline::set_grid_objects()
             // Final prediction
             predictions.tube(t, d) = vectorise(predictions_tmp(t)(span(d), span::all, span(opt_index(t))));
         }
-
-        past_performance(t).fill(datum::nan);
     }
 
     start = lead_time;
@@ -150,7 +157,10 @@ void conline::learn()
     for (unsigned int t = start; t < T; t++)
     {
         weights(t).set_size(D, P, K);
-        past_performance(t).set_size(D, P, X);
+
+        if(save_past_performance)
+            past_performance(t).set_size(D, P, X);
+        
         predictions_tmp(t).set_size(D, P, X);
 
         clock.tick("loss");
@@ -198,14 +208,14 @@ void conline::learn()
 #pragma omp parallel for
                 for (unsigned int p = 0; p < P; p++)
                 {
-                    // Evaluate the ex-post predictive performance
-                    past_performance(t)(d, p, x) = loss(y(t, d),
+                    tmp_performance(d,p) = loss(y(t, d),
                                                         predictions_tmp(t - lead_time)(d, p, x),
                                                         9999,           // where evaluate loss_gradient
                                                         loss_function,  // method
                                                         tau(p),         // tau
                                                         loss_parameter, // alpha
                                                         false);
+                    
                     if (params["loss_share"](x) != 1)
                     {
                         for (unsigned int k = 0; k < K; k++)
@@ -404,12 +414,16 @@ void conline::learn()
                         accu(weights_tmp(x)(span(d), span(p), span::all));
                 }
             }
-            tmp_performance(x) = accu(past_performance(t).slice(x));
+            if(save_past_performance)
+                past_performance(t).slice(x) =  tmp_performance;        
             R_CheckUserInterrupt();
-        }
 
-        // Sum past_performance in each slice
-        cum_performance = (1 - forget_past_performance) * cum_performance + tmp_performance;
+        // Apply forget
+        cum_performance(x) *= (1 - forget_past_performance);
+        // Add new loss
+        cum_performance(x) += accu(tmp_performance) / double(D*P);
+        
+        } // x
 
         opt_index(t + 1) = cum_performance.index_min();
         prog.increment(); // Update progress
@@ -478,7 +492,7 @@ Rcpp::List conline::output()
     clock.tick("wrangle");
 
     // // 1-Indexing for R-Output
-    opt_index = opt_index + 1;
+    opt_index += 1;
 
     // Rcpp::NumericMatrix parametergrid_out = Rcpp::wrap(param_grid);
 
@@ -585,11 +599,15 @@ void conline::init_update(
     opt_index -= 1;
     opt_index.resize(T + 1);
 
-    past_performance.set_size(T);
-    past_performance.rows(0, start - 1) =
-        Rcpp::as<arma::field<cube>>(object["past_performance"]);
+    if(save_past_performance){
+        past_performance.set_size(T);
+        past_performance.rows(0, start - 1) =
+            Rcpp::as<arma::field<cube>>(object["past_performance"]);
+    }else{
+        past_performance.set_size(1);
+    }
 
-    tmp_performance.zeros(X);
+    tmp_performance.zeros(D,P);
     cum_performance = Rcpp::as<arma::vec>(model_objects["cum_performance"]);
 
     weights_tmp =

@@ -20,7 +20,7 @@ for (t in 1:T) {
     experts[t, , 2] <- qnorm(prob_grid, mean = 5, sd = 2)
 }
 
-# We expect that grids do effect the performance:
+# We expect that grids do affects the performance:
 boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
@@ -28,9 +28,7 @@ boa_smooth <- online(
     p_smooth_pr = list(
         lambda = c(10, 1000),
         ndiff = c(1, 2),
-        deg = c(2, 3),
-        knot_distance = c(0.001, 0.1),
-        knot_distance_power = c(0.5, 1, 2)
+        deg = c(2, 3)
     ),
     b_smooth_pr = list(
         deg = 1,
@@ -51,7 +49,6 @@ boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
     experts = experts,
-    b_smooth_pr = list(knot_distance = 0.1),
     p_smooth_pr = list(
         lambda = c(1),
         ndiff = seq(from = 1, to = 2, by = 0.2)
@@ -64,7 +61,7 @@ expect_true(
 )
 
 # Test forget_past_performance
-# We expect that grids do effect the performance:
+# We expect that forget affects the performance:
 without_forget <- online(
     y = matrix(y),
     tau = prob_grid,
@@ -72,8 +69,7 @@ without_forget <- online(
     p_smooth_pr = list(
         knots = c(5, 10, 20),
         lambda = c(1, 10, 100, 1000),
-        ndiff = c(1, 1.5, 2),
-        deg = c(1, 2, 3)
+        ndiff = c(1, 1.5, 2)
     ),
     forget_past_performance = 0,
     trace = FALSE
@@ -89,8 +85,7 @@ with_forget <- online(
     p_smooth_pr = list(
         knots = c(5, 10, 20),
         lambda = c(1, 10, 100, 1000),
-        ndiff = c(1, 1.5, 2),
-        deg = c(1, 2, 3)
+        ndiff = c(1, 1.5, 2)
     ),
     forget_past_performance = 0.01,
     trace = FALSE

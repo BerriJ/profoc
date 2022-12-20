@@ -28,6 +28,7 @@ online(
   parametergrids = list(general = NULL, b_smooth_pr = NULL, p_smooth_pr = NULL,
     b_smooth_mv = NULL, p_smooth_mv = NULL),
   forget_past_performance = 0,
+  save_past_performance = TRUE,
   allow_quantile_crossing = FALSE,
   init = NULL,
   loss = NULL,
@@ -125,6 +126,10 @@ corresponding smoothing matrix is used.}
 \item{forget_past_performance}{Share of past performance not to be considered, resp. to be
 forgotten in every iteration of the algorithm when selecting the best parameter
 combination. Defaults to 0.}
+
+\item{save_past_performance}{Wether or not the past performance w.r.t to the
+considered parameter grid should be reported or now. Defaults to `TRUE`.
+Set it to `FALSE` to save memory.}
 
 \item{allow_quantile_crossing}{Shall quantile crossing be allowed? Defaults to false, which means that predictions are sorted in ascending order.}
 

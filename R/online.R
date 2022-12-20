@@ -41,6 +41,10 @@
 #' @template param_parametergrids
 #' @template param_forget_past_performance
 #'
+#' @param save_past_performance Wether or not the past performance w.r.t to the
+#' considered parameter grid should be reported or now. Defaults to `TRUE`.
+#' Set it to `FALSE` to save memory.
+#'
 #' @template param_allow_quantile_crossing
 #'
 #' @param init A named list containing "init_weights": Array of dimension
@@ -146,10 +150,12 @@ online <- function(y, experts, tau,
                    parametergrids = list(
                        general = NULL,
                        b_smooth_pr = NULL,
-                       p_smooth_pr = NULL, b_smooth_mv = NULL,
+                       p_smooth_pr = NULL,
+                       b_smooth_mv = NULL,
                        p_smooth_mv = NULL
                    ),
                    forget_past_performance = 0,
+                   save_past_performance = TRUE,
                    allow_quantile_crossing = FALSE,
                    init = NULL,
                    loss = NULL,
@@ -159,6 +165,7 @@ online <- function(y, experts, tau,
     model_instance$trace <- trace
     model_instance$tau <- tau
     model_instance$forget_past_performance <- forget_past_performance
+    model_instance$save_past_performance <- save_past_performance
 
 
     edim <- dim(experts)
@@ -313,7 +320,7 @@ online <- function(y, experts, tau,
         nonc = val_or_def(p_smooth_pr$nonc, 0),
         tailw = val_or_def(p_smooth_pr$tailweight, 1),
         deg = val_or_def(p_smooth_pr$deg, 1),
-        diff = val_or_def(p_smooth_pr$diff, 1.5),
+        ndiff = val_or_def(p_smooth_pr$ndiff, 1.5),
         lambda = val_or_def(p_smooth_pr$lambda, -Inf)
     )
     pars_hat_pr_n <- prod(sapply(pars_hat_pr, length))
@@ -325,27 +332,28 @@ online <- function(y, experts, tau,
         nonc = val_or_def(p_smooth_mv$nonc, 0),
         tailw = val_or_def(p_smooth_mv$tailweight, 1),
         deg = val_or_def(p_smooth_mv$deg, 1),
-        diff = val_or_def(p_smooth_mv$diff, 1.5),
+        ndiff = val_or_def(p_smooth_mv$ndiff, 1.5),
         lambda = val_or_def(p_smooth_mv$lambda, -Inf)
     )
     pars_hat_mv_n <- prod(sapply(pars_hat_mv, length))
 
     if (is.null(parametergrids$general)) {
-        parametergrid <- expand_grid_sample(list(
-            forget_regret = forget_regret,
-            soft_threshold = soft_threshold,
-            hard_threshold = hard_threshold,
-            fixed_share = fixed_share,
-            basis_pr_idx = seq_len(pars_basis_pr_n),
-            basis_mv_idx = seq_len(pars_basis_mv_n),
-            hat_pr_idx = seq_len(pars_hat_pr_n),
-            hat_mv_idx = seq_len(pars_hat_mv_n),
-            gamma = gamma,
-            loss_share = loss_share,
-            regret_share = regret_share
-        ),
-        n = parametergrid_max_combinations,
-        verbose = TRUE
+        parametergrid <- expand_grid_sample(
+            list(
+                forget_regret = forget_regret,
+                soft_threshold = soft_threshold,
+                hard_threshold = hard_threshold,
+                fixed_share = fixed_share,
+                basis_pr_idx = seq_len(pars_basis_pr_n),
+                basis_mv_idx = seq_len(pars_basis_mv_n),
+                hat_pr_idx = seq_len(pars_hat_pr_n),
+                hat_mv_idx = seq_len(pars_hat_mv_n),
+                gamma = gamma,
+                loss_share = loss_share,
+                regret_share = regret_share
+            ),
+            n = parametergrid_max_combinations,
+            verbose = TRUE
         )
     } else {
         parametergrid <- parametergrids$general
@@ -391,7 +399,7 @@ online <- function(y, experts, tau,
         nonc = val_or_def(p_smooth_pr$nonc, 0),
         tailw = val_or_def(p_smooth_pr$tailweight, 1),
         deg = val_or_def(p_smooth_pr$deg, 1),
-        diff = val_or_def(p_smooth_pr$diff, 1.5),
+        ndiff = val_or_def(p_smooth_pr$ndiff, 1.5),
         lambda = val_or_def(p_smooth_pr$lambda, -Inf),
         idx = sort(unique(parametergrid[, "hat_pr_idx"])),
         params = parametergrids$p_smooth_pr
@@ -407,7 +415,7 @@ online <- function(y, experts, tau,
         nonc = val_or_def(p_smooth_mv$nonc, 0),
         tailw = val_or_def(p_smooth_mv$tailweight, 1),
         deg = val_or_def(p_smooth_mv$deg, 1),
-        diff = val_or_def(p_smooth_mv$diff, 1.5),
+        ndiff = val_or_def(p_smooth_mv$ndiff, 1.5),
         lambda = val_or_def(p_smooth_mv$lambda, -Inf),
         idx = sort(unique(parametergrid[, "hat_mv_idx"])),
         params = parametergrids$p_smooth_mv

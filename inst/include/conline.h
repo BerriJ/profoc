@@ -19,6 +19,7 @@ public:
     std::string loss_function = "quantile";
     double loss_parameter = 1.0;
     bool loss_gradient = true;
+    bool save_past_performance = true;
 
     std::string method = "bewa";
 
@@ -70,7 +71,7 @@ public:
     // Performance related
     arma::vec opt_index;
     arma::field<arma::cube> past_performance;
-    arma::vec tmp_performance;
+    arma::mat tmp_performance;
     arma::vec cum_performance;
 
     // Learning parameters

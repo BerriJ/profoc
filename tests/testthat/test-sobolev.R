@@ -27,7 +27,7 @@ boa_smooth <- online(
     experts = experts,
     p_smooth_pr = list(
         lambda = 50,
-        diff = 2
+        ndiff = 2
     ),
     trace = FALSE
 )
@@ -38,7 +38,7 @@ boa_smooth_sobol <- online(
     experts = experts,
     p_smooth_pr = list(
         lambda = 50,
-        diff = 1.5
+        ndiff = 1.5
     ),
     trace = FALSE
 )

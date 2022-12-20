@@ -102,7 +102,7 @@ make_hat_mats <- function(x,
                           nonc = 0,
                           tailw = 1,
                           deg = 1,
-                          diff = 1.5,
+                          ndiff = 1.5,
                           lambda = -Inf,
                           idx = NULL,
                           params = NULL) {
@@ -115,7 +115,7 @@ make_hat_mats <- function(x,
                 nonc = nonc,
                 tailw = tailw,
                 deg = deg,
-                diff = diff,
+                ndiff = ndiff,
                 lambda = lambda
             ),
             idx = idx
@@ -156,7 +156,7 @@ make_hat_mats <- function(x,
                 x = x,
                 knots = knots,
                 deg = deg_,
-                bdiff = params[i, "diff"],
+                bdiff = params[i, "ndiff"],
                 lambda = params[i, "lambda"]
             )
         } else {
