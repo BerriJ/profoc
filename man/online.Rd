@@ -128,7 +128,7 @@ forgotten in every iteration of the algorithm when selecting the best parameter
 combination. Defaults to 0.}
 
 \item{save_past_performance}{Wether or not the past performance w.r.t to the
-considered parameter grid should be reported or now. Defaults to `TRUE`.
+considered parameter grid should be reported or not. Defaults to `TRUE`.
 Set it to `FALSE` to save memory.}
 
 \item{allow_quantile_crossing}{Shall quantile crossing be allowed? Defaults to false, which means that predictions are sorted in ascending order.}

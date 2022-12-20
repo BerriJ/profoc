@@ -42,7 +42,7 @@
 #' @template param_forget_past_performance
 #'
 #' @param save_past_performance Wether or not the past performance w.r.t to the
-#' considered parameter grid should be reported or now. Defaults to `TRUE`.
+#' considered parameter grid should be reported or not. Defaults to `TRUE`.
 #' Set it to `FALSE` to save memory.
 #'
 #' @template param_allow_quantile_crossing

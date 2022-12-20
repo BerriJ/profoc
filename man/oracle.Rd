@@ -20,7 +20,7 @@ column of the y matrix.}
 
 \item{tau}{A numeric vector of probabilities.}
 
-\item{affine}{Defines whether weights are summing to 1 or now. Defaults to FALSE.}
+\item{affine}{Defines whether weights are summing to 1 or not. Defaults to FALSE.}
 
 \item{positive}{Defines if a positivity constraint is applied to the weights.
 Defaults to FALSE.}
