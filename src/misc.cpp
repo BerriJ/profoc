@@ -1,4 +1,4 @@
-#include <Rcpp.h>
+#include <RcppArmadillo.h>
 #include <cstdint>
 #include <random>
 #include <set>

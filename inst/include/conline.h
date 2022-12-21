@@ -19,7 +19,8 @@ public:
     std::string loss_function = "quantile";
     double loss_parameter = 1.0;
     bool loss_gradient = true;
-    bool save_past_performance = true;
+    bool save_past_performance = false;
+    bool save_predictions_grid = false;
 
     std::string method = "bewa";
 
@@ -65,7 +66,7 @@ public:
     arma::field<arma::cube> weights;
 
     // Predictions
-    arma::field<arma::cube> predictions_tmp;
+    arma::field<arma::cube> predictions_grid;
     arma::cube predictions;
 
     // Performance related

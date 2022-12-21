@@ -41,9 +41,14 @@
 #' @template param_parametergrids
 #' @template param_forget_past_performance
 #'
-#' @param save_past_performance Wether or not the past performance w.r.t to the
-#' considered parameter grid should be reported or not. Defaults to `TRUE`.
-#' Set it to `FALSE` to save memory.
+#' @param save_past_performance Whether or not the past performance w.r.t to the
+#' considered parameter grid should be reported or not. Defaults to `FALSE` to
+#' save memory. Setting it to `TRUE` can be memory intensive depending on the
+#' data and the considered grid.
+#' @param save_predictions_grid Whether or not all predictions w.r.t to the
+#' considered parameter grid should be reported or not. Defaults to `FALSE`.
+#' Setting it to `TRUE` can be memory intensive depending on the data
+#'  and the considered grid.
 #'
 #' @template param_allow_quantile_crossing
 #'
@@ -155,7 +160,8 @@ online <- function(y, experts, tau,
                        p_smooth_mv = NULL
                    ),
                    forget_past_performance = 0,
-                   save_past_performance = TRUE,
+                   save_past_performance = FALSE,
+                   save_predictions_grid = FALSE,
                    allow_quantile_crossing = FALSE,
                    init = NULL,
                    loss = NULL,
@@ -166,6 +172,7 @@ online <- function(y, experts, tau,
     model_instance$tau <- tau
     model_instance$forget_past_performance <- forget_past_performance
     model_instance$save_past_performance <- save_past_performance
+    model_instance$save_predictions_grid <- save_predictions_grid
 
 
     edim <- dim(experts)

@@ -30,6 +30,7 @@ boa_smooth <- online(
         ndiff = c(1, 2),
         deg = c(2, 3)
     ),
+    save_past_performance = TRUE,
     trace = FALSE
 )
 
@@ -43,7 +44,9 @@ expect_true(
         ))
 )
 
-# We expect that grids do effect the performance:
+expect_true(boa_smooth$specification$parameters$save_past_performance)
+
+# The default of save_past_performance is expected to be FALSE
 boa_smooth <- online(
     y = matrix(y),
     tau = prob_grid,
@@ -53,10 +56,9 @@ boa_smooth <- online(
         ndiff = c(1, 2),
         deg = c(2, 3)
     ),
-    save_past_performance = FALSE,
     trace = FALSE
 )
 
-
-
 expect_true(all(dim(boa_smooth$past_performance) == c(1, 0, 0, 0)))
+
+expect_false(boa_smooth$specification$parameters$save_past_performance)

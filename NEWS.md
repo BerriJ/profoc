@@ -2,7 +2,7 @@ profoc 1.0.0
 ==============
 
 ## Changes:
-* Now, `online()` can save memory by not reporting the `past_performance`. The cumulative performance is always included in the output. The latter is used internally for choosing the best hyperparameter set. The `past_performance` array can grow large in multivariate probabilistic settings where a large parameter space is considered. 
+* Now, `online()` saves memory by not reporting `past_performance` and `past_predictions_grid`. However, the cumulative performance and the most recent predictions w.r.t to the parameter grid are always included in the output. The former is used internally for choosing the best hyperparameter set, and the latter for updating the weights. Depending on the data and the parameter space considered, both objects may get large. You can still opt-in to include them in the output by setting `save_past_performance = TRUE` and `save_past_predictions_grid = TRUE` in `online()`.
 
 profoc 0.9.5
 ==============

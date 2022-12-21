@@ -25,6 +25,7 @@ model_lg_true <- online(
     experts = experts,
     tau = prob_grid,
     loss_gradient = TRUE,
+    save_past_performance = TRUE,
     trace = FALSE
 )
 
@@ -33,6 +34,7 @@ model_lg_false <- online(
     experts = experts,
     tau = prob_grid,
     loss_gradient = FALSE,
+    save_past_performance = TRUE,
     trace = FALSE
 )
 
@@ -88,10 +90,9 @@ model5 <- online(
     experts = experts,
     tau = prob_grid,
     regret = list(regret = regret, share = c(0, 0.5, 1)),
+    save_past_performance = TRUE,
     trace = FALSE
 )
-
-dim(model5$past_performance)
 
 expect_true(all(model5$past_performance[, , , 1] ==
     model_lg_true$past_performance[, , , 1]))
