@@ -5,7 +5,7 @@ The profoc Package
 <!-- badges: start -->
 [![R-CMD-check](https://img.shields.io/github/actions/workflow/status/berrij/profoc/R-CMD-check.yaml?branch=main&style=for-the-badge)](https://github.com/BerriJ/profoc/actions/workflows/R-CMD-check.yaml)
 [![GitHub Workflow Status (branch)](https://img.shields.io/github/actions/workflow/status/berrij/profoc/pkgdown.yaml?branch=main&label=Documentation&style=for-the-badge)](https://profoc.berrisch.biz/)
-[![Lifecycle: experimental](https://img.shields.io/badge/Lifecycle-experimental-orange?style=for-the-badge)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![Lifecycle: stable](https://img.shields.io/badge/Lifecycle-stable-green?style=for-the-badge)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
 
 

@@ -80,7 +80,7 @@ the quantile weighted CRPS (TRUE) should be minimized.
 Defaults to FALSE. Which corresponds to Berrisch & Ziel (2021)}
 
 \item{basis_knot_distance}{determines the distance of the knots in the probability
-basis. Defaults to 1 / (dim(experts)[2] + 1).}
+basis. Defaults to \code{1 / (dim(experts)[2] + 1)}.}
 
 \item{basis_knot_distance_power}{Parameter which defines the symmetry of the
 basis reducing the probability space. Defaults to 1, which corresponds to
@@ -159,6 +159,8 @@ weights by setting affine and positive to TRUE.
 Returns predictions and weights calculated by sequential numeric
 optimization. The optimization is done stepwise, always
 calculating a one-step-ahead forecast.
+
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 }
 \examples{
 \dontrun{

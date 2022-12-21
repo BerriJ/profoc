@@ -4,11 +4,11 @@
 \alias{conline}
 \title{Create an conline Object from the conline C++ Class}
 \value{
-A `conline` object from the _C++_ conline Class.
+A \code{conline} object from the \emph{C++} conline Class.
 }
 \description{
-Allows for the creation of a Online Object in _C++_ from _R_
-using the _C++_ conline class.
+Allows for the creation of a Online Object in \emph{C++} from \emph{R}
+using the \emph{C++} conline class.
 }
 \examples{
 conline_obj <- new(conline)

@@ -9,7 +9,7 @@
 #' If TRUE, new forecaster and expert predictions are appended onto
 #' the respective object items. Defaults to TRUE.
 #' @param ...  further arguments are ignored
-#' @return \code{predict.online} produces an updated model object.
+#' @return `predict.online` produces an updated model object.
 #' @importFrom stats predict
 #' @importFrom abind abind
 #' @importFrom utils tail

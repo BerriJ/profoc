@@ -1,5 +1,8 @@
 #' @template function_batch
 #'
+#' @description
+#' `r lifecycle::badge("experimental")`
+#'
 #' @template param_y
 #' @template param_experts
 #' @template param_tau

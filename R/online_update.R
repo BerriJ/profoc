@@ -7,7 +7,7 @@
 #' @param trace If a progress bar shall be shown. Defaults to FALSE
 #' if the model already contains the expert predictions corresponding to new_y.
 #' @param ...  further arguments are ignored
-#' @return \code{update.online} produces an updated model object.
+#' @return `update.online` produces an updated model object.
 #' @importFrom stats update
 #' @export
 update.online <- function(object,

@@ -1,5 +1,8 @@
 #' @template function_online
 #'
+#' @description
+#' `r lifecycle::badge("stable")`
+#'
 #' @template param_y
 #' @param experts An array of predictions with dimension T x D x P x K
 #' (Observations x Variables x Quantiles x Experts) or T x D x K or T x P x K.
@@ -99,10 +102,12 @@
 #' # Update will update the models weights etc if you provide new realizations
 #' model <- update(model, new_y = new_y, new_experts = new_experts)
 #'
-#' # Predict will expand \code{model$predictions} by default
+#' # Predict will expand `model$predictions` by default
 #' model <- predict(model, new_experts = new_experts, update_model = TRUE)
 #' }
+#'
 #' @importFrom abind adrop asub
+#'
 #' @export
 online <- function(y, experts, tau,
                    lead_time = 0,

@@ -15,10 +15,10 @@ autoplot(object, ...)
 a ggplot object
 }
 \description{
-`autoplot()` uses ggplot2 to draw a particular plot for an object of a
+\code{autoplot()} uses ggplot2 to draw a particular plot for an object of a
 particular class in a single command. This defines the S3 generic that
 other classes and packages can extend.
 }
 \seealso{
-[autolayer()], [ggplot()] and [fortify()]
+\code{\link[ggplot2:autolayer]{ggplot2::autolayer()}}, \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} and \code{\link[ggplot2:fortify]{ggplot2::fortify()}}
 }

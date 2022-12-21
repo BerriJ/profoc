@@ -7,7 +7,7 @@
 #' @param object an object, whose class will determine the behavior of autoplot
 #' @param ... other arguments passed to specific methods
 #' @return a ggplot object
-#' @seealso [autolayer()], [ggplot()] and [fortify()]
+#' @seealso [ggplot2::autolayer()], [ggplot2::ggplot()] and [ggplot2::fortify()]
 #' @export
 autoplot <- function(object, ...) {
     UseMethod("autoplot")

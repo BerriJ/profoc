@@ -18,7 +18,12 @@ Description: Combine probabilistic forecasts using CRPS learning algorithms prop
 License: GPL (>= 3)
 Encoding: UTF-8
 Depends: R (>= 3.0.2)
-Imports: Rcpp (>= 1.0.5), Matrix, abind, methods
+Imports: 
+    Rcpp (>= 1.0.5),
+    Matrix,
+    abind,
+    methods,
+    lifecycle
 LinkingTo: Rcpp, RcppArmadillo (>= 0.10.7.5.0), RcppProgress, splines2 (>= 0.4.4)
 SystemRequirements: C++11
 URL: https://profoc.berrisch.biz/, https://github.com/BerriJ/profoc
@@ -30,3 +35,4 @@ Suggests:
     gamlss.dist,
     ggplot2
 Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
