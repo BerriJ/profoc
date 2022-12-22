@@ -67,10 +67,8 @@ void conline::set_grid_objects()
 
     V.set_size(X);
     E.set_size(X);
-    k.set_size(X);
     eta.set_size(X);
     R.set_size(X);
-    R_reg.set_size(X);
     beta.set_size(X);
     beta0field.set_size(X);
 
@@ -83,7 +81,6 @@ void conline::set_grid_objects()
         // Learning parameters
         V(x).zeros(Dr, Pr, K);
         E(x).zeros(Dr, Pr, K);
-        k(x).zeros(Dr, Pr, K);
 
         arma::cube eta_(Dr, Pr, K, fill::zeros);
         eta(x) = eta_;
@@ -94,7 +91,6 @@ void conline::set_grid_objects()
         }
 
         R(x).set_size(Dr, Pr, K);
-        R_reg(x).set_size(Dr, Pr, K);
         beta(x).set_size(Dr, Pr, K);
         weights_tmp(x).set_size(D, P, K);
 
@@ -108,9 +104,9 @@ void conline::set_grid_objects()
             R(x).slice(k) = basis_mv(params["basis_mv_idx"](x) - 1).t() *
                             R0.slice(k) *
                             basis_pr(params["basis_pr_idx"](x) - 1);
-            R_reg(x).slice(k) = basis_mv(params["basis_mv_idx"](x) - 1).t() *
-                                R0.slice(k) *
-                                basis_pr(params["basis_pr_idx"](x) - 1);
+            R(x).slice(k) = basis_mv(params["basis_mv_idx"](x) - 1).t() *
+                            R0.slice(k) *
+                            basis_pr(params["basis_pr_idx"](x) - 1);
             beta(x).slice(k) = pinv(
                                    mat(basis_mv(params["basis_mv_idx"](x) - 1))) *
                                w0.slice(k) *
@@ -374,19 +370,19 @@ void conline::learn()
 
                         vec r_reg = r - vectorise(eta(x).tube(dr, pr)) % square(r);
 
-                        R_reg(x).tube(dr, pr) *= (1 - params["forget_regret"](x)); // forget
-                        R_reg(x).tube(dr, pr) +=
+                        R(x).tube(dr, pr) *= (1 - params["forget_regret"](x)); // forget
+                        R(x).tube(dr, pr) +=
                             0.5 * (r_reg + conv_to<colvec>::from(vectorise(eta(x).tube(dr, pr)) % r > 0.5) % (2 * vectorise(E(x).tube(dr, pr))));
 
                         if (method == "boa")
                         {
                             // Wintenberger
-                            beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(log(params["gamma"](x) * vectorise(eta(x).tube(dr, pr)).t()) + params["gamma"](x) * vectorise(eta(x).tube(dr, pr)).t() % vectorise(R_reg(x).tube(dr, pr)).t());
+                            beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(log(params["gamma"](x) * vectorise(eta(x).tube(dr, pr)).t()) + params["gamma"](x) * vectorise(eta(x).tube(dr, pr)).t() % vectorise(R(x).tube(dr, pr)).t());
                         }
                         else
                         {
                             // Gaillard
-                            beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(params["gamma"](x) * vectorise(eta(x).tube(dr, pr)).t() % vectorise(R_reg(x).tube(dr, pr)).t());
+                            beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(params["gamma"](x) * vectorise(eta(x).tube(dr, pr)).t() % vectorise(R(x).tube(dr, pr)).t());
                         }
                     }
                     else
@@ -564,10 +560,8 @@ Rcpp::List conline::output()
         Rcpp::Named("basis_mv") = basis_mv,
         Rcpp::Named("V") = V,
         Rcpp::Named("E") = E,
-        Rcpp::Named("k") = k,
         Rcpp::Named("eta") = eta,
         Rcpp::Named("R") = R,
-        Rcpp::Named("R_reg") = R_reg,
         Rcpp::Named("beta") = beta,
         Rcpp::Named("beta0field") = beta0field);
 
@@ -582,7 +576,6 @@ Rcpp::List conline::output()
         Rcpp::Named("forecaster_loss") = loss_for,
         Rcpp::Named("experts_loss") = loss_exp,
         Rcpp::Named("past_performance") = past_performance,
-        // Rcpp::Named("chosen_parameters") = chosen_parameters,
         Rcpp::Named("opt_index") = opt_index,
         Rcpp::Named("parametergrid") = params,
         Rcpp::Named("params_basis_pr") = params_basis_pr,
@@ -662,10 +655,8 @@ void conline::init_update(
 
     V = Rcpp::as<arma::field<cube>>(model_objects["V"]);
     E = Rcpp::as<arma::field<cube>>(model_objects["E"]);
-    k = Rcpp::as<arma::field<cube>>(model_objects["k"]);
     eta = Rcpp::as<arma::field<cube>>(model_objects["eta"]);
     R = Rcpp::as<arma::field<cube>>(model_objects["R"]);
-    R_reg = Rcpp::as<arma::field<cube>>(model_objects["R_reg"]);
     beta = Rcpp::as<arma::field<cube>>(model_objects["beta"]);
     beta0field = Rcpp::as<arma::field<cube>>(model_objects["beta0field"]);
 

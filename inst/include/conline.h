@@ -81,7 +81,6 @@ public:
     arma::field<arma::cube> k;
     arma::field<arma::cube> eta;
     arma::field<arma::cube> R;
-    arma::field<arma::cube> R_reg;
     arma::field<arma::cube> beta;
     arma::field<arma::cube> beta0field;
 
