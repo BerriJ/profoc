@@ -1,7 +1,7 @@
 
 # The profoc Package
 
-## An R package for probabilistic forecast combinnation
+## An R package for probabilistic forecast combination
 ---
 
 <!-- badges: start -->
@@ -10,9 +10,8 @@
 [![Lifecycle: stable](https://img.shields.io/badge/Lifecycle-stable-brightgreen?style=for-the-badge)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
 
-The main function `online` can be used to combine probabilistic forecasts using the CRPS learning algorithm introduced in Berrisch, Ziel (2021): [Pre-Print](https://arxiv.org/pdf/2102.00968.pdf), [Publication](https://doi.org/10.1016/j.jeconom.2021.11.008).
-The function `batch` can be used in a similar way for batch optimization.
-Print, plot, update, and predict methods are available.
+The primary function `online` can be used to combine probabilistic forecasts using the CRPS learning algorithm introduced in Berrisch, Ziel (2021): [Pre-Print](https://arxiv.org/pdf/2102.00968.pdf), [Publication](https://doi.org/10.1016/j.jeconom.2021.11.008).
+The function `batch` can be used in a similar way for batch optimization. Common methods like `summary`, `print`, `plot`, `update`, and `predict` are available.
 
 Installation
 ------------
