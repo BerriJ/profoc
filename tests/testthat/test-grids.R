@@ -30,11 +30,6 @@ boa_smooth <- online(
         ndiff = c(1, 2),
         deg = c(2, 3)
     ),
-    b_smooth_pr = list(
-        deg = 1,
-        knot_distance = 0.01,
-        knot_distance_power = 1
-    ),
     trace = FALSE
 )
 
@@ -43,6 +38,14 @@ expect_true(all(round(apply(boa_smooth$weights, 1:3, sum), 13) == 1))
 
 expect_true(
     all(!duplicated(apply(boa_smooth$past_performance, 3, mean)))
+)
+
+# Enshure that development does not affect the performance:
+expect_true(
+    all(
+        round(tail(boa_smooth$forecaster_loss)[, , 80], 7) ==
+            c(0.1551044, 0.2390565, 0.3468112, 0.2466774, 0.4535191, 0.2875674)
+    )
 )
 
 boa_smooth <- online(
