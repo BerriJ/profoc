@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">profoc</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.9.5</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.0</span>
       </span>
     </div>
 
@@ -48,7 +48,18 @@
     </div>
 
     <div class="section level2">
-<h2 class="page-header" data-toc-text="0.9.5" id="profoc-095">profoc 0.9.5<a class="anchor" aria-label="anchor" href="#profoc-095"></a></h2>
+<h2 class="page-header" data-toc-text="1.0.0" id="profoc-100">profoc 1.0.0<a class="anchor" aria-label="anchor" href="#profoc-100"></a></h2>
+<div class="section level3">
+<h3 id="changes-1-0-0">Changes:<a class="anchor" aria-label="anchor" href="#changes-1-0-0"></a></h3>
+<ul><li>Now, <code><a href="../reference/online.html">online()</a></code> saves memory by not reporting <code>past_performance</code> and <code>past_predictions_grid</code>. However, the cumulative performance and the most recent predictions w.r.t to the parameter grid are always included in the output. The former is used internally for choosing the best hyperparameter set, and the latter for updating the weights. Depending on the data and the parameter space considered, both objects may get large. You can still opt-in to include them in the output by setting <code>save_past_performance = TRUE</code> and <code>save_past_predictions_grid = TRUE</code> in <code><a href="../reference/online.html">online()</a></code>.</li>
+</ul><div class="section level4">
+<h4 id="internal-changes-1-0-0">Internal changes<a class="anchor" aria-label="anchor" href="#internal-changes-1-0-0"></a></h4>
+<ul><li>Minor fixes and improvements to <code><a href="../reference/online.html">online()</a></code> to reduce memory usage.</li>
+</ul></div>
+</div>
+</div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="0.9.5" id="profoc-095">profoc 0.9.5<small>2022-12-16</small><a class="anchor" aria-label="anchor" href="#profoc-095"></a></h2>
 <div class="section level3">
 <h3 id="internal-changes-0-9-5">Internal changes<a class="anchor" aria-label="anchor" href="#internal-changes-0-9-5"></a></h3>
 <ul><li>Now <code><a href="../reference/online.html">online()</a></code> is able to sample from grids of up to 2^64-1 rows.</li>
@@ -247,7 +258,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>
