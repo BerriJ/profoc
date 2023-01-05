@@ -75,8 +75,8 @@
         // Latex
         // "latex-workshop.latex.recipe.default": "latexmk (lualatex)",
         "latex-workshop.view.pdf.viewer": "tab",
-        "latex-workshop.chktex.enabled": true,
-        "latex-workshop.chktex.run": "onType",
+        "latex-workshop.linting.chktex.enabled": true,
+        "latex-workshop.linting.run": "onType",
         "latex-workshop.synctex.afterBuild.enabled": true,
         "latex-workshop.view.pdf.internal.synctex.keybinding": "double-click",
         "latex-workshop.intellisense.unimathsymbols.enabled": true,
