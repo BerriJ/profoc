@@ -1,8 +1,8 @@
 
 # The profoc Package
 
-## An R package for probabilistic forecast combination
----
+An R package for probabilistic forecast combination
+------------
 
 <!-- badges: start -->
 [![R-CMD-check](https://img.shields.io/github/actions/workflow/status/berrij/profoc/R-CMD-check.yaml?branch=main&style=for-the-badge)](https://github.com/BerriJ/profoc/actions/workflows/R-CMD-check.yaml)

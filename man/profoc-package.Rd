@@ -24,6 +24,11 @@ Co-Author: Florian Ziel
 }
 \references{
 Berrisch, Ziel: "CRPS Learning", 2021
+
+\doi{10.1016/j.jeconom.2021.11.008}
+
+\doi{10.48550/arXiv.2102.00968}
+
 }
 
 \keyword{ package }
