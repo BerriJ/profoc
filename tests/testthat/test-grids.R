@@ -34,18 +34,19 @@ boa_smooth <- online(
 )
 
 # We expect weights to sum to 1 despite the smoothing:
-expect_true(all(round(apply(boa_smooth$weights, 1:3, sum), 13) == 1))
+expect_true(
+    all(round(apply(boa_smooth$weights, 1:3, sum), 13) == 1)
+)
 
 expect_true(
     all(!duplicated(apply(boa_smooth$past_performance, 3, mean)))
 )
 
 # Enshure that development does not affect the performance:
-expect_true(
-    all(
-        round(tail(boa_smooth$forecaster_loss)[, , 80], 7) ==
-            c(0.1551044, 0.2390565, 0.3468112, 0.2466774, 0.4535191, 0.2875674)
-    )
+expect_equal(
+    as.numeric(tail(boa_smooth$forecaster_loss)[, , 80]),
+    c(0.152625154, 0.235666917, 0.342034215, 0.242602987, 0.448065904, 0.28468009),
+    tolerance = 0.0001
 )
 
 boa_smooth <- online(

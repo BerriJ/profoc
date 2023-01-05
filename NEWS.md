@@ -1,3 +1,10 @@
+profoc 1.1.0
+==============
+
+## Fixes:
+
+* Calculation of the P-Spline penalty if non-uniform B-Splines are used. 
+
 profoc 1.0.0
 ==============
 

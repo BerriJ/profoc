@@ -26,3 +26,9 @@ devtools::release()
 
 devtools::load_all()
 devtools::test()
+
+knots <- 1:9 / 10
+order <- 3
+
+delta_sp(knots, order)[[1]]
+wt_delta_sp(h)

@@ -40,12 +40,13 @@ osize_full <- object.size(boa_smooth$specification$objects$predictions_grid)
 
 smpl <- boa_smooth$specification$objects$predictions_grid[[563]][, 50, ]
 
-expect_true(
-    all(round(smpl, 8) ==
-        c(
-            -0.20164219, -0.09951605, 0.16404708, 0.16423461,
-            -0.19778184, -0.19708188, -0.19235012, -0.20075103
-        ))
+expect_equal(
+    smpl,
+    c(
+        -0.0730720489, -0.0717723836, -0.1625461486, -0.1625474396,
+        -0.0696165847, -0.0696166322, -0.1624197888, -0.1624605556
+    ),
+    tolerance = 0.00005
 )
 
 expect_true(boa_smooth$specification$parameters$save_predictions_grid)
@@ -70,13 +71,15 @@ osize_small <- object.size(boa_smooth$specification$objects$predictions_grid)
 
 smpl <- boa_smooth$specification$objects$predictions_grid[[1]][, 50, ]
 
-expect_true(
-    all(round(smpl, 8) ==
-        c(
-            -0.15169227, 0.07841016, 0.06198071, 0.06141661,
-            -0.03533878, -0.03516170, -0.11598618, -0.11580723
-        ))
+expect_equal(
+    smpl,
+    c(
+        0.0221743495, 0.0232502871, -0.0557345831, -0.0557354392,
+        0.0182231951, 0.0182232023, -0.0556510655, -0.05566771806
+    ),
+    tolerance = 0.001
 )
+
 
 expect_false(boa_smooth$specification$parameters$save_predictions_grid)
 

@@ -36,13 +36,15 @@ boa_smooth <- online(
 
 expect_true(all(dim(boa_smooth$past_performance) == c(1000, 1, 99, 8)))
 
-expect_true(
-    all(round(boa_smooth$past_performance[T, 1, 50, ], 7) ==
-        c(
-            0.2728130, 0.3878642, 0.3796495, 0.3793674,
-            0.3309897, 0.3310782, 0.2906660, 0.2907555
-        ))
+expect_equal(
+    as.numeric(boa_smooth$past_performance[T, 1, 50, ]),
+    c(
+        0.3597462745, 0.3602842432, 0.3207918082, 0.3207913801,
+        0.3577706972, 0.3577707009, 0.3208335670, 0.3208131813
+    ),
+    tolerance = 0.00001
 )
+
 
 expect_true(boa_smooth$specification$parameters$save_past_performance)
 
