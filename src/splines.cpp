@@ -73,40 +73,39 @@ arma::mat wt_delta(const arma::vec &h)
     return D;
 }
 
-//' @title Difference matrix for B-Spline penalty
+//' @title B-Spline penalty
 //'
-//' @description This function calculates the difference matrices for the
-//' B-Spline basis penalty. It follows the procedure outlined in the paper
-//' by Zheyuan Li, Jiguo Cao, 2022 "General P-Splines for Non-Uniform B-Splines"
+//' @description This function calculates the B-Spline basis penalty.
+//' It follows the procedure outlined in the paper by Zheyuan Li, Jiguo
+//' Cao, 2022 "General P-Splines for Non-Uniform B-Splines"
 //' \doi{10.48550/arXiv.2201.06808}.
-//' For equidistant knots it coincides with the usual difference matrix based
-//' on the identitiy. For non-equidistant knots it is a weighted difference
+//' For equidistant knots it coincides with the usual penalty based
+//' on the identitiy. For non-equidistant knots it is a weighted penalty
 //' with respect to the knot distances.
 //'
 //' @param knots Vector of knots.
 //' @param order Order of the Basis (degree + 1).
 //' @param max_diff Maximum difference order to calculate.
 //'
-//' @return Returns a list of (order -1) difference matrices for
-//' computing the B-Spline penalty.
+//' @return Returns a list of (order -1) penalty matrices.
 //'
 //' @examples
 //' \dontrun{
 //' # Equidisan knots with order 2
 //' knots <- 1:10
 //'
-//' D <- penalty(knots, order = 2)
+//' P <- penalty(knots, order = 2)
 //'
-//' print(D[[1]]) # First differences
+//' print(P[[1]]) # First differences
 //'
 //' # Non-equidistant knots
 //' knots <- c(0, 0, 0, 0, 1, 3, 4, 4, 4, 4)
 //'
-//' D1 <- penalty(knots, order = 4)
+//' P <- penalty(knots, order = 4)
 //'
-//' print(D1[[1]]) # First differences
-//' print(D1[[2]]) # Second differences
-//' print(D1[[3]]) # Third differences
+//' print(P[[1]]) # First differences
+//' print(P[[2]]) # Second differences
+//' print(P[[3]]) # Third differences
 //' }
 //'
 //' @export
