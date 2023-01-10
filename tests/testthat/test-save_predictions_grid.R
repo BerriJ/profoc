@@ -26,7 +26,7 @@ boa_smooth <- online(
     tau = prob_grid,
     experts = experts,
     p_smooth_pr = list(
-        lambda = c(10, 1000),
+        lambda = c(0.5, 2),
         ndiff = c(1, 2),
         deg = c(2, 3)
     ),
@@ -43,10 +43,9 @@ smpl <- boa_smooth$specification$objects$predictions_grid[[563]][, 50, ]
 expect_equal(
     smpl,
     c(
-        -0.0730720489, -0.0717723836, -0.1625461486, -0.1625474396,
-        -0.0696165847, -0.0696166322, -0.1624197888, -0.1624605556
+        -0.13906557, -0.14054203, -0.16485854, -0.16488010, -0.08551032, -0.08703474, -0.16287649, -0.16288216
     ),
-    tolerance = 0.00005
+    tolerance = 0.0000001
 )
 
 expect_true(boa_smooth$specification$parameters$save_predictions_grid)
@@ -58,7 +57,7 @@ boa_smooth <- online(
     tau = prob_grid,
     experts = experts,
     p_smooth_pr = list(
-        lambda = c(10, 1000),
+        lambda = c(0.5, 2),
         ndiff = c(1, 2),
         deg = c(2, 3)
     ),
@@ -73,11 +72,8 @@ smpl <- boa_smooth$specification$objects$predictions_grid[[1]][, 50, ]
 
 expect_equal(
     smpl,
-    c(
-        0.0221743495, 0.0232502871, -0.0557345831, -0.0557354392,
-        0.0182231951, 0.0182232023, -0.0556510655, -0.05566771806
-    ),
-    tolerance = 0.001
+    c(-0.01413727, -0.01439206, -0.05713519, -0.05714833, 0.03962448, 0.03957235, -0.05564300, -0.05564652),
+    tolerance = 0.000001
 )
 
 

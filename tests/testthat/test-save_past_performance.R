@@ -26,7 +26,7 @@ boa_smooth <- online(
     tau = prob_grid,
     experts = experts,
     p_smooth_pr = list(
-        lambda = c(10, 1000),
+        lambda = c(0.5, 2),
         ndiff = c(1, 2),
         deg = c(2, 3)
     ),
@@ -39,10 +39,9 @@ expect_true(all(dim(boa_smooth$past_performance) == c(1000, 1, 99, 8)))
 expect_equal(
     as.numeric(boa_smooth$past_performance[T, 1, 50, ]),
     c(
-        0.3597462745, 0.3602842432, 0.3207918082, 0.3207913801,
-        0.3577706972, 0.3577707009, 0.3208335670, 0.3208131813
+        0.34159046, 0.34146307, 0.32009150, 0.32008495, 0.36847134, 0.36844527, 0.32083760, 0.32083584
     ),
-    tolerance = 0.00001
+    tolerance = 0.0000001
 )
 
 
