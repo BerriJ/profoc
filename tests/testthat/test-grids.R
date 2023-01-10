@@ -26,7 +26,7 @@ boa_smooth <- online(
     tau = prob_grid,
     experts = experts,
     p_smooth_pr = list(
-        lambda = c(0.5, 2),
+        lambda = c(100, 1000),
         ndiff = c(1, 2),
         deg = c(2, 3)
     ),
@@ -45,7 +45,10 @@ expect_true(
 # Enshure that development does not affect the performance:
 expect_equal(
     as.numeric(tail(boa_smooth$forecaster_loss)[, , 80]),
-    c(0.152658156, 0.235688427, 0.342033917, 0.242573485, 0.448008618, 0.284608108),
+    c(
+        0.15510442, 0.23905655, 0.34681118,
+        0.24667738, 0.45351907, 0.28756735
+    ),
     tolerance = 0.0000001
 )
 

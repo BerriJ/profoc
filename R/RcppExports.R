@@ -95,14 +95,14 @@ wt_delta <- function(h) {
 #' # Equidisan knots with order 2
 #' knots <- 1:10
 #'
-#' D <- delta(knots, order = 2)
+#' D <- penalty(knots, order = 2)
 #'
 #' print(D[[1]]) # First differences
 #'
 #' # Non-equidistant knots
 #' knots <- c(0, 0, 0, 0, 1, 3, 4, 4, 4, 4)
 #'
-#' D1 <- delta(knots, order = 4)
+#' D1 <- penalty(knots, order = 4)
 #'
 #' print(D1[[1]]) # First differences
 #' print(D1[[2]]) # Second differences
@@ -110,8 +110,8 @@ wt_delta <- function(h) {
 #' }
 #'
 #' @export
-delta <- function(knots, order, max_diff = 999L) {
-    .Call(`_profoc_delta`, knots, order, max_diff)
+penalty <- function(knots, order, max_diff = 999L) {
+    .Call(`_profoc_penalty`, knots, order, max_diff)
 }
 
 make_hat_matrix <- function(x, kstep, lambda, bdiff, deg, a, even) {

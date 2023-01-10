@@ -27,8 +27,17 @@ devtools::release()
 devtools::load_all()
 devtools::test()
 
-knots <- 1:9 / 10
+knots <- make_knots2(9, deg = deg) + 5
+knots <- seq(-0.2, 1.2, 0.1) + 0.3
 order <- 3
+devtools::load_all()
+devtools::load_all()
 
-delta_sp(knots, order)[[1]]
-wt_delta_sp(h)
+P_cpp <- penalty(knots, order)[[2]]
+P_cpp
+D <- diff(diag(6), differences = 3)
+P_r <- t(D) %*% D
+P_r
+
+round(P_cpp, 13)
+round(P_r, 13)
