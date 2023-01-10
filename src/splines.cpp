@@ -41,22 +41,12 @@ arma::vec make_knots(const double &kstep, const double &a = 1, const int deg = 3
 }
 
 // Expose splines::splineDesign to Rcpp
-static mat splineDesign_rcpp(const vec &x, const vec &knots, const int &deg)
-{
-    Rcpp::Environment pkg = Rcpp::Environment::namespace_env("splines");
-    Rcpp::Function f = pkg["splineDesign"];
-    mat y = Rcpp::as<arma::mat>(f(knots, x, deg + 1, 0, true));
-    return y;
-}
-
-// To be deleted soon
-// static arma::mat make_difference_matrix(const arma::vec &knots, const int &bdiff, const int deg)
+// static mat splineDesign_rcpp(const vec &x, const vec &knots, const int &deg)
 // {
-//     int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
-//     const vec diag_vals = 1 / diff_cpp(knots, deg, 1);
-//     mat D = diff(diagmat(diag_vals), bdiff) / (m + 1) * deg;
-//     D = 0.5 * D.submat(1, 1, D.n_rows - 1, D.n_cols - 1) + 0.5 * D.submat(0, 0, D.n_rows - 2, D.n_cols - 2);
-//     return D;
+//     Rcpp::Environment pkg = Rcpp::Environment::namespace_env("splines");
+//     Rcpp::Function f = pkg["splineDesign"];
+//     mat y = Rcpp::as<arma::mat>(f(knots, x, deg + 1, 0, true));
+//     return y;
 // }
 
 // [[Rcpp::export]]
@@ -72,7 +62,7 @@ arma::mat wt_delta(const arma::vec &h)
     p.row(p.n_rows - 1) = 2 * r;
     arma::mat D(r, r + 1);
     int col_ptr = 0;
-    for (int iter = 0; iter < x.n_elem; iter++)
+    for (unsigned int iter = 0; iter < x.n_elem; iter++)
     {
         D(i(iter), col_ptr) = x(iter);
         if (p(col_ptr + 1) == iter + 1)
@@ -83,65 +73,72 @@ arma::mat wt_delta(const arma::vec &h)
     return D;
 }
 
-//' @title Difference matrix for B-Spline penalty
+//' @title B-Spline penalty
 //'
-//' @description This function calculates the difference matrices for the
-//' B-Spline basis penalty. It follows the procedure outlined in the paper
-//' by Zheyuan Li, Jiguo Cao, 2022 "General P-Splines for Non-Uniform B-Splines"
+//' @description This function calculates the B-Spline basis penalty.
+//' It follows the procedure outlined in the paper by Zheyuan Li, Jiguo
+//' Cao, 2022 "General P-Splines for Non-Uniform B-Splines"
 //' \doi{10.48550/arXiv.2201.06808}.
-//' For equidistant knots it coincides with the usual difference matrix based
-//' on the identitiy. For non-equidistant knots it is a weighted difference
+//' For equidistant knots it coincides with the usual penalty based
+//' on the identitiy. For non-equidistant knots it is a weighted penalty
 //' with respect to the knot distances.
 //'
 //' @param knots Vector of knots.
 //' @param order Order of the Basis (degree + 1).
 //' @param max_diff Maximum difference order to calculate.
 //'
-//' @return Returns a list of (order -1) difference matrices for
-//' computing the B-Spline penalty.
+//' @return Returns a list of (order -1) penalty matrices.
 //'
 //' @examples
 //' \dontrun{
 //' # Equidisan knots with order 2
 //' knots <- 1:10
 //'
-//' D <- delta(knots, order = 2)
+//' P <- penalty(knots, order = 2)
 //'
-//' print(D[[1]]) # First differences
+//' print(P[[1]]) # First differences
 //'
 //' # Non-equidistant knots
 //' knots <- c(0, 0, 0, 0, 1, 3, 4, 4, 4, 4)
 //'
-//' D1 <- delta(knots, order = 4)
+//' P <- penalty(knots, order = 4)
 //'
-//' print(D1[[1]]) # First differences
-//' print(D1[[2]]) # Second differences
-//' print(D1[[3]]) # Third differences
+//' print(P[[1]]) # First differences
+//' print(P[[2]]) # Second differences
+//' print(P[[3]]) # Third differences
 //' }
 //'
 //' @export
 // [[Rcpp::export]]
-arma::field<arma::mat> delta(
+arma::field<arma::mat> penalty(
     const arma::vec &knots,
     const int &order,
     const int &max_diff = 999)
 {
+
+    int i = 1;
     int K = knots.n_elem;
     arma::field<arma::mat> D(std::min(order - 1, max_diff));
-    arma::vec h = diff_cpp(knots.rows(1, K - 2), order - 1, 1) / (order - 1);
-    D(0) = wt_delta(h);
+    arma::field<arma::mat> P(D);
+    arma::vec h = diff_cpp(knots.rows(i, K - 1 - i), order - i, 1) / (order - i);
 
-    int i = 2;
+    D(0) = wt_delta(h);
+    P(0) = D(0).t() * D(0);
+    P(0) *= std::pow(arma::mean(h), 2 * i);
+
+    i++;
 
     // While i < order calculate the next difference matrix and save it into row i-1 of D and increment i
     while (i <= std::min(order - 1, max_diff))
     {
         h = diff_cpp(knots.rows(i, K - 1 - i), order - i, 1) / (order - i);
         D(i - 1) = wt_delta(h) * D(i - 2);
+        P(i - 1) = D(i - 1).t() * D(i - 1);
+        P(i - 1) *= std::pow(arma::mean(h), 2 * i);
         i++;
     }
 
-    return D;
+    return P;
 }
 
 // [[Rcpp::export]]
@@ -164,26 +161,20 @@ arma::sp_mat make_hat_matrix(
 
         mat B = splines2_basis(x, knots, deg);
 
-        mat P1(m + deg + 1, m + deg + 1);
-        mat P2(m + deg + 1, m + deg + 1);
         mat P(m + deg + 1, m + deg + 1);
 
-        arma::field<arma::mat> D = delta(knots, deg + 1, 2);
-
-        mat D1 = D(0);
-        P1 = D1.t() * D1;
+        // Field of penalties up to second differences
+        arma::field<arma::mat> Ps = penalty(knots, deg + 1, 2);
 
         if (deg > 1)
         {
-            mat D2 = D(1);
-            P2 = D2.t() * D2;
+            P = (2 - bdiff) * Ps(0) + (bdiff - 1) * Ps(1);
         }
         else
         {
-            P2 = P1;
+            P = Ps(0);
         }
 
-        P = (2 - bdiff) * P1 + (bdiff - 1) * P2;
         H = B * arma::pinv(B.t() * B + lambda * P) * B.t();
         H.clean(1E-10);
     }
@@ -262,26 +253,20 @@ arma::sp_mat make_hat_matrix2(
 
     mat B = splines2_basis(x, knots, deg);
 
-    mat P1(m + deg + 1, m + deg + 1);
-    mat P2(m + deg + 1, m + deg + 1);
     mat P(m + deg + 1, m + deg + 1);
 
-    arma::field<arma::mat> D = delta(knots, deg + 1, 2);
-
-    mat D1 = D(0);
-    P1 = D1.t() * D1;
+    // Field of penalties up to second differences
+    arma::field<arma::mat> Ps = penalty(knots, deg + 1, 2);
 
     if (deg > 1)
     {
-        mat D2 = D(1);
-        P2 = D2.t() * D2;
+        P = (2 - bdiff) * Ps(0) + (bdiff - 1) * Ps(1);
     }
     else
     {
-        P2 = P1;
+        P = Ps(0);
     }
 
-    P = (2 - bdiff) * P1 + (bdiff - 1) * P2;
     H = B * arma::pinv(B.t() * B + lambda * P) * B.t();
     H.clean(1E-10);
 
