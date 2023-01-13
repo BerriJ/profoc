@@ -3,31 +3,10 @@
     "image": "ghcr.io/berrij/devenv:dev",
     // Grant xhost access to root user in order to start x11 devices (r plots)
     "initializeCommand": "docker pull ghcr.io/berrij/devenv:dev",
-    // Arguments to docker run so container can use local x11
-    "runArgs": [
-        "--rm",
-        "--net",
-        "host",
-        "-e",
-        "DISPLAY=${env:DISPLAY}"
-    ],
-    // The first line mounts $HOME/USER/git into /workspaces together with the
-    // current workspace. Uncomment or edit as you like.
-    "mounts": [
-        // Mount local volume to store extensions between container runs
-        "source=extensions_cache,target=/home/vscode/.vscode-server/extensions,type=volume",
-        // And/or for VS Code Insiders
-        "source=extensions_cache_insiders,target=/home/vscode/.vscode-server-insiders/extensions,type=volume"
-        // Mount git folder into /workspaces - vscode will also mount the current workspace there
-        //"source=${localEnv:HOME}${localEnv:USERPROFILE}/git,target=/workspaces,type=bind,consistency=cached",
-        // Mount x11 into container -> to display R/Python graphics devices locally
-        //"source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
-    ],
     // Extensions will get installed automatically
     "extensions": [
         // C++
         "ms-vscode.cpptools",
-        "austin.code-gnu-global",
         "ms-vscode.cmake-tools",
         // Python
         "ms-python.vscode-pylance",

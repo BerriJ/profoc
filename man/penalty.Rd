@@ -14,7 +14,7 @@ penalty(knots, order, max_diff = 999L)
 \item{max_diff}{Maximum difference order to calculate.}
 }
 \value{
-Returns a list of (order -1) penalty matrices.
+Returns a list of (order - 1) penalty matrices.
 }
 \description{
 This function calculates the B-Spline basis penalty.

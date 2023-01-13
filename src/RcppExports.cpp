@@ -165,7 +165,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // wt_delta
-arma::mat wt_delta(const arma::vec& h);
+arma::sp_mat wt_delta(const arma::vec& h);
 RcppExport SEXP _profoc_wt_delta(SEXP hSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -176,7 +176,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // penalty
-arma::field<arma::mat> penalty(const arma::vec& knots, const int& order, const int& max_diff);
+arma::field<arma::sp_mat> penalty(const arma::vec& knots, const int& order, const int& max_diff);
 RcppExport SEXP _profoc_penalty(SEXP knotsSEXP, SEXP orderSEXP, SEXP max_diffSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;

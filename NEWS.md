@@ -1,10 +1,14 @@
 profoc 1.1.0
 ==============
 
+## Improvements:
+
+* New `penalty()` function which works with equidistant and knots. 
+
+
 ## Fixes:
 
-* Calculation of the P-Spline penalty if non-uniform B-Splines are used. 
-
+* Calculation of the P-Spline penalty if non-uniform B-Splines are used.
 profoc 1.0.0
 ==============
 
