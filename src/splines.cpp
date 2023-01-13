@@ -40,17 +40,8 @@ arma::vec make_knots(const double &kstep, const double &a = 1, const int deg = 3
     return join_cols(xa, xb);
 }
 
-// Expose splines::splineDesign to Rcpp
-// static mat splineDesign_rcpp(const vec &x, const vec &knots, const int &deg)
-// {
-//     Rcpp::Environment pkg = Rcpp::Environment::namespace_env("splines");
-//     Rcpp::Function f = pkg["splineDesign"];
-//     mat y = Rcpp::as<arma::mat>(f(knots, x, deg + 1, 0, true));
-//     return y;
-// }
-
 // [[Rcpp::export]]
-arma::mat wt_delta(const arma::vec &h)
+arma::sp_mat wt_delta(const arma::vec &h)
 {
     int r = h.n_elem;
     arma::vec pos_neg = {-1, 1};
@@ -60,16 +51,7 @@ arma::mat wt_delta(const arma::vec &h)
     arma::uvec p(r + 2, fill::zeros);
     p.rows(1, p.n_rows - 2) = regspace<uvec>(1, 2, 2 * r - 1);
     p.row(p.n_rows - 1) = 2 * r;
-    arma::mat D(r, r + 1);
-    int col_ptr = 0;
-    for (unsigned int iter = 0; iter < x.n_elem; iter++)
-    {
-        D(i(iter), col_ptr) = x(iter);
-        if (p(col_ptr + 1) == iter + 1)
-        {
-            col_ptr++;
-        }
-    }
+    arma::sp_mat D(i, p, x, r, r + 1);
     return D;
 }
 
@@ -87,7 +69,7 @@ arma::mat wt_delta(const arma::vec &h)
 //' @param order Order of the Basis (degree + 1).
 //' @param max_diff Maximum difference order to calculate.
 //'
-//' @return Returns a list of (order -1) penalty matrices.
+//' @return Returns a list of (order - 1) penalty matrices.
 //'
 //' @examples
 //' \dontrun{
@@ -110,30 +92,25 @@ arma::mat wt_delta(const arma::vec &h)
 //'
 //' @export
 // [[Rcpp::export]]
-arma::field<arma::mat> penalty(
+arma::field<arma::sp_mat> penalty(
     const arma::vec &knots,
     const int &order,
     const int &max_diff = 999)
 {
 
-    int i = 1;
     int K = knots.n_elem;
-    arma::field<arma::mat> D(std::min(order - 1, max_diff));
-    arma::field<arma::mat> P(D);
-    arma::vec h = diff_cpp(knots.rows(i, K - 1 - i), order - i, 1) / (order - i);
+    arma::field<arma::sp_mat> D(order);
+    arma::field<arma::sp_mat> P(std::min(order - 1, max_diff));
+    D(0) = eye(K - order, K - order);
 
-    D(0) = wt_delta(h);
-    P(0) = D(0).t() * D(0);
-    P(0) *= std::pow(arma::mean(h), 2 * i);
+    int i = 1;
 
-    i++;
-
-    // While i < order calculate the next difference matrix and save it into row i-1 of D and increment i
+    // While i < order calculate the next difference matrix and the respective scaled penalty
     while (i <= std::min(order - 1, max_diff))
     {
-        h = diff_cpp(knots.rows(i, K - 1 - i), order - i, 1) / (order - i);
-        D(i - 1) = wt_delta(h) * D(i - 2);
-        P(i - 1) = D(i - 1).t() * D(i - 1);
+        arma::vec h = diff_cpp(knots.rows(i, K - 1 - i), order - i, 1) / (order - i);
+        D(i) = wt_delta(h) * D(i - 1);
+        P(i - 1) = D(i).t() * D(i);
         P(i - 1) *= std::pow(arma::mean(h), 2 * i);
         i++;
     }
@@ -164,7 +141,7 @@ arma::sp_mat make_hat_matrix(
         mat P(m + deg + 1, m + deg + 1);
 
         // Field of penalties up to second differences
-        arma::field<arma::mat> Ps = penalty(knots, deg + 1, 2);
+        arma::field<arma::sp_mat> Ps = penalty(knots, deg + 1, 2);
 
         if (deg > 1)
         {
@@ -256,7 +233,7 @@ arma::sp_mat make_hat_matrix2(
     mat P(m + deg + 1, m + deg + 1);
 
     // Field of penalties up to second differences
-    arma::field<arma::mat> Ps = penalty(knots, deg + 1, 2);
+    arma::field<arma::sp_mat> Ps = penalty(knots, deg + 1, 2);
 
     if (deg > 1)
     {

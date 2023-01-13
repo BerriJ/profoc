@@ -8,7 +8,7 @@ D1 <- diff(diag(11), differences = 1)
 P1_r <- t(D1) %*% D1
 
 expect_equal(
-    P1_cpp,
+    as.matrix(P1_cpp),
     P1_r
 )
 
@@ -20,7 +20,7 @@ D1 <- diff(diag(12), differences = 1)
 P1_r <- t(D1) %*% D1
 
 expect_equal(
-    P1_cpp,
+    as.matrix(P1_cpp),
     P1_r
 )
 
@@ -29,7 +29,7 @@ D2 <- diff(diag(12), differences = 2)
 P2_r <- t(D2) %*% D2
 
 expect_equal(
-    P2_cpp,
+    as.matrix(P2_cpp),
     P2_r
 )
 
@@ -41,6 +41,6 @@ D2 <- diff(diag(13), differences = 3)
 P2_r <- t(D2) %*% D2
 
 expect_equal(
-    P2_cpp,
+    as.matrix(P2_cpp),
     P2_r
 )

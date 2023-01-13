@@ -87,7 +87,7 @@ wt_delta <- function(h) {
 #' @param order Order of the Basis (degree + 1).
 #' @param max_diff Maximum difference order to calculate.
 #'
-#' @return Returns a list of (order -1) penalty matrices.
+#' @return Returns a list of (order - 1) penalty matrices.
 #'
 #' @examples
 #' \dontrun{
