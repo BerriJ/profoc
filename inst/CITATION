@@ -1,0 +1,21 @@
+citHeader("To cite profoc in publications use:")
+
+year <- sub("-.*", "", meta$Date)
+note <- sprintf("R package version %s", meta$Version)
+
+citEntry(
+  entry = "Manual",
+  key = "profoc_package",
+  title = "The profoc Package: An R package for probabilistic forecast combination",
+  author = c(
+    person("Jonathan", "Berrisch"),
+    person("Florian", "Ziel")
+  ),
+  year = year,
+  note = paste0("{", note, "}"),
+  url = "https://profoc.berrisch.biz/, https://cran.r-project.org/web/packages/profoc/, https://github.com/BerriJ/profoc",
+  textVersion = paste0(
+    "Berrisch, J., & Ziel, F. (", year, "). ", "The profoc Package: An R package for probabilistic forecast combination. ",
+    note, ". https://profoc.berrisch.biz/, https://cran.r-project.org/web/packages/profoc, https://github.com/BerriJ/profoc"
+  )
+)

@@ -6,7 +6,7 @@ Date: 2023-01-13
 Authors@R: c(
     person(given = "Jonathan",
              family = "Berrisch",
-             role = "cre",
+             role = c("aut", "cre"),
              email = "Jonathan@Berrisch.biz",
              comment = c(ORCID = "0000-0002-4944-9074")),
     person(given = "Florian",
