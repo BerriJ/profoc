@@ -1,3 +1,10 @@
+profoc 1.1.1
+==============
+
+## Fixes:
+
+* Distribution of the knots is now correct for `ncp < 0`. 
+
 profoc 1.1.0
 ==============
 

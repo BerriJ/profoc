@@ -1,15 +1,10 @@
 pgbeta <- function(x, mu = .5, sig = 1, nonc = 0) {
-    if (nonc >= 0) {
-        a <- mu * sig * 2
-        b <- (1 - mu) * sig * 2
-        c <- nonc
-        return(pbeta(x, a, b, c))
-    } else {
-        a <- (1 - mu) * sig * 2
-        b <- mu * sig * 2
-        c <- abs(nonc)
-        return(pbeta(1 - x, a, b, c))
-    }
+    a <- mu * sig * 2
+    b <- (1 - mu) * sig * 2
+    c <- abs(nonc)
+    seq_beta <- pbeta(x, a, b, c)
+    if (nonc < 0) seq_beta <- rev(1 - seq_beta)
+    return(seq_beta)
 }
 
 #' @importFrom stats pbeta
