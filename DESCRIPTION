@@ -26,7 +26,7 @@ Imports:
     lifecycle
 LinkingTo: Rcpp, RcppArmadillo (>= 0.10.7.5.0), RcppProgress, splines2 (>= 0.4.4)
 SystemRequirements: C++11
-URL: https://profoc.berrisch.biz/, https://github.com/BerriJ/profoc
+URL: https://profoc.berrisch.biz/
 BugReports: https://github.com/BerriJ/profoc/issues
 RoxygenNote: 7.2.3
 Language: en-US
