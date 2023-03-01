@@ -17,21 +17,20 @@
         "rdebugger.r-debugger",
         // Latex
         "james-yu.latex-workshop",
-        // "znck.grammarly",
+        "znck.grammarly",
         // Git
-        "npxms.hide-gitignored",
-        "eamodio.gitlens",
+        "mhutchie.git-graph",
         "github.vscode-pull-request-github",
         // Markdown
         "yzhang.markdown-all-in-one",
         // Preview HTML
         "daiyy.quick-html-previewer",
         // Make fancy screenshots
-        "pnp.polacode",
+        "jeffersonlicet.snipped",
         // Live Share
         "ms-vsliveshare.vsliveshare",
         // Copilot
-        "github.copilot"
+        "GitHub.copilot"
     ],
     // Set *default* container specific settings
     // Important for radian and latex

@@ -11,8 +11,6 @@
 
 MAKEFLAGS = -j12
 
-CXX_STD = CXX11
-
 INC = -I../inst/include -I../inst/include/optim
 
 PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) $(INC) -DRCPP_ARMADILLO_FIX_Field
