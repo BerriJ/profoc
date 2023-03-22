@@ -150,6 +150,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// splines2_periodic
+arma::mat splines2_periodic(const arma::vec& x, const arma::vec& knots, const unsigned int deg);
+RcppExport SEXP _profoc_splines2_periodic(SEXP xSEXP, SEXP knotsSEXP, SEXP degSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type knots(knotsSEXP);
+    Rcpp::traits::input_parameter< const unsigned int >::type deg(degSEXP);
+    rcpp_result_gen = Rcpp::wrap(splines2_periodic(x, knots, deg));
+    return rcpp_result_gen;
+END_RCPP
+}
 // make_knots
 arma::vec make_knots(const double& kstep, const double& a, const int deg, const bool& even);
 RcppExport SEXP _profoc_make_knots(SEXP kstepSEXP, SEXP aSEXP, SEXP degSEXP, SEXP evenSEXP) {
@@ -259,6 +272,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_optimize_weights", (DL_FUNC) &_profoc_optimize_weights, 10},
     {"_profoc_optimize_betas", (DL_FUNC) &_profoc_optimize_betas, 13},
     {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 10},
+    {"_profoc_splines2_periodic", (DL_FUNC) &_profoc_splines2_periodic, 3},
     {"_profoc_make_knots", (DL_FUNC) &_profoc_make_knots, 4},
     {"_profoc_wt_delta", (DL_FUNC) &_profoc_wt_delta, 1},
     {"_profoc_penalty", (DL_FUNC) &_profoc_penalty, 3},

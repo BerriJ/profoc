@@ -14,6 +14,27 @@ static arma::mat splines2_basis(const arma::vec &x,
     return bs_obj.basis(true);
 }
 
+// [[Rcpp::export]]
+arma::mat splines2_periodic(const arma::vec &x,
+                            const arma::vec &knots,
+                            const unsigned int deg)
+{
+    splines2::PeriodicMSpline ps_obj;
+    ps_obj.set_x(x);
+    ps_obj.set_degree(deg);
+    ps_obj.set_internal_knots(knots);
+    ps_obj.set_boundary_knots({0, 1});
+    arma::mat ps_mat = ps_obj.basis(true);
+
+    // Make shure splines sum up to 1
+    for (int i = 0; i < ps_mat.n_rows; i++)
+    {
+        ps_mat.row(i) /= arma::accu(ps_mat.row(i));
+    }
+
+    return ps_mat;
+}
+
 using namespace arma;
 
 // [[Rcpp::export]]
