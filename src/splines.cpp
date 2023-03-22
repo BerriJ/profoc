@@ -19,11 +19,21 @@ arma::mat splines2_periodic(const arma::vec &x,
                             const arma::vec &knots,
                             const unsigned int deg)
 {
+    int total = knots.n_elem;
+    int outer = 2 * (deg + 1);
+    int inner = total - outer;
+
+    // We'll only use inner and boundary knots for periodic splines
+    arma::vec inner_knots = knots.subvec(outer / 2, total - outer / 2 - 1);
+    arma::vec boundary_knots = {knots(outer / 2 - 1), knots(total - outer / 2)};
+
+    // Create periodic spline object
     splines2::PeriodicMSpline ps_obj;
     ps_obj.set_x(x);
     ps_obj.set_degree(deg);
-    ps_obj.set_internal_knots(knots);
-    ps_obj.set_boundary_knots({0, 1});
+
+    ps_obj.set_internal_knots(inner_knots);
+    ps_obj.set_boundary_knots(boundary_knots);
     arma::mat ps_mat = ps_obj.basis(true);
 
     // Make shure splines sum up to 1
