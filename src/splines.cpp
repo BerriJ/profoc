@@ -71,21 +71,6 @@ arma::vec make_knots(const double &kstep, const double &a = 1, const int deg = 3
     return join_cols(xa, xb);
 }
 
-// [[Rcpp::export]]
-arma::sp_mat wt_delta(const arma::vec &h)
-{
-    int r = h.n_elem;
-    arma::vec pos_neg = {-1, 1};
-    arma::vec x = repmat(pos_neg, r, 1) % repelem(1 / h, 2, 1);
-    arma::uvec i = regspace<uvec>(0, r - 1);
-    i = repelem(i, 2, 1);
-    arma::uvec p(r + 2, fill::zeros);
-    p.rows(1, p.n_rows - 2) = regspace<uvec>(1, 2, 2 * r - 1);
-    p.row(p.n_rows - 1) = 2 * r;
-    arma::sp_mat D(i, p, x, r, r + 1);
-    return D;
-}
-
 //' @title B-Spline penalty
 //'
 //' @description This function calculates the B-Spline basis penalty.
@@ -133,6 +118,7 @@ arma::field<arma::sp_mat> penalty(
     arma::field<arma::sp_mat> D(order);
     arma::field<arma::sp_mat> P(std::min(order - 1, max_diff));
     D(0) = eye(K - order, K - order);
+    mat d = diff(eye(K - order, K - order));
 
     int i = 1;
 
@@ -140,7 +126,8 @@ arma::field<arma::sp_mat> penalty(
     while (i <= std::min(order - 1, max_diff))
     {
         arma::vec h = diff_cpp(knots.rows(i, K - 1 - i), order - i, 1) / (order - i);
-        D(i) = wt_delta(h) * D(i - 1);
+        mat W_inv = diagmat(1 / h);
+        D(i) = W_inv * d.submat(0, 0, d.n_rows - i, d.n_cols - i) * D(i - 1);
         P(i - 1) = D(i).t() * D(i);
         P(i - 1) *= std::pow(arma::mean(h), 2 * i);
         i++;

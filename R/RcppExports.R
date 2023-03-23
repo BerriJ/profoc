@@ -73,10 +73,6 @@ make_knots <- function(kstep, a = 1, deg = 3L, even = FALSE) {
     .Call(`_profoc_make_knots`, kstep, a, deg, even)
 }
 
-wt_delta <- function(h) {
-    .Call(`_profoc_wt_delta`, h)
-}
-
 #' @title B-Spline penalty
 #'
 #' @description This function calculates the B-Spline basis penalty.
