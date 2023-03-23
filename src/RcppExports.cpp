@@ -190,6 +190,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// adjacency_to_incidence
+arma::mat adjacency_to_incidence(const arma::mat& adj);
+RcppExport SEXP _profoc_adjacency_to_incidence(SEXP adjSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type adj(adjSEXP);
+    rcpp_result_gen = Rcpp::wrap(adjacency_to_incidence(adj));
+    return rcpp_result_gen;
+END_RCPP
+}
 // make_hat_matrix
 arma::sp_mat make_hat_matrix(const arma::vec& x, const double& kstep, const double& lambda, const double& bdiff, const int deg, const double& a, const bool& even);
 RcppExport SEXP _profoc_make_hat_matrix(SEXP xSEXP, SEXP kstepSEXP, SEXP lambdaSEXP, SEXP bdiffSEXP, SEXP degSEXP, SEXP aSEXP, SEXP evenSEXP) {
@@ -264,6 +275,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_splines2_periodic", (DL_FUNC) &_profoc_splines2_periodic, 3},
     {"_profoc_make_knots", (DL_FUNC) &_profoc_make_knots, 4},
     {"_profoc_penalty", (DL_FUNC) &_profoc_penalty, 3},
+    {"_profoc_adjacency_to_incidence", (DL_FUNC) &_profoc_adjacency_to_incidence, 1},
     {"_profoc_make_hat_matrix", (DL_FUNC) &_profoc_make_hat_matrix, 7},
     {"_profoc_make_basis_matrix", (DL_FUNC) &_profoc_make_basis_matrix, 5},
     {"_profoc_make_basis_matrix2", (DL_FUNC) &_profoc_make_basis_matrix2, 3},

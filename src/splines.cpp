@@ -137,6 +137,34 @@ arma::field<arma::sp_mat> penalty(
 }
 
 // [[Rcpp::export]]
+arma::mat adjacency_to_incidence(const arma::mat &adj)
+{
+    int cols = adj.n_cols;
+    int rows = adj.n_rows;
+
+    int edge = 0;
+    arma::mat incidence(0, cols);
+
+    for (int col = 0; col < cols; ++col)
+    {
+        // We only look at half the adjacency matrix, so that we only add each
+        // edge to the incidence matrix once.
+        for (int row = 0; row <= col; ++row)
+        {
+            if (adj(row, col) > 0)
+            {
+                incidence.resize(edge + 1, cols);
+                incidence(edge, row) = 1;
+                incidence(edge, col) = 1;
+                ++edge;
+            }
+        }
+    }
+
+    return incidence;
+}
+
+// [[Rcpp::export]]
 arma::sp_mat make_hat_matrix(
     const arma::vec &x,
     const double &kstep,

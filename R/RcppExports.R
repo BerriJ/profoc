@@ -113,6 +113,10 @@ penalty <- function(knots, order, max_diff = 999L) {
     .Call(`_profoc_penalty`, knots, order, max_diff)
 }
 
+adjacency_to_incidence <- function(adj) {
+    .Call(`_profoc_adjacency_to_incidence`, adj)
+}
+
 make_hat_matrix <- function(x, kstep, lambda, bdiff, deg, a, even) {
     .Call(`_profoc_make_hat_matrix`, x, kstep, lambda, bdiff, deg, a, even)
 }
