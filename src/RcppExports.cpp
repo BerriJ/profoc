@@ -190,6 +190,45 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// penalty2
+arma::field<arma::sp_mat> penalty2(const arma::vec& knots, const int& order, const int& max_diff);
+RcppExport SEXP _profoc_penalty2(SEXP knotsSEXP, SEXP orderSEXP, SEXP max_diffSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type knots(knotsSEXP);
+    Rcpp::traits::input_parameter< const int& >::type order(orderSEXP);
+    Rcpp::traits::input_parameter< const int& >::type max_diff(max_diffSEXP);
+    rcpp_result_gen = Rcpp::wrap(penalty2(knots, order, max_diff));
+    return rcpp_result_gen;
+END_RCPP
+}
+// diff_cpp2
+arma::vec diff_cpp2(arma::vec x, unsigned int lag, unsigned int differences);
+RcppExport SEXP _profoc_diff_cpp2(SEXP xSEXP, SEXP lagSEXP, SEXP differencesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type x(xSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type lag(lagSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type differences(differencesSEXP);
+    rcpp_result_gen = Rcpp::wrap(diff_cpp2(x, lag, differences));
+    return rcpp_result_gen;
+END_RCPP
+}
+// get_h
+arma::vec get_h(const arma::vec& knots, const int& order, const int& max_diff);
+RcppExport SEXP _profoc_get_h(SEXP knotsSEXP, SEXP orderSEXP, SEXP max_diffSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type knots(knotsSEXP);
+    Rcpp::traits::input_parameter< const int& >::type order(orderSEXP);
+    Rcpp::traits::input_parameter< const int& >::type max_diff(max_diffSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_h(knots, order, max_diff));
+    return rcpp_result_gen;
+END_RCPP
+}
 // adjacency_to_incidence
 arma::mat adjacency_to_incidence(const arma::mat& adj);
 RcppExport SEXP _profoc_adjacency_to_incidence(SEXP adjSEXP) {
@@ -275,6 +314,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_splines2_periodic", (DL_FUNC) &_profoc_splines2_periodic, 3},
     {"_profoc_make_knots", (DL_FUNC) &_profoc_make_knots, 4},
     {"_profoc_penalty", (DL_FUNC) &_profoc_penalty, 3},
+    {"_profoc_penalty2", (DL_FUNC) &_profoc_penalty2, 3},
+    {"_profoc_diff_cpp2", (DL_FUNC) &_profoc_diff_cpp2, 3},
+    {"_profoc_get_h", (DL_FUNC) &_profoc_get_h, 3},
     {"_profoc_adjacency_to_incidence", (DL_FUNC) &_profoc_adjacency_to_incidence, 1},
     {"_profoc_make_hat_matrix", (DL_FUNC) &_profoc_make_hat_matrix, 7},
     {"_profoc_make_basis_matrix", (DL_FUNC) &_profoc_make_basis_matrix, 5},

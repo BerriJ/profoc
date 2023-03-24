@@ -21,7 +21,6 @@ arma::mat splines2_periodic(const arma::vec &x,
 {
     int total = knots.n_elem;
     int outer = 2 * (deg + 1);
-    int inner = total - outer;
 
     // We'll only use inner and boundary knots for periodic splines
     arma::vec inner_knots = knots.subvec(outer / 2, total - outer / 2 - 1);
@@ -134,6 +133,79 @@ arma::field<arma::sp_mat> penalty(
     }
 
     return P;
+}
+
+// TODO: Remove when periodic splines are implemented
+
+// [[Rcpp::export]]
+arma::field<arma::sp_mat> penalty2(
+    const arma::vec &knots,
+    const int &order,
+    const int &max_diff = 999)
+{
+
+    int K = knots.n_elem;
+    arma::field<arma::sp_mat> D(order);
+    arma::field<arma::sp_mat> P(std::min(order - 1, max_diff));
+    D(0) = eye(K - order, K - order);
+    mat d = diff(eye(K - order, K - order));
+
+    int i = 1;
+
+    // While i < order calculate the next difference matrix and the respective scaled penalty
+    while (i <= std::min(order - 1, max_diff))
+    {
+        arma::vec h = diff_cpp(knots.rows(i, K - 1 - i), order - i, 1) / (order - i);
+        mat W_inv = diagmat(1 / h);
+        D(i) = W_inv * d.submat(0, 0, d.n_rows - i, d.n_cols - i) * D(i - 1);
+        P(i - 1) = D(i).t() * D(i);
+        // P(i - 1) *= std::pow(arma::mean(h), 2 * i);
+        i++;
+    }
+
+    return P;
+}
+
+// TODO: Remove when periodic splines are implemented
+
+// [[Rcpp::export]]
+arma::vec diff_cpp2(arma::vec x, unsigned int lag, unsigned int differences)
+{
+    // Difference the series i times
+    for (unsigned int i = 0; i < differences; i++)
+    {
+        // Each difference will shorten series length
+        unsigned int n = x.n_elem;
+        // Take the difference based on number of lags
+        x = (x.rows(lag, n - 1) - x.rows(0, n - lag - 1));
+    }
+
+    // Return differenced series:
+    return x;
+}
+
+// TODO: Remove when periodic splines are implemented
+
+// [[Rcpp::export]]
+arma::vec get_h(
+    const arma::vec &knots,
+    const int &order,
+    const int &max_diff = 999)
+{
+
+    int K = knots.n_elem;
+    arma::field<arma::sp_mat> D(order);
+    arma::field<arma::sp_mat> P(std::min(order - 1, max_diff));
+    D(0) = eye(K - order, K - order);
+    mat d = diff(eye(K - order, K - order));
+
+    int i = 1;
+
+    arma::vec h = diff_cpp(knots.rows(i, K - 1 - i), order - i, 1) / (order - i);
+    mat W_inv = diagmat(1 / h);
+    D(i) = W_inv * d.submat(0, 0, d.n_rows - i, d.n_cols - i) * D(i - 1);
+
+    return h;
 }
 
 // [[Rcpp::export]]
