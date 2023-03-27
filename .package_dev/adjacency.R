@@ -32,7 +32,7 @@ plot(graph_from_adjacency_matrix(Adj, mode = "undirected"))
 
 inc <- adjacency_to_incidence(Adj)
 
-penalty <- 2 * diag(apply(Adj, 1, sum)) - t(inc) %*% inc
+penalty <- 2 * diag(apply(Adj, 1, sum)) - inc %*% t(inc)
 
 penalty == D1D1
 
@@ -63,7 +63,7 @@ image(laplacian1_p)
 
 inc <- adjacency_to_incidence(Adj)
 
-penalty <- 2 * diag(apply(Adj, 1, sum)) - t(inc) %*% inc
+penalty <- 2 * diag(apply(Adj, 1, sum)) - inc %*% t(inc)
 penalty == laplacian1_p
 
 # How to get D1 from the laplacian matrix? We need to adjust it using: solve(W) %*% D1 to calculate the penalty matrix for non-equidistant knots

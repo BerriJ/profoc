@@ -113,10 +113,6 @@ penalty <- function(knots, order, max_diff = 999L) {
     .Call(`_profoc_penalty`, knots, order, max_diff)
 }
 
-penalty2 <- function(knots, order, max_diff = 999L) {
-    .Call(`_profoc_penalty2`, knots, order, max_diff)
-}
-
 diff_cpp2 <- function(x, lag, differences) {
     .Call(`_profoc_diff_cpp2`, x, lag, differences)
 }
@@ -125,8 +121,16 @@ get_h <- function(knots, order, max_diff = 999L) {
     .Call(`_profoc_get_h`, knots, order, max_diff)
 }
 
+periodic_adjacency <- function(size) {
+    .Call(`_profoc_periodic_adjacency`, size)
+}
+
 adjacency_to_incidence <- function(adj) {
     .Call(`_profoc_adjacency_to_incidence`, adj)
+}
+
+penalty_periodic <- function(knots, order) {
+    .Call(`_profoc_penalty_periodic`, knots, order)
 }
 
 make_hat_matrix <- function(x, kstep, lambda, bdiff, deg, a, even) {

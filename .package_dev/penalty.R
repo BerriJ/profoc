@@ -2,9 +2,8 @@ devtools::load_all()
 devtools::load_all()
 
 # %%
-differences <- 1
-
-order <- 3
+differences <- 1 # This script currently works for diff = 1 only
+order <- 2
 deg <- order - 1
 J <- 3 # Number of inner knots. Total number of knots is J + 2*(order)
 mu <- 0.5
@@ -18,9 +17,9 @@ D1D1_profoc <- as.matrix(penalty2(knots, order)[[1]])
 
 # Manually:
 h <- get_h(knots, order)
-D1 <- diff(diag(J + order), differences = differences)
-w_D1 <- diag(1 / h[, 1]) %*% D1
-D1D1_manual <- t(w_D1) %*% w_D1 # Penaltx matrix
+# D1 <- diff(diag(J + order), differences = differences)
+# w_D1 <- diag(1 / h[, 1]) %*% D1
+# D1D1_manual <- t(w_D1) %*% w_D1 # Penaltx matrix
 
 # Using laplacian:
 Adj <- matrix(0, nrow = J + order, ncol = J + order)
@@ -28,34 +27,33 @@ diag(Adj[-1, ]) <- 1
 diag(Adj[, -1]) <- 1
 plot(igraph::graph_from_adjacency_matrix(Adj, mode = "undirected"))
 inc <- adjacency_to_incidence(Adj)
-w_inc <- diag(1 / h[, 1]) %*% inc
+w_inc <- diag(1 / h[, 1]) %*% t(inc)
 D1D1_inc <- -t(w_inc) %*% w_inc
 diag(D1D1_inc) <- -diag(D1D1_inc)
 
 D1D1_inc == D1D1_profoc
 # %%
 
-# %% Periodic
+# %% Periodic and Equidistant
 
-# Using laplacian:
-h <- diff_cpp2(knots[(differences + 1):(length(knots) - differences)], order - differences, 1) / (order - differences)
+# For deg = 1 and first differences this is inner knots + 2 boundary knots
+knots_sub <- knots[(differences + 1):(length(knots) - differences)]
 
-h <- get_h(knots, order)
+h <- get_h(knots, order)[, 1]
 
-total <- length(knots)
-outer <- 2 * order
-inner_knots <- knots[(outer / 2):(total - outer / 2 + 1)]
+Adj <- periodic_adjacency(J + order - 1)
+inc_p <- adjacency_to_incidence(Adj)
+w_inc_p <- diag(1 / h) %*% t(inc_p)
+D1D1_inc_p <- -t(w_inc_p) %*% w_inc_p
+diag(D1D1_inc_p) <- -diag(D1D1_inc_p)
 
-Adj <- matrix(0, nrow = J + order, ncol = J + order)
-diag(Adj[-1, ]) <- 1
-diag(Adj[, -1]) <- 1
-Adj[nrow(Adj), 1] <- 1
-Adj[1, ncol(Adj)] <- 1
-plot(igraph::graph_from_adjacency_matrix(Adj, mode = "undirected"))
-inc <- adjacency_to_incidence(Adj)
-w_inc <- diag(1 / h[, 1]) %*% inc
-D1D1_inc <- -t(w_inc) %*% w_inc
-diag(D1D1_inc) <- -diag(D1D1_inc)
 
-D1D1_inc == D1D1_profoc
+
+plot(igraph::graph_from_adjacency_matrix(
+    Adj,
+    mode = "undirected"
+))
+image(D1D1_inc_p)
+
+penalty_periodic(knots, order) == D1D1_inc_p * mean(h)^2
 # %%

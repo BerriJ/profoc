@@ -138,37 +138,6 @@ arma::field<arma::sp_mat> penalty(
 // TODO: Remove when periodic splines are implemented
 
 // [[Rcpp::export]]
-arma::field<arma::sp_mat> penalty2(
-    const arma::vec &knots,
-    const int &order,
-    const int &max_diff = 999)
-{
-
-    int K = knots.n_elem;
-    arma::field<arma::sp_mat> D(order);
-    arma::field<arma::sp_mat> P(std::min(order - 1, max_diff));
-    D(0) = eye(K - order, K - order);
-    mat d = diff(eye(K - order, K - order));
-
-    int i = 1;
-
-    // While i < order calculate the next difference matrix and the respective scaled penalty
-    while (i <= std::min(order - 1, max_diff))
-    {
-        arma::vec h = diff_cpp(knots.rows(i, K - 1 - i), order - i, 1) / (order - i);
-        mat W_inv = diagmat(1 / h);
-        D(i) = W_inv * d.submat(0, 0, d.n_rows - i, d.n_cols - i) * D(i - 1);
-        P(i - 1) = D(i).t() * D(i);
-        // P(i - 1) *= std::pow(arma::mean(h), 2 * i);
-        i++;
-    }
-
-    return P;
-}
-
-// TODO: Remove when periodic splines are implemented
-
-// [[Rcpp::export]]
 arma::vec diff_cpp2(arma::vec x, unsigned int lag, unsigned int differences)
 {
     // Difference the series i times
@@ -209,6 +178,20 @@ arma::vec get_h(
 }
 
 // [[Rcpp::export]]
+arma::mat periodic_adjacency(const int &size)
+{
+    arma::mat adj(size, size, arma::fill::zeros);
+
+    for (int i = 0; i < size; ++i)
+    {
+        adj(i, (i + 1) % size) = 1;
+        adj(i, (i - 1 + size) % size) = 1;
+    }
+
+    return adj;
+}
+
+// [[Rcpp::export]]
 arma::mat adjacency_to_incidence(const arma::mat &adj)
 {
     int cols = adj.n_cols;
@@ -221,19 +204,45 @@ arma::mat adjacency_to_incidence(const arma::mat &adj)
     {
         // We only look at half the adjacency matrix, so that we only add each
         // edge to the incidence matrix once.
-        for (int row = 0; row <= col; ++row)
+        for (int row = col; row >= 0; --row)
         {
             if (adj(row, col) > 0)
             {
-                incidence.resize(edge + 1, cols);
-                incidence(edge, row) = 1;
-                incidence(edge, col) = 1;
+                incidence.resize(cols, edge + 1);
+                incidence(row, edge) = 1;
+                incidence(col, edge) = 1;
                 ++edge;
             }
         }
     }
 
     return incidence;
+}
+
+// [[Rcpp::export]]
+arma::mat penalty_periodic(
+    const arma::vec &knots,
+    const int &order)
+{
+
+    int K = knots.n_elem;
+    int outer = 2 * order;
+    int J = K - outer; // Inner knots
+
+    // Create incidence from adjacency matrix
+    arma::mat adj = periodic_adjacency(J + order - 1);
+    arma::mat inc = adjacency_to_incidence(adj);
+
+    int i = 1;
+
+    arma::vec h = diff_cpp(knots.rows(i, K - 1 - i), order - i, 1) / (order - i);
+    arma::mat w_inc = diagmat(1 / h) * inc.t();
+    arma::mat P = -w_inc.t() * w_inc;
+    P.diag() *= -1;
+
+    P *= std::pow(arma::mean(h), 2 * i);
+
+    return P;
 }
 
 // [[Rcpp::export]]

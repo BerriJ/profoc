@@ -190,19 +190,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// penalty2
-arma::field<arma::sp_mat> penalty2(const arma::vec& knots, const int& order, const int& max_diff);
-RcppExport SEXP _profoc_penalty2(SEXP knotsSEXP, SEXP orderSEXP, SEXP max_diffSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type knots(knotsSEXP);
-    Rcpp::traits::input_parameter< const int& >::type order(orderSEXP);
-    Rcpp::traits::input_parameter< const int& >::type max_diff(max_diffSEXP);
-    rcpp_result_gen = Rcpp::wrap(penalty2(knots, order, max_diff));
-    return rcpp_result_gen;
-END_RCPP
-}
 // diff_cpp2
 arma::vec diff_cpp2(arma::vec x, unsigned int lag, unsigned int differences);
 RcppExport SEXP _profoc_diff_cpp2(SEXP xSEXP, SEXP lagSEXP, SEXP differencesSEXP) {
@@ -229,6 +216,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// periodic_adjacency
+arma::mat periodic_adjacency(const int& size);
+RcppExport SEXP _profoc_periodic_adjacency(SEXP sizeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const int& >::type size(sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(periodic_adjacency(size));
+    return rcpp_result_gen;
+END_RCPP
+}
 // adjacency_to_incidence
 arma::mat adjacency_to_incidence(const arma::mat& adj);
 RcppExport SEXP _profoc_adjacency_to_incidence(SEXP adjSEXP) {
@@ -237,6 +235,18 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type adj(adjSEXP);
     rcpp_result_gen = Rcpp::wrap(adjacency_to_incidence(adj));
+    return rcpp_result_gen;
+END_RCPP
+}
+// penalty_periodic
+arma::mat penalty_periodic(const arma::vec& knots, const int& order);
+RcppExport SEXP _profoc_penalty_periodic(SEXP knotsSEXP, SEXP orderSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type knots(knotsSEXP);
+    Rcpp::traits::input_parameter< const int& >::type order(orderSEXP);
+    rcpp_result_gen = Rcpp::wrap(penalty_periodic(knots, order));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -314,10 +324,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_splines2_periodic", (DL_FUNC) &_profoc_splines2_periodic, 3},
     {"_profoc_make_knots", (DL_FUNC) &_profoc_make_knots, 4},
     {"_profoc_penalty", (DL_FUNC) &_profoc_penalty, 3},
-    {"_profoc_penalty2", (DL_FUNC) &_profoc_penalty2, 3},
     {"_profoc_diff_cpp2", (DL_FUNC) &_profoc_diff_cpp2, 3},
     {"_profoc_get_h", (DL_FUNC) &_profoc_get_h, 3},
+    {"_profoc_periodic_adjacency", (DL_FUNC) &_profoc_periodic_adjacency, 1},
     {"_profoc_adjacency_to_incidence", (DL_FUNC) &_profoc_adjacency_to_incidence, 1},
+    {"_profoc_penalty_periodic", (DL_FUNC) &_profoc_penalty_periodic, 2},
     {"_profoc_make_hat_matrix", (DL_FUNC) &_profoc_make_hat_matrix, 7},
     {"_profoc_make_basis_matrix", (DL_FUNC) &_profoc_make_basis_matrix, 5},
     {"_profoc_make_basis_matrix2", (DL_FUNC) &_profoc_make_basis_matrix2, 3},
