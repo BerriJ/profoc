@@ -19,21 +19,19 @@ ts.plot(
     col = 1:ncol(spline_p), lwd = 2
 )
 
-knots_simple <- c(0, knots, 1)
+knots_simple <- c(0, knots, 1 + knots[2])
 
 w <- c()
 for (i in 2:5) {
     w[i - 1] <- (knots_simple[deg + 1 + i] - knots_simple[i]) / (deg + 1)
 }
 
-w[4] <- 0.308
-
 spline_p_new <- spline_p
-for (i in 1:ncol(spline_cpp_p)) spline_p_new[, i] <- spline_p[, i] * w[i]
+for (i in 1:ncol(spline_p)) spline_p_new[, i] <- spline_p[, i] * w[i]
 
 ts.plot(
     as.matrix(spline_p_new),
-    col = 1:ncol(spline_cpp), lwd = 2
+    col = 1:ncol(spline_p_new), lwd = 2
 )
 
 rowSums(spline_p_new)
