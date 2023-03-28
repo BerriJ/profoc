@@ -36,10 +36,10 @@ arma::mat splines2_periodic(const arma::vec &x,
     arma::mat ps_mat = ps_obj.basis(true);
 
     // Make shure splines sum up to 1
-    for (int i = 0; i < ps_mat.n_rows; i++)
-    {
-        ps_mat.row(i) /= arma::accu(ps_mat.row(i));
-    }
+    // for (int i = 0; i < ps_mat.n_rows; i++)
+    // {
+    //     ps_mat.row(i) /= arma::accu(ps_mat.row(i));
+    // }
 
     return ps_mat;
 }
