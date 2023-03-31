@@ -21,56 +21,31 @@ arma::mat splines2_periodic(const arma::vec &x,
                             const bool &intercept)
 {
 
-    int order = deg + 1;
-    int total_n = knots.n_elem;
-    int outer_n = 2 * (deg + 1);
-    int inner_n = total_n - outer_n;
+    unsigned int order = deg + 1;
+    arma::uvec inner_idx = arma::regspace<arma::uvec>(order,
+                                                      knots.n_elem - order - 1);
+    arma::uvec bound_idx = {deg, knots.n_elem - order};
 
-    // We'll only use inner and boundary knots for periodic splines
-    arma::vec inner_knots = knots.subvec(outer_n / 2, total_n - outer_n / 2 - 1);
-    arma::vec boundary_knots = {knots(outer_n / 2 - 1), knots(total_n - outer_n / 2)};
-
-    // Create periodic spline object
-    splines2::PeriodicMSpline ps_obj;
-    ps_obj.set_x(x);
-    ps_obj.set_degree(deg);
-
-    ps_obj.set_internal_knots(inner_knots);
-    ps_obj.set_boundary_knots(boundary_knots);
-    arma::mat ps_mat = ps_obj.basis(true);
+    // Create periodic mspline object
+    splines2::PeriodicMSpline ps(x, knots(inner_idx), deg, knots(bound_idx));
+    arma::mat ps_mat = ps.basis(true);
 
     if (!intercept)
-    {
         ps_mat.shed_col(0);
-    }
 
-    // Convert to periodic B-Splines
+    // We will use https://doi.org/10.6339/21-JDS1020 eq. (1) to convert
+    // the mspline basis to a bspline basis
 
-    // Extended sequence of knots for periodic B-Splines
-    arma::vec knots_ext(2 + inner_n + deg);
-    knots_ext.row(0) = boundary_knots.row(0);
-    knots_ext.rows(1, inner_n) = inner_knots;
-    knots_ext.row(inner_n + 1) = boundary_knots.row(1);
-    knots_ext.rows(inner_n + 2, inner_n + deg + 1) = inner_knots.rows(0, deg - 1) + boundary_knots(1);
+    // We need this sequence to calculate the weights
+    arma::vec knots_ext = knots.subvec(bound_idx(0), bound_idx(1));
+    knots_ext = join_cols(knots_ext,
+                          knots(inner_idx.head(deg)) + knots(bound_idx(1)));
 
-    arma::cout << 1 - intercept << arma::endl;
-
-    // Calculate weights
-    arma::vec weights(ps_mat.n_cols, arma::fill::zeros);
-
-    weights += knots_ext.subvec(
-        order - intercept + 1,
-        order - intercept + ps_mat.n_cols);
-
-    weights -= knots_ext.subvec(
-        -intercept + 1,
-        -intercept + ps_mat.n_cols);
-
-    weights /= order;
-
-    for (int i = 0; i < ps_mat.n_cols; i++)
+    for (unsigned int i = 0; i < ps_mat.n_cols; i++)
     {
-        ps_mat.col(i) *= weights(i);
+        double w = knots_ext(1 - intercept + i + order) -
+                   knots_ext(1 - intercept + i);
+        ps_mat.col(i) *= w / order;
     }
 
     return ps_mat;
@@ -224,7 +199,6 @@ arma::mat periodic_adjacency(const int &size)
 arma::mat adjacency_to_incidence(const arma::mat &adj)
 {
     int cols = adj.n_cols;
-    int rows = adj.n_rows;
 
     int edge = 0;
     arma::mat incidence(0, cols);
