@@ -65,8 +65,8 @@ oracle <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive 
     .Call(`_profoc_oracle`, y, experts, tau, affine, positive, intercept, debias, loss_function, loss_parameter, forget)
 }
 
-splines2_periodic <- function(x, knots, deg) {
-    .Call(`_profoc_splines2_periodic`, x, knots, deg)
+splines2_periodic <- function(x, knots, deg, intercept) {
+    .Call(`_profoc_splines2_periodic`, x, knots, deg, intercept)
 }
 
 make_knots <- function(kstep, a = 1, deg = 3L, even = FALSE) {

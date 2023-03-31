@@ -17,14 +17,18 @@ static arma::mat splines2_basis(const arma::vec &x,
 // [[Rcpp::export]]
 arma::mat splines2_periodic(const arma::vec &x,
                             const arma::vec &knots,
-                            const unsigned int deg)
+                            const unsigned int deg,
+                            const bool &intercept)
 {
-    int total = knots.n_elem;
-    int outer = 2 * (deg + 1);
+
+    int order = deg + 1;
+    int total_n = knots.n_elem;
+    int outer_n = 2 * (deg + 1);
+    int inner_n = total_n - outer_n;
 
     // We'll only use inner and boundary knots for periodic splines
-    arma::vec inner_knots = knots.subvec(outer / 2, total - outer / 2 - 1);
-    arma::vec boundary_knots = {knots(outer / 2 - 1), knots(total - outer / 2)};
+    arma::vec inner_knots = knots.subvec(outer_n / 2, total_n - outer_n / 2 - 1);
+    arma::vec boundary_knots = {knots(outer_n / 2 - 1), knots(total_n - outer_n / 2)};
 
     // Create periodic spline object
     splines2::PeriodicMSpline ps_obj;
@@ -35,11 +39,39 @@ arma::mat splines2_periodic(const arma::vec &x,
     ps_obj.set_boundary_knots(boundary_knots);
     arma::mat ps_mat = ps_obj.basis(true);
 
-    // Make shure splines sum up to 1
-    // for (int i = 0; i < ps_mat.n_rows; i++)
-    // {
-    //     ps_mat.row(i) /= arma::accu(ps_mat.row(i));
-    // }
+    if (!intercept)
+    {
+        ps_mat.shed_col(0);
+    }
+
+    // Convert to periodic B-Splines
+
+    // Extended sequence of knots for periodic B-Splines
+    arma::vec knots_ext(2 + inner_n + deg);
+    knots_ext.row(0) = boundary_knots.row(0);
+    knots_ext.rows(1, inner_n) = inner_knots;
+    knots_ext.row(inner_n + 1) = boundary_knots.row(1);
+    knots_ext.rows(inner_n + 2, inner_n + deg + 1) = inner_knots.rows(0, deg - 1) + boundary_knots(1);
+
+    arma::cout << 1 - intercept << arma::endl;
+
+    // Calculate weights
+    arma::vec weights(ps_mat.n_cols, arma::fill::zeros);
+
+    weights += knots_ext.subvec(
+        order - intercept + 1,
+        order - intercept + ps_mat.n_cols);
+
+    weights -= knots_ext.subvec(
+        -intercept + 1,
+        -intercept + ps_mat.n_cols);
+
+    weights /= order;
+
+    for (int i = 0; i < ps_mat.n_cols; i++)
+    {
+        ps_mat.col(i) *= weights(i);
+    }
 
     return ps_mat;
 }
@@ -49,7 +81,6 @@ using namespace arma;
 // [[Rcpp::export]]
 arma::vec make_knots(const double &kstep, const double &a = 1, const int deg = 3, const bool &even = false)
 {
-
     vec x;
     vec xa;
     vec xb;
@@ -112,7 +143,6 @@ arma::field<arma::sp_mat> penalty(
     const int &order,
     const int &max_diff = 999)
 {
-
     int K = knots.n_elem;
     arma::field<arma::sp_mat> D(order);
     arma::field<arma::sp_mat> P(std::min(order - 1, max_diff));
@@ -161,7 +191,6 @@ arma::vec get_h(
     const int &order,
     const int &max_diff = 999)
 {
-
     int K = knots.n_elem;
     arma::field<arma::sp_mat> D(order);
     arma::field<arma::sp_mat> P(std::min(order - 1, max_diff));
@@ -224,7 +253,6 @@ arma::mat penalty_periodic(
     const arma::vec &knots,
     const int &order)
 {
-
     int K = knots.n_elem;
     int outer = 2 * order;
     int J = K - outer; // Inner knots
@@ -255,7 +283,6 @@ arma::sp_mat make_hat_matrix(
     const double &a,
     const bool &even)
 {
-
     mat H;
 
     if (kstep <= 0.5)
@@ -350,7 +377,6 @@ arma::sp_mat make_hat_matrix2(
     const double &bdiff,
     const double &lambda)
 {
-
     mat H;
 
     int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
