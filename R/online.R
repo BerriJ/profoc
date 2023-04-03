@@ -315,7 +315,8 @@ online <- function(y, experts, tau,
         sigma = val_or_def(b_smooth_pr$sigma, 1),
         nonc = val_or_def(b_smooth_pr$nonc, 0),
         tailw = val_or_def(b_smooth_pr$tailweight, 1),
-        deg = val_or_def(b_smooth_pr$deg, 1)
+        deg = val_or_def(b_smooth_pr$deg, 1),
+        periodic = val_or_def(b_smooth_pr$periodic, FALSE)
     )
     pars_basis_pr_n <- prod(sapply(pars_basis_pr, length))
 
@@ -325,7 +326,8 @@ online <- function(y, experts, tau,
         sigma = val_or_def(b_smooth_mv$sigma, 1),
         nonc = val_or_def(b_smooth_mv$nonc, 0),
         tailw = val_or_def(b_smooth_mv$tailweight, 1),
-        deg = val_or_def(b_smooth_mv$deg, 1)
+        deg = val_or_def(b_smooth_mv$deg, 1),
+        periodic = val_or_def(b_smooth_mv$periodic, FALSE)
     )
     pars_basis_mv_n <- prod(sapply(pars_basis_mv, length))
 
@@ -337,7 +339,8 @@ online <- function(y, experts, tau,
         tailw = val_or_def(p_smooth_pr$tailweight, 1),
         deg = val_or_def(p_smooth_pr$deg, 1),
         ndiff = val_or_def(p_smooth_pr$ndiff, 1.5),
-        lambda = val_or_def(p_smooth_pr$lambda, -Inf)
+        lambda = val_or_def(p_smooth_pr$lambda, -Inf),
+        periodic = val_or_def(p_smooth_pr$periodic, FALSE)
     )
     pars_hat_pr_n <- prod(sapply(pars_hat_pr, length))
 
@@ -349,7 +352,8 @@ online <- function(y, experts, tau,
         tailw = val_or_def(p_smooth_mv$tailweight, 1),
         deg = val_or_def(p_smooth_mv$deg, 1),
         ndiff = val_or_def(p_smooth_mv$ndiff, 1.5),
-        lambda = val_or_def(p_smooth_mv$lambda, -Inf)
+        lambda = val_or_def(p_smooth_mv$lambda, -Inf),
+        periodic = val_or_def(p_smooth_mv$periodic, FALSE)
     )
     pars_hat_mv_n <- prod(sapply(pars_hat_mv, length))
 

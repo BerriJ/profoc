@@ -13,12 +13,14 @@ online(
   loss_parameter = 1,
   loss_gradient = TRUE,
   method = "bewa",
-  b_smooth_pr = list(knots = P, mu = 0.5, sigma = 1, nonc = 0, tailweight = 1, deg = 1),
+  b_smooth_pr = list(knots = P, mu = 0.5, sigma = 1, nonc = 0, tailweight = 1, deg = 1,
+    periodic = FALSE),
   p_smooth_pr = list(knots = P, mu = 0.5, sigma = 1, nonc = 0, tailweight = 1, deg = 1,
-    ndiff = 1.5, lambda = -Inf),
-  b_smooth_mv = list(knots = D, mu = 0.5, sigma = 1, nonc = 0, tailweight = 1, deg = 1),
+    ndiff = 1.5, lambda = -Inf, periodic = FALSE),
+  b_smooth_mv = list(knots = D, mu = 0.5, sigma = 1, nonc = 0, tailweight = 1, deg = 1,
+    periodic = FALSE),
   p_smooth_mv = list(knots = D, mu = 0.5, sigma = 1, nonc = 0, tailweight = 1, deg = 1,
-    ndiff = 1.5, lambda = -Inf),
+    ndiff = 1.5, lambda = -Inf, periodic = FALSE),
   forget_regret = 0,
   soft_threshold = -Inf,
   hard_threshold = -Inf,
@@ -177,14 +179,16 @@ This package offers two options for smoothing (Basis Smoothing
 and P-Splines). Both options can be used to smooth the weights
 over dimension D (covariates) or P (quantiles) or both.
 Parameters \code{b_smooth_pr} and \code{b_smooth_mv} take named lists to
-create the corresponding basis matrices. The arguments include are:
+create the corresponding basis matrices. The arguments are:
 \code{knots} which determines the number of knots to be created, \code{mu},
 \code{sigma}, \code{sigma}, \code{nonc}, \code{tailweight} correspond to
 to parameters of the beta distribution, which defines how the knots are
 #distributed (see \code{?make_knots2} for details) the defaults will create
 an equidistant knot sequence, \code{deg} sets the degree of the spline
-function and also influences how many outer knots will be used.
-It's possible to provide vectors of values for each of these parameters.
+function and also influences how many outer knots will be used and
+\code{periodic} which determines whether the spline basis will be periodic.
+It's possible to provide vectors of values for each of these parameters,
+except \code{periodic}.
 In that case, all parameter combinations will be used to create the
 respective matrices and all candidates will be considered during
 online-learning.
