@@ -65,7 +65,11 @@ oracle <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive 
     .Call(`_profoc_oracle`, y, experts, tau, affine, positive, intercept, debias, loss_function, loss_parameter, forget)
 }
 
-splines2_periodic <- function(x, knots, deg, intercept) {
+splines2_basis <- function(x, knots, deg) {
+    .Call(`_profoc_splines2_basis`, x, knots, deg)
+}
+
+splines2_periodic <- function(x, knots, deg, intercept = TRUE) {
     .Call(`_profoc_splines2_periodic`, x, knots, deg, intercept)
 }
 
@@ -113,14 +117,6 @@ penalty <- function(knots, order, max_diff = 999L) {
     .Call(`_profoc_penalty`, knots, order, max_diff)
 }
 
-diff_cpp2 <- function(x, lag, differences) {
-    .Call(`_profoc_diff_cpp2`, x, lag, differences)
-}
-
-get_h <- function(knots, order, max_diff = 999L) {
-    .Call(`_profoc_get_h`, knots, order, max_diff)
-}
-
 periodic_adjacency <- function(size) {
     .Call(`_profoc_periodic_adjacency`, size)
 }
@@ -141,11 +137,11 @@ make_basis_matrix <- function(x, kstep, deg, a, even) {
     .Call(`_profoc_make_basis_matrix`, x, kstep, deg, a, even)
 }
 
-make_basis_matrix2 <- function(x, knots, deg) {
-    .Call(`_profoc_make_basis_matrix2`, x, knots, deg)
+make_basis_matrix2 <- function(x, knots, deg, periodic = FALSE) {
+    .Call(`_profoc_make_basis_matrix2`, x, knots, deg, periodic)
 }
 
-make_hat_matrix2 <- function(x, knots, deg, bdiff, lambda) {
-    .Call(`_profoc_make_hat_matrix2`, x, knots, deg, bdiff, lambda)
+make_hat_matrix2 <- function(x, knots, deg, bdiff, lambda, periodic) {
+    .Call(`_profoc_make_hat_matrix2`, x, knots, deg, bdiff, lambda, periodic)
 }
 

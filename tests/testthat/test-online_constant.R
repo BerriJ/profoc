@@ -30,3 +30,5 @@ diff(model$weights[500, , , 1])
 diffs <- apply(model$weights[, , , ], MARGIN = 1, FUN = diff)
 
 expect_true(sum(diffs) == 0)
+
+expect_true(dim(model$specification$objects$basis_pr[[1]])[2] == 1)

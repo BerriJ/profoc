@@ -6,9 +6,10 @@
 // include header file from splines2 package
 #include <splines2Armadillo.h>
 
-static arma::mat splines2_basis(const arma::vec &x,
-                                const arma::vec &knots,
-                                const unsigned int deg)
+// [[Rcpp::export]]
+arma::mat splines2_basis(const arma::vec &x,
+                         const arma::vec &knots,
+                         const unsigned int deg)
 {
     splines2::BSpline bs_obj{x, deg, knots};
     return bs_obj.basis(true);
@@ -18,8 +19,13 @@ static arma::mat splines2_basis(const arma::vec &x,
 arma::mat splines2_periodic(const arma::vec &x,
                             const arma::vec &knots,
                             const unsigned int deg,
-                            const bool &intercept)
+                            const bool &intercept = true)
 {
+
+    // TODO Update this function to use splines2 implementation when
+    // it becomes available
+
+    // TODO merge into splines2_basis function
 
     unsigned int order = deg + 1;
     arma::uvec inner_idx = arma::regspace<arma::uvec>(order,
@@ -140,47 +146,6 @@ arma::field<arma::sp_mat> penalty(
     return P;
 }
 
-// TODO: Remove when periodic splines are implemented
-
-// [[Rcpp::export]]
-arma::vec diff_cpp2(arma::vec x, unsigned int lag, unsigned int differences)
-{
-    // Difference the series i times
-    for (unsigned int i = 0; i < differences; i++)
-    {
-        // Each difference will shorten series length
-        unsigned int n = x.n_elem;
-        // Take the difference based on number of lags
-        x = (x.rows(lag, n - 1) - x.rows(0, n - lag - 1));
-    }
-
-    // Return differenced series:
-    return x;
-}
-
-// TODO: Remove when periodic splines are implemented
-
-// [[Rcpp::export]]
-arma::vec get_h(
-    const arma::vec &knots,
-    const int &order,
-    const int &max_diff = 999)
-{
-    int K = knots.n_elem;
-    arma::field<arma::sp_mat> D(order);
-    arma::field<arma::sp_mat> P(std::min(order - 1, max_diff));
-    D(0) = eye(K - order, K - order);
-    mat d = diff(eye(K - order, K - order));
-
-    int i = 1;
-
-    arma::vec h = diff_cpp(knots.rows(i, K - 1 - i), order - i, 1) / (order - i);
-    mat W_inv = diagmat(1 / h);
-    D(i) = W_inv * d.submat(0, 0, d.n_rows - i, d.n_cols - i) * D(i - 1);
-
-    return h;
-}
-
 // [[Rcpp::export]]
 arma::mat periodic_adjacency(const int &size)
 {
@@ -227,6 +192,12 @@ arma::mat penalty_periodic(
     const arma::vec &knots,
     const int &order)
 {
+
+    if (order != 2)
+    {
+        throw std::invalid_argument("Currently only order 2 is supported for periodic splines.");
+    }
+
     int K = knots.n_elem;
     int outer = 2 * order;
     int J = K - outer; // Inner knots
@@ -321,7 +292,8 @@ arma::sp_mat make_basis_matrix(const arma::vec &x, const double &kstep, const in
 // [[Rcpp::export]]
 arma::sp_mat make_basis_matrix2(const arma::vec &x,
                                 const arma::vec &knots,
-                                const unsigned int deg)
+                                const unsigned int deg,
+                                const bool &periodic = false)
 {
     mat B;
 
@@ -332,15 +304,22 @@ arma::sp_mat make_basis_matrix2(const arma::vec &x,
     }
     else
     {
-        B = splines2_basis(x, knots, deg);
-        // Remove columns without contribution
-        B = B.cols(find(sum(B) >= 1E-6));
-        B.clean(1E-10);
+        if (!periodic)
+        {
+            B = splines2_basis(x, knots, deg);
+        }
+        else
+        {
+            B = splines2_periodic(x, knots, deg, true);
+        }
     }
 
-    sp_mat out(B);
+    B.clean(1E-10);
 
-    return out;
+    // Remove columns without contribution
+    B = B.cols(find(sum(B) >= 1E-6));
+
+    return sp_mat(B);
 }
 
 // [[Rcpp::export]]
@@ -349,31 +328,43 @@ arma::sp_mat make_hat_matrix2(
     const arma::vec &knots,
     const int deg,
     const double &bdiff,
-    const double &lambda)
+    const double &lambda,
+    const bool &periodic)
 {
-    mat H;
 
-    int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
+    mat B; // Basis matrix
+    mat P; // Penalty matrix
 
-    mat B = splines2_basis(x, knots, deg);
-
-    mat P(m + deg + 1, m + deg + 1);
-
-    // Field of penalties up to second differences
-    arma::field<arma::sp_mat> Ps = penalty(knots, deg + 1, 2);
-
-    if (deg > 1)
+    if (!periodic)
     {
-        P = (2 - bdiff) * Ps(0) + (bdiff - 1) * Ps(1);
+        B = splines2_basis(x, knots, deg);
+
+        // Field of penalties up to second differences
+        arma::field<arma::sp_mat> Ps = penalty(knots, deg + 1, 2);
+
+        // It may look strange that we check for deg > 1 here, but penalties for
+        // higher differences can only be computed if deg > 1.
+        if (deg > 1)
+        {
+            P = (2 - bdiff) * Ps(0) + (bdiff - 1) * Ps(1);
+        }
+        else
+        {
+            P = Ps(0);
+        }
     }
     else
     {
-        P = Ps(0);
-    }
+        if (bdiff != 1)
+        {
+            throw std::invalid_argument("Currently only bdiff 1 is supported for periodic splines.");
+        }
 
-    H = B * arma::pinv(B.t() * B + lambda * P) * B.t();
+        B = splines2_periodic(x, knots, deg, true);
+        P = penalty_periodic(knots, deg + 1);
+    }
+    mat H = B * arma::pinv(B.t() * B + lambda * P) * B.t(); // Hat matrix
     H.clean(1E-10);
 
-    arma::sp_mat sp_H = sp_mat(H); // Return hat matrix
-    return sp_H;
+    return sp_mat(H);
 }

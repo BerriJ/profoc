@@ -121,7 +121,8 @@ online <- function(y, experts, tau,
                        sigma = 1,
                        nonc = 0,
                        tailweight = 1,
-                       deg = 1
+                       deg = 1,
+                       periodic = FALSE
                    ),
                    p_smooth_pr = list(
                        knots = P,
@@ -131,7 +132,8 @@ online <- function(y, experts, tau,
                        tailweight = 1,
                        deg = 1,
                        ndiff = 1.5,
-                       lambda = -Inf
+                       lambda = -Inf,
+                       periodic = FALSE
                    ),
                    b_smooth_mv = list(
                        knots = D,
@@ -139,7 +141,8 @@ online <- function(y, experts, tau,
                        sigma = 1,
                        nonc = 0,
                        tailweight = 1,
-                       deg = 1
+                       deg = 1,
+                       periodic = FALSE
                    ),
                    p_smooth_mv = list(
                        knots = D,
@@ -149,7 +152,8 @@ online <- function(y, experts, tau,
                        tailweight = 1,
                        deg = 1,
                        ndiff = 1.5,
-                       lambda = -Inf
+                       lambda = -Inf,
+                       periodic = FALSE
                    ),
                    forget_regret = 0,
                    soft_threshold = -Inf,
