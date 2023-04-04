@@ -199,16 +199,59 @@ arma::mat penalty_periodic(
     }
 
     int K = knots.n_elem;
-    int outer = 2 * order;
-    int J = K - outer; // Inner knots
 
     // Create incidence from adjacency matrix
-    arma::mat adj = periodic_adjacency(J + order - 1);
+    arma::mat adj = periodic_adjacency(K - 2 * order + order - 1);
     arma::mat inc = adjacency_to_incidence(adj);
 
     int i = 1;
 
     arma::vec h = diff_cpp(knots.rows(i, K - 1 - i), order - i, 1) / (order - i);
+    arma::mat w_inc = diagmat(1 / h) * inc.t();
+    arma::mat P = -w_inc.t() * w_inc;
+    P.diag() *= -1;
+
+    P *= std::pow(arma::mean(h), 2 * i);
+
+    return P;
+}
+
+// [[Rcpp::export]]
+arma::mat penalty_periodic2(
+    const arma::vec &knots,
+    const int &order)
+{
+
+    int K = knots.n_elem;
+
+    // Create incidence from adjacency matrix
+    arma::mat adj = periodic_adjacency(K - 2 * order + 1);
+
+    arma::mat inc = adjacency_to_incidence(adj);
+
+    int i = 1;
+
+    // Extend the knot sequence
+    arma::uvec inner_idx = arma::regspace<arma::uvec>(order,
+                                                      K - order - 1);
+    arma::uvec bound_idx = {order - 1, K - order};
+
+    // We need this sequence to calculate the weights
+    arma::vec knots_ext = knots.subvec(bound_idx(0), bound_idx(1));
+    knots_ext = join_cols(knots_ext,
+                          knots(inner_idx.head(order - 1)) + knots(bound_idx(1)));
+
+    K = knots_ext.n_elem;
+
+    // arma::vec foo = knots.row(inner_idx(0));
+
+    // knots_ext = join_cols(
+    //     knots(inner_idx.tail(1)) - knots(bound_idx(1)), knots_ext);
+
+    // arma::cout << knots_ext << arma::endl;
+
+    arma::vec h = diff_cpp(knots_ext.rows(i - 1, K - 1 - i), order - i, 1);
+    h /= (order - i);
     arma::mat w_inc = diagmat(1 / h) * inc.t();
     arma::mat P = -w_inc.t() * w_inc;
     P.diag() *= -1;
