@@ -151,29 +151,17 @@ BEGIN_RCPP
 END_RCPP
 }
 // splines2_basis
-arma::mat splines2_basis(const arma::vec& x, const arma::vec& knots, const unsigned int deg);
-RcppExport SEXP _profoc_splines2_basis(SEXP xSEXP, SEXP knotsSEXP, SEXP degSEXP) {
+arma::mat splines2_basis(const arma::vec& x, const arma::vec& knots, const unsigned int deg, const bool& periodic, const bool& intercept);
+RcppExport SEXP _profoc_splines2_basis(SEXP xSEXP, SEXP knotsSEXP, SEXP degSEXP, SEXP periodicSEXP, SEXP interceptSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type knots(knotsSEXP);
     Rcpp::traits::input_parameter< const unsigned int >::type deg(degSEXP);
-    rcpp_result_gen = Rcpp::wrap(splines2_basis(x, knots, deg));
-    return rcpp_result_gen;
-END_RCPP
-}
-// splines2_periodic
-arma::mat splines2_periodic(const arma::vec& x, const arma::vec& knots, const unsigned int deg, const bool& intercept);
-RcppExport SEXP _profoc_splines2_periodic(SEXP xSEXP, SEXP knotsSEXP, SEXP degSEXP, SEXP interceptSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type knots(knotsSEXP);
-    Rcpp::traits::input_parameter< const unsigned int >::type deg(degSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type periodic(periodicSEXP);
     Rcpp::traits::input_parameter< const bool& >::type intercept(interceptSEXP);
-    rcpp_result_gen = Rcpp::wrap(splines2_periodic(x, knots, deg, intercept));
+    rcpp_result_gen = Rcpp::wrap(splines2_basis(x, knots, deg, periodic, intercept));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -311,8 +299,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_optimize_weights", (DL_FUNC) &_profoc_optimize_weights, 10},
     {"_profoc_optimize_betas", (DL_FUNC) &_profoc_optimize_betas, 13},
     {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 10},
-    {"_profoc_splines2_basis", (DL_FUNC) &_profoc_splines2_basis, 3},
-    {"_profoc_splines2_periodic", (DL_FUNC) &_profoc_splines2_periodic, 4},
+    {"_profoc_splines2_basis", (DL_FUNC) &_profoc_splines2_basis, 5},
     {"_profoc_make_knots", (DL_FUNC) &_profoc_make_knots, 4},
     {"_profoc_penalty", (DL_FUNC) &_profoc_penalty, 3},
     {"_profoc_periodic_adjacency", (DL_FUNC) &_profoc_periodic_adjacency, 1},

@@ -9,52 +9,50 @@
 // [[Rcpp::export]]
 arma::mat splines2_basis(const arma::vec &x,
                          const arma::vec &knots,
-                         const unsigned int deg)
+                         const unsigned int deg,
+                         const bool &periodic = false,
+                         const bool &intercept = true)
 {
-    splines2::BSpline bs_obj{x, deg, knots};
-    return bs_obj.basis(true);
-}
+    arma::mat B; // Basis matrix
 
-// [[Rcpp::export]]
-arma::mat splines2_periodic(const arma::vec &x,
-                            const arma::vec &knots,
-                            const unsigned int deg,
-                            const bool &intercept = true)
-{
-
-    // TODO Update this function to use splines2 implementation when
-    // it becomes available
-
-    // TODO merge into splines2_basis function
-
-    unsigned int order = deg + 1;
-    arma::uvec inner_idx = arma::regspace<arma::uvec>(order,
-                                                      knots.n_elem - order - 1);
-    arma::uvec bound_idx = {deg, knots.n_elem - order};
-
-    // Create periodic mspline object
-    splines2::PeriodicMSpline ps(x, knots(inner_idx), deg, knots(bound_idx));
-    arma::mat ps_mat = ps.basis(true);
-
-    if (!intercept)
-        ps_mat.shed_col(0);
-
-    // We will use https://doi.org/10.6339/21-JDS1020 eq. (1) to convert
-    // the mspline basis to a bspline basis
-
-    // We need this sequence to calculate the weights
-    arma::vec knots_ext = knots.subvec(bound_idx(0), bound_idx(1));
-    knots_ext = join_cols(knots_ext,
-                          knots(inner_idx.head(deg)) + knots(bound_idx(1)));
-
-    for (unsigned int i = 0; i < ps_mat.n_cols; i++)
+    if (!periodic)
     {
-        double w = knots_ext(1 - intercept + i + order) -
-                   knots_ext(1 - intercept + i);
-        ps_mat.col(i) *= w / order;
+        splines2::BSpline bs_obj{x, deg, knots};
+        B = bs_obj.basis(true);
+        if (!intercept)
+            B.shed_col(0);
+    }
+    else
+    {
+        unsigned int order = deg + 1;
+        arma::uvec inner_idx = arma::regspace<arma::uvec>(order,
+                                                          knots.n_elem - order - 1);
+        arma::uvec bound_idx = {deg, knots.n_elem - order};
+
+        // Create periodic mspline object
+        splines2::PeriodicMSpline ps(x, knots(inner_idx), deg, knots(bound_idx));
+        arma::mat B = ps.basis(true);
+
+        if (!intercept)
+            B.shed_col(0);
+
+        // We will use https://doi.org/10.6339/21-JDS1020 eq. (1) to convert
+        // the mspline basis to a bspline basis
+
+        // We need this sequence to calculate the weights
+        arma::vec knots_ext = knots.subvec(bound_idx(0), bound_idx(1));
+        knots_ext = join_cols(knots_ext,
+                              knots(inner_idx.head(deg)) + knots(bound_idx(1)));
+
+        for (unsigned int i = 0; i < B.n_cols; i++)
+        {
+            double w = knots_ext(1 - intercept + i + order) -
+                       knots_ext(1 - intercept + i);
+            B.col(i) *= w / order;
+        }
     }
 
-    return ps_mat;
+    return B;
 }
 
 using namespace arma;
@@ -193,6 +191,8 @@ arma::mat penalty_periodic(
     const unsigned int &order)
 {
 
+    // TODO merge into penalty function
+
     unsigned int K = knots.n_elem;
 
     // Create incidence from adjacency matrix
@@ -241,7 +241,7 @@ arma::sp_mat make_hat_matrix(
         vec knots = make_knots(kstep, a, deg, even);
         int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
 
-        mat B = splines2_basis(x, knots, deg);
+        mat B = splines2_basis(x, knots, deg, false, true);
 
         mat P(m + deg + 1, m + deg + 1);
 
@@ -279,7 +279,7 @@ arma::sp_mat make_basis_matrix(const arma::vec &x, const double &kstep, const in
     if (kstep <= 0.5)
     {
         vec knots = make_knots(kstep, a, deg, even);
-        B = splines2_basis(x, knots, deg);
+        B = splines2_basis(x, knots, deg, false, true);
         // Remove columns without contribution
         B = B.cols(find(sum(B) >= 1E-6));
         B.clean(1E-10);
@@ -310,14 +310,7 @@ arma::sp_mat make_basis_matrix2(const arma::vec &x,
     }
     else
     {
-        if (!periodic)
-        {
-            B = splines2_basis(x, knots, deg);
-        }
-        else
-        {
-            B = splines2_periodic(x, knots, deg, true);
-        }
+        B = splines2_basis(x, knots, deg, periodic, true);
     }
 
     B.clean(1E-10);
@@ -343,7 +336,7 @@ arma::sp_mat make_hat_matrix2(
 
     if (!periodic)
     {
-        B = splines2_basis(x, knots, deg);
+        B = splines2_basis(x, knots, deg, periodic, true);
 
         // Field of penalties up to second differences
         arma::field<arma::sp_mat> Ps = penalty(knots, deg + 1, 2);
@@ -366,7 +359,7 @@ arma::sp_mat make_hat_matrix2(
             throw std::invalid_argument("Currently only bdiff 1 is supported for periodic splines.");
         }
 
-        B = splines2_periodic(x, knots, deg, true);
+        B = splines2_basis(x, knots, deg, periodic, true);
         P = penalty_periodic(knots, deg + 1);
     }
     mat H = B * arma::pinv(B.t() * B + lambda * P) * B.t(); // Hat matrix
