@@ -1,22 +1,27 @@
 devtools::load_all()
 devtools::load_all()
 
-order <- 4
-deg <- order - 1
-mu <- 0.4
-n <- 10
-knots <- make_knots2(n, mu = mu, deg = deg)
+par(mfrow = c(3, 5))
+for (i in 2:4) {
+    for (m in c(0.2, 0.4, 0.5, 0.6, 0.8)) {
+        order <- i
+        deg <- order - 1
+        mu <- m
+        n <- 10
+        knots <- make_knots2(n, mu = mu, deg = deg)
 
-P <- penalty_periodic2(knots, order)
+        P <- penalty_periodic(knots, order)
 
-# P <- as.matrix(penalty(knots, order)[[1]])
+        # P <- as.matrix(penalty(knots, order)[[1]])
 
-PPPP <- matrix(NA, nrow = 2 * ncol(P), ncol = 2 * ncol(P))
-PPPP[1:ncol(P), 1:ncol(P)] <- P
-PPPP[1:ncol(P) + ncol(P), 1:ncol(P)] <- P
-PPPP[1:ncol(P), 1:ncol(P) + ncol(P)] <- P
-PPPP[1:ncol(P) + ncol(P), 1:ncol(P) + ncol(P)] <- P
-image(PPPP)
+        PPPP <- matrix(NA, nrow = 2 * ncol(P), ncol = 2 * ncol(P))
+        PPPP[1:ncol(P), 1:ncol(P)] <- P
+        PPPP[1:ncol(P) + ncol(P), 1:ncol(P)] <- P
+        PPPP[1:ncol(P), 1:ncol(P) + ncol(P)] <- P
+        PPPP[1:ncol(P) + ncol(P), 1:ncol(P) + ncol(P)] <- P
+        image(PPPP, main = paste("Deg=", deg, ", mu=", mu))
+    }
+}
 
 # %%
 order <- 2

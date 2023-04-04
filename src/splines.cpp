@@ -190,46 +190,14 @@ arma::mat adjacency_to_incidence(const arma::mat &adj)
 // [[Rcpp::export]]
 arma::mat penalty_periodic(
     const arma::vec &knots,
-    const int &order)
+    const unsigned int &order)
 {
 
-    if (order != 2)
-    {
-        throw std::invalid_argument("Currently only order 2 is supported for periodic splines.");
-    }
-
-    int K = knots.n_elem;
-
-    // Create incidence from adjacency matrix
-    arma::mat adj = periodic_adjacency(K - 2 * order + order - 1);
-    arma::mat inc = adjacency_to_incidence(adj);
-
-    int i = 1;
-
-    arma::vec h = diff_cpp(knots.rows(i, K - 1 - i), order - i, 1) / (order - i);
-    arma::mat w_inc = diagmat(1 / h) * inc.t();
-    arma::mat P = -w_inc.t() * w_inc;
-    P.diag() *= -1;
-
-    P *= std::pow(arma::mean(h), 2 * i);
-
-    return P;
-}
-
-// [[Rcpp::export]]
-arma::mat penalty_periodic2(
-    const arma::vec &knots,
-    const int &order)
-{
-
-    int K = knots.n_elem;
+    unsigned int K = knots.n_elem;
 
     // Create incidence from adjacency matrix
     arma::mat adj = periodic_adjacency(K - 2 * order + 1);
-
     arma::mat inc = adjacency_to_incidence(adj);
-
-    int i = 1;
 
     // Extend the knot sequence
     arma::uvec inner_idx = arma::regspace<arma::uvec>(order,
@@ -241,14 +209,9 @@ arma::mat penalty_periodic2(
     knots_ext = join_cols(knots_ext,
                           knots(inner_idx.head(order - 1)) + knots(bound_idx(1)));
 
-    K = knots_ext.n_elem;
+    K = knots_ext.n_elem; // Update number of Knots
 
-    // arma::vec foo = knots.row(inner_idx(0));
-
-    // knots_ext = join_cols(
-    //     knots(inner_idx.tail(1)) - knots(bound_idx(1)), knots_ext);
-
-    // arma::cout << knots_ext << arma::endl;
+    int i = 1;
 
     arma::vec h = diff_cpp(knots_ext.rows(i - 1, K - 1 - i), order - i, 1);
     h /= (order - i);

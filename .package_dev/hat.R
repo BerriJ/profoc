@@ -3,48 +3,66 @@
 devtools::load_all()
 devtools::load_all()
 
-x <- 1:99 / 100
+x <- 1:19 / 20
 lambda <- 10
 order <- 2
 deg <- order - 1
-n_inner <- 50 # Inner knots
+n_inner <- 10 # Inner knots
 mu <- 0.5
 
 knots <- make_knots2(n_inner, deg = deg)
+image(as.matrix(make_hat_matrix2(x, knots, deg, 1, lambda = 1, periodic = TRUE)))
 
-par(mfrow = c(1, 2))
 
-B <- splines2_basis(x, knots, deg)
+par(mfrow = c(3, 5))
+for (i in 2:4) {
+    for (m in c(0.2, 0.4, 0.5, 0.6, 0.8)) {
+        order <- i
+        deg <- order - 1
+        mu <- m
+        knots <- make_knots2(n_inner, mu = mu, deg = deg)
+        # ts.plot(
+        #     splines2_periodic(x, knots, deg),
+        #     col = seq_along(knots),
+        #     lwd = 2
+        # )
+        P <- as.matrix(make_hat_matrix2(x, knots, deg, 1, lambda = 5, periodic = TRUE))
+        image(P, main = paste("Deg=", deg, ", mu=", mu))
+    }
+}
 
-dim(B)
 
-B_p <- splines2_periodic(x, knots, deg)
+# par(mfrow = c(1, 2))
 
-dim(B_p)
+# B <- splines2_basis(x, knots, deg)
 
-ts.plot(
-    B_p,
-    col = seq_along(knots),
-    lwd = 2
-)
+# dim(B)
 
-P <- penalty_periodic(knots, order)
+# B_p <- splines2_periodic(x, knots, deg)
 
-image(P)
+# dim(B_p)
 
-hat <- solve(t(B_p) %*% B_p + lambda * P) %*% t(B_p)
+# ts.plot(
+#     B_p,
+#     col = seq_along(knots),
+#     lwd = 2
+# )
 
-image(hat)
+# P <- penalty_periodic(knots, order)
 
-par(mfrow = c(1, 2))
+# image(P)
 
-x <- cumsum(rnorm(99))
-# x <- c(x, rev(x))
+# hat <- solve(t(B_p) %*% B_p + lambda * P) %*% t(B_p)
 
-plot(x, type = "l")
+# image(hat)
 
-fitted <- B_p %*% solve(t(B_p) %*% B_p + lambda * P) %*% t(B_p) %*% matrix(x)
+# par(mfrow = c(1, 2))
 
-plot(fitted, type = "l")
+# x <- cumsum(rnorm(99))
+# # x <- c(x, rev(x))
 
-make_hat_matrix2(x, knots, deg, 1.5, lambda = 1, periodic = FALSE)
+# plot(x, type = "l")
+
+# fitted <- B_p %*% solve(t(B_p) %*% B_p + lambda * P) %*% t(B_p) %*% matrix(x)
+
+# plot(fitted, type = "l")
