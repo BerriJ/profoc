@@ -31,7 +31,7 @@ arma::mat splines2_basis(const arma::vec &x,
 
         // Create periodic mspline object
         splines2::PeriodicMSpline ps(x, knots(inner_idx), deg, knots(bound_idx));
-        arma::mat B = ps.basis(true);
+        B = ps.basis(true);
 
         if (!intercept)
             B.shed_col(0);
@@ -41,8 +41,8 @@ arma::mat splines2_basis(const arma::vec &x,
 
         // We need this sequence to calculate the weights
         arma::vec knots_ext = knots.subvec(bound_idx(0), bound_idx(1));
-        knots_ext = join_cols(knots_ext,
-                              knots(inner_idx.head(deg)) + knots(bound_idx(1)));
+        knots_ext = arma::join_cols(knots_ext,
+                                    knots(inner_idx.head(deg)) + knots(bound_idx(1)));
 
         for (unsigned int i = 0; i < B.n_cols; i++)
         {

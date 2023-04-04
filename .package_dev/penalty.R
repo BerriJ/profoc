@@ -57,3 +57,21 @@ image(D1D1_inc_p)
 
 penalty_periodic(knots, order) == D1D1_inc_p * mean(h)^2
 # %%
+
+
+# %% Diff > 1
+n <- 6
+Ip <- diag(n + 1)
+Dp <- diff(Ip)[, -(n + 1)]
+Dp[n, 1] <- 1
+
+Dp2 <- t(Dp) %*% Dp
+Dp3 <- t(Dp2) %*% Dp2
+
+Dp
+Dp2
+Dp3
+
+knots <- make_knots2(5, mu = 0.5, deg = 1)
+penalty(knots, order = 3)[[2]]
+# %%

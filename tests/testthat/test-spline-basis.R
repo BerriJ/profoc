@@ -57,3 +57,24 @@ new <- as.matrix(make_basis_matrix2(x, knots, deg))
 dimnames(new) <- NULL
 
 expect_equal(old, new)
+
+# Create knot sequence
+
+order <- 2
+deg <- order - 1
+n_inner <- 3
+mu <- 0.3
+intercept <- TRUE
+
+knots <- make_knots2(n_inner, mu = mu, deg = deg)
+
+K <- length(knots)
+
+B <- splines2_basis(x, knots, deg, intercept = intercept)
+
+# There should be K-2*deg splines
+expect_true(dim(B)[2] == K - 2 * deg)
+
+# Periodic Case
+B <- splines2_basis(x, knots, deg, periodic = TRUE, intercept = intercept)
+expect_true(dim(B)[2] == K - 2 * deg - 1)
