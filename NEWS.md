@@ -1,3 +1,10 @@
+profoc 1.2.0
+==============
+
+## Improvements:
+
+* Periodic splines and penalties added for smoothing the weights in `online()`.
+
 profoc 1.1.1
 ==============
 
