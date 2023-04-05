@@ -215,7 +215,7 @@ arma::mat penalty_periodic(
 
     arma::vec h = diff_cpp(knots_ext.rows(i - 1, K - 1 - i), order - i, 1);
     h /= (order - i);
-    arma::mat w_inc = diagmat(1 / h) * inc.t();
+    arma::mat w_inc = diagmat(1 / h) * inc;
     arma::mat P = -w_inc.t() * w_inc;
     P.diag() *= -1;
 
