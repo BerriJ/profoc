@@ -4,40 +4,23 @@ devtools::load_all()
 
 x <- 0:1000 / 1000
 lambda <- 10
-order <- 2
+order <- 3
 deg <- order - 1
 n_inner <- 3 # Inner knots
+mu <- 0.3
 
-knots <- make_knots2(n_inner, deg = deg)
+knots <- make_knots2(n_inner, mu = mu, deg = deg)
 
-spline_cpp <- make_basis_matrix2(
+spline_cpp <- splines2_basis(
     x,
     knots,
-    deg
+    deg,
+    TRUE
 )
 
-ts.plot(
-    as.matrix(spline_cpp),
-    col = 1:ncol(spline_cpp), lwd = 2
-)
+ts.plot(spline_cpp, col = rainbow(ncol(spline_cpp)), lwd = 2)
 
-spline_cpp_p <- splines2_periodic(
-    x,
-    knots,
-    deg
-)
-
-ts.plot(
-    as.matrix(spline_cpp),
-    col = 1:ncol(spline_cpp), lwd = 2
-)
-
-
-
-
-
-
-
+rowSums(spline_cpp)
 
 
 

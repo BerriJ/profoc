@@ -6,11 +6,12 @@ differences <- 1 # This script currently works for diff = 1 only
 order <- 4
 deg <- order - 1
 J <- 5 # Number of inner knots. Total number of knots is J + 2*(order)
-mu <- 0.5
+mu <- 0.4
 sig <- 1
 knots <- make_knots2(J, mu = mu, sig = sig, deg = deg)
 
-penalty(knots, order)
+image(as.matrix(penalty(knots, order)[[3]]))
+image(as.matrix(penalty(knots, order, periodic = TRUE)[[3]]))
 
 penalty_periodic(knots, order) == penalty_periodic2(knots, order)[[1]]
 # %%

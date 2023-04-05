@@ -16,6 +16,8 @@ ts.plot(B, col = rainbow(ncol(B)), lwd = 2)
 
 H <- as.matrix(make_hat_matrix2(x, knots, deg, 1, lambda = 5, periodic = TRUE))
 
+image(H)
+
 par(mfrow = c(1, 1))
 set.seed(3)
 real <- cumsum(rnorm(length(x)))
@@ -34,21 +36,15 @@ deg <- order - 1
 n_inner <- 10 # Inner knots
 mu <- 0.5
 
-# par(mfrow = c(3, 5))
-# for (i in 2:4) {
-#     for (m in c(0.2, 0.4, 0.5, 0.6, 0.8)) {
-#         order <- i
-#         deg <- order - 1
-#         mu <- m
-#         knots <- make_knots2(n_inner, mu = mu, deg = deg)
-#         # ts.plot(
-#         #     splines2_periodic(x, knots, deg),
-#         #     col = seq_along(knots),
-#         #     lwd = 2
-#         # )
-#         P <- as.matrix(make_hat_matrix2(x, knots, deg, 1, lambda = 5, periodic = TRUE))
-#         image(P, main = paste("Deg=", deg, ", mu=", mu))
-#     }
-# }
-
+par(mfrow = c(3, 5))
+for (i in 2:4) {
+    for (m in c(0.2, 0.4, 0.5, 0.6, 0.8)) {
+        order <- i
+        deg <- order - 1
+        mu <- m
+        knots <- make_knots2(n_inner, mu = mu, deg = deg)
+        P <- as.matrix(make_hat_matrix2(x, knots, deg, 1, lambda = 5, periodic = TRUE))
+        image(P, main = paste("Deg=", deg, ", mu=", mu))
+    }
+}
 # %%

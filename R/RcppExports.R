@@ -82,23 +82,26 @@ make_knots <- function(kstep, a = 1, deg = 3L, even = FALSE) {
 #' For equidistant knots it coincides with the usual penalty based
 #' on the identitiy. For non-equidistant knots it is a weighted penalty
 #' with respect to the knot distances.
+#' In addition to the above, we added the possibility to calculate
+#' periodic penalties which are based on the periodic differencing matrices.
 #'
 #' @param knots Vector of knots.
 #' @param order Order of the Basis (degree + 1).
+#' @param periodic Whether the penalties should be periodic or not.
 #' @param max_diff Maximum difference order to calculate.
 #'
 #' @return Returns a list of (order - 1) penalty matrices.
 #'
 #' @examples
 #' \dontrun{
-#' # Equidisan knots with order 2
+#' # Equidistant knots with order 2
 #' knots <- 1:10
 #'
 #' P <- penalty(knots, order = 2)
 #'
 #' print(P[[1]]) # First differences
 #'
-#' # Non-equidistant knots
+#' # Non equidistant knots
 #' knots <- c(0, 0, 0, 0, 1, 3, 4, 4, 4, 4)
 #'
 #' P <- penalty(knots, order = 4)
@@ -106,11 +109,20 @@ make_knots <- function(kstep, a = 1, deg = 3L, even = FALSE) {
 #' print(P[[1]]) # First differences
 #' print(P[[2]]) # Second differences
 #' print(P[[3]]) # Third differences
+#'
+#' # Periodic penalty for equidistant knots
+#' oder <- 4
+#' deg <- order - 1
+#' knots <- 1:15
+#'
+#' penalty(knots, order = order, periodic = TRUE)[[1]]
+#' penalty(knots, order = order, periodic = TRUE)[[2]]
+#' penalty(knots, order = order, periodic = TRUE)[[3]]
 #' }
 #'
 #' @export
-penalty <- function(knots, order, max_diff = 999L) {
-    .Call(`_profoc_penalty`, knots, order, max_diff)
+penalty <- function(knots, order, periodic = FALSE, max_diff = 999L) {
+    .Call(`_profoc_penalty`, knots, order, periodic, max_diff)
 }
 
 periodic_adjacency <- function(size) {
@@ -119,14 +131,6 @@ periodic_adjacency <- function(size) {
 
 adjacency_to_incidence <- function(adj) {
     .Call(`_profoc_adjacency_to_incidence`, adj)
-}
-
-penalty_periodic <- function(knots, order) {
-    .Call(`_profoc_penalty_periodic`, knots, order)
-}
-
-penalty_periodic2 <- function(knots, order, max_diff = 99L) {
-    .Call(`_profoc_penalty_periodic2`, knots, order, max_diff)
 }
 
 make_hat_matrix <- function(x, kstep, lambda, bdiff, deg, a, even) {
