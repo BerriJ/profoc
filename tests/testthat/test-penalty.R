@@ -44,3 +44,23 @@ expect_equal(
     as.matrix(P2_cpp),
     P2_r
 )
+
+n <- 6
+Ip <- diag(n + 1)
+Dp <- diff(Ip)[, -1]
+Dp[1, n] <- -1
+
+Dp2 <- t(Dp) %*% Dp
+Dp3 <- t(Dp) %*% Dp2
+
+PP1 <- t(Dp) %*% Dp
+PP1
+PP1_cpp <- penalty_periodic2(knots, order)[[1]]
+round(PP1_cpp, 3) == round(PP1, 3)
+
+PP2 <- t(Dp2) %*% Dp2
+PP2_cpp <- penalty_periodic2(knots, order)[[2]]
+round(PP2_cpp, 3) == round(PP2, 3)
+PP3 <- t(Dp3) %*% Dp3
+PP3_cpp <- penalty_periodic2(knots, order)[[3]]
+round(PP3_cpp, 3) == round(PP3, 3)

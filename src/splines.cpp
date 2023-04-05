@@ -225,6 +225,62 @@ arma::mat penalty_periodic(
 }
 
 // [[Rcpp::export]]
+arma::field<arma::mat> penalty_periodic2(
+    const arma::vec &knots,
+    const unsigned int &order,
+    const unsigned int &max_diff = 99)
+{
+
+    unsigned int K = knots.n_elem;
+
+    arma::field<arma::mat> D(order);
+    D(0) = eye(K - 2 * order + 1, K - 2 * order + 1);
+
+    arma::field<arma::mat> P(std::min(order - 1, max_diff));
+
+    // TODO merge into penalty function
+
+    mat dp = diff(eye(K - 2 * order + 2, K - 2 * order + 2));
+    dp.shed_col(0);
+    dp(0, dp.n_cols - 1) = -1;
+
+    // Extend the knot sequence
+    arma::uvec inner_idx = arma::regspace<arma::uvec>(order,
+                                                      K - order - 1);
+    arma::uvec bound_idx = {order - 1, K - order};
+
+    // We need this sequence to calculate the weights
+    arma::vec knots_ext = knots.subvec(bound_idx(0), bound_idx(1));
+    knots_ext = join_cols(knots_ext,
+                          knots(inner_idx.head(order - 1)) + knots(bound_idx(1)));
+
+    K = knots_ext.n_elem; // Update number of Knots
+
+    int i = 1;
+
+    arma::vec h = diff_cpp(knots_ext.rows(i - 1, K - 1 - i), order - i, 1);
+    h /= (order - i);
+    arma::mat w_inv = diagmat(1 / h);
+    D(i) = w_inv * dp;
+    P(i - 1) = D(i).t() * D(i);
+    P(i - 1) *= std::pow(arma::mean(h), 2 * i);
+
+    i++;
+
+    D(i) = w_inv * dp * D(i - 1);
+    P(i - 1) = D(i).t() * D(i);
+    P(i - 1) *= std::pow(arma::mean(h), 2 * i);
+
+    i++;
+
+    D(i) = w_inv * dp * D(i - 1);
+    P(i - 1) = D(i).t() * D(i);
+    P(i - 1) *= std::pow(arma::mean(h), 2 * i);
+
+    return P;
+}
+
+// [[Rcpp::export]]
 arma::sp_mat make_hat_matrix(
     const arma::vec &x,
     const double &kstep,

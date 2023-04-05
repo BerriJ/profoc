@@ -125,6 +125,10 @@ penalty_periodic <- function(knots, order) {
     .Call(`_profoc_penalty_periodic`, knots, order)
 }
 
+penalty_periodic2 <- function(knots, order, max_diff = 99L) {
+    .Call(`_profoc_penalty_periodic2`, knots, order, max_diff)
+}
+
 make_hat_matrix <- function(x, kstep, lambda, bdiff, deg, a, even) {
     .Call(`_profoc_make_hat_matrix`, x, kstep, lambda, bdiff, deg, a, even)
 }
