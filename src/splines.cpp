@@ -19,38 +19,21 @@ arma::mat splines2_basis(const arma::vec &x,
     {
         splines2::BSpline bs_obj{x, deg, knots};
         B = bs_obj.basis(true);
-        if (!intercept)
-            B.shed_col(0);
     }
     else
     {
+        // We will only use the inner and boundary knots for the periodic case
         unsigned int order = deg + 1;
         arma::uvec inner_idx = arma::regspace<arma::uvec>(order,
                                                           knots.n_elem - order - 1);
         arma::uvec bound_idx = {deg, knots.n_elem - order};
 
-        // Create periodic mspline object
-        splines2::PeriodicMSpline ps(x, knots(inner_idx), deg, knots(bound_idx));
-        B = ps.basis(true);
-
-        if (!intercept)
-            B.shed_col(0);
-
-        // We will use https://doi.org/10.6339/21-JDS1020 eq. (1) to convert
-        // the mspline basis to a bspline basis
-
-        // We need this sequence to calculate the weights
-        arma::vec knots_ext = knots.subvec(bound_idx(0), bound_idx(1));
-        knots_ext = arma::join_cols(knots_ext,
-                                    knots(inner_idx.head(deg)) + knots(bound_idx(1)) - knots(bound_idx(0)));
-
-        for (unsigned int i = 0; i < B.n_cols; i++)
-        {
-            double w = knots_ext(1 - intercept + i + order) -
-                       knots_ext(1 - intercept + i);
-            B.col(i) *= w / order;
-        }
+        splines2::PeriodicBSpline bs_obj{x, knots(inner_idx), deg, knots(bound_idx)};
+        B = bs_obj.basis(true);
     }
+
+    if (!intercept)
+        B.shed_col(0);
 
     return B;
 }
