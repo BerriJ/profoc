@@ -42,7 +42,7 @@ arma::mat splines2_basis(const arma::vec &x,
         // We need this sequence to calculate the weights
         arma::vec knots_ext = knots.subvec(bound_idx(0), bound_idx(1));
         knots_ext = arma::join_cols(knots_ext,
-                                    knots(inner_idx.head(deg)) + knots(bound_idx(1)));
+                                    knots(inner_idx.head(deg)) + knots(bound_idx(1)) - knots(bound_idx(0)));
 
         for (unsigned int i = 0; i < B.n_cols; i++)
         {
