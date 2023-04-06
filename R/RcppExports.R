@@ -65,12 +65,12 @@ oracle <- function(y, experts, tau = as.numeric( c()), affine = FALSE, positive 
     .Call(`_profoc_oracle`, y, experts, tau, affine, positive, intercept, debias, loss_function, loss_parameter, forget)
 }
 
-make_knots <- function(kstep, a = 1, deg = 3L, even = FALSE) {
-    .Call(`_profoc_make_knots`, kstep, a, deg, even)
+splines2_basis <- function(x, knots, deg, periodic = FALSE, intercept = TRUE) {
+    .Call(`_profoc_splines2_basis`, x, knots, deg, periodic, intercept)
 }
 
-wt_delta <- function(h) {
-    .Call(`_profoc_wt_delta`, h)
+make_knots <- function(kstep, a = 1, deg = 3L, even = FALSE) {
+    .Call(`_profoc_make_knots`, kstep, a, deg, even)
 }
 
 #' @title B-Spline penalty
@@ -82,23 +82,26 @@ wt_delta <- function(h) {
 #' For equidistant knots it coincides with the usual penalty based
 #' on the identitiy. For non-equidistant knots it is a weighted penalty
 #' with respect to the knot distances.
+#' In addition to the above, we added the possibility to calculate
+#' periodic penalties which are based on the periodic differencing matrices.
 #'
 #' @param knots Vector of knots.
 #' @param order Order of the Basis (degree + 1).
+#' @param periodic Whether the penalties should be periodic or not.
 #' @param max_diff Maximum difference order to calculate.
 #'
 #' @return Returns a list of (order - 1) penalty matrices.
 #'
 #' @examples
 #' \dontrun{
-#' # Equidisan knots with order 2
+#' # Equidistant knots with order 2
 #' knots <- 1:10
 #'
 #' P <- penalty(knots, order = 2)
 #'
 #' print(P[[1]]) # First differences
 #'
-#' # Non-equidistant knots
+#' # Non equidistant knots
 #' knots <- c(0, 0, 0, 0, 1, 3, 4, 4, 4, 4)
 #'
 #' P <- penalty(knots, order = 4)
@@ -106,11 +109,28 @@ wt_delta <- function(h) {
 #' print(P[[1]]) # First differences
 #' print(P[[2]]) # Second differences
 #' print(P[[3]]) # Third differences
+#'
+#' # Periodic penalty for equidistant knots
+#' oder <- 4
+#' deg <- order - 1
+#' knots <- 1:15
+#'
+#' penalty(knots, order = order, periodic = TRUE)[[1]]
+#' penalty(knots, order = order, periodic = TRUE)[[2]]
+#' penalty(knots, order = order, periodic = TRUE)[[3]]
 #' }
 #'
 #' @export
-penalty <- function(knots, order, max_diff = 999L) {
-    .Call(`_profoc_penalty`, knots, order, max_diff)
+penalty <- function(knots, order, periodic = FALSE, max_diff = 999L) {
+    .Call(`_profoc_penalty`, knots, order, periodic, max_diff)
+}
+
+periodic_adjacency <- function(size) {
+    .Call(`_profoc_periodic_adjacency`, size)
+}
+
+adjacency_to_incidence <- function(adj) {
+    .Call(`_profoc_adjacency_to_incidence`, adj)
 }
 
 make_hat_matrix <- function(x, kstep, lambda, bdiff, deg, a, even) {
@@ -121,11 +141,11 @@ make_basis_matrix <- function(x, kstep, deg, a, even) {
     .Call(`_profoc_make_basis_matrix`, x, kstep, deg, a, even)
 }
 
-make_basis_matrix2 <- function(x, knots, deg) {
-    .Call(`_profoc_make_basis_matrix2`, x, knots, deg)
+make_basis_matrix2 <- function(x, knots, deg, periodic = FALSE) {
+    .Call(`_profoc_make_basis_matrix2`, x, knots, deg, periodic)
 }
 
-make_hat_matrix2 <- function(x, knots, deg, bdiff, lambda) {
-    .Call(`_profoc_make_hat_matrix2`, x, knots, deg, bdiff, lambda)
+make_hat_matrix2 <- function(x, knots, deg, bdiff, lambda, periodic) {
+    .Call(`_profoc_make_hat_matrix2`, x, knots, deg, bdiff, lambda, periodic)
 }
 

@@ -6,12 +6,36 @@
 // include header file from splines2 package
 #include <splines2Armadillo.h>
 
-static arma::mat splines2_basis(const arma::vec &x,
-                                const arma::vec &knots,
-                                const unsigned int deg)
+// [[Rcpp::export]]
+arma::mat splines2_basis(const arma::vec &x,
+                         const arma::vec &knots,
+                         const unsigned int deg,
+                         const bool &periodic = false,
+                         const bool &intercept = true)
 {
-    splines2::BSpline bs_obj{x, deg, knots};
-    return bs_obj.basis(true);
+    arma::mat B; // Basis matrix
+
+    if (!periodic)
+    {
+        splines2::BSpline bs_obj{x, deg, knots};
+        B = bs_obj.basis(true);
+    }
+    else
+    {
+        // We will only use the inner and boundary knots for the periodic case
+        unsigned int order = deg + 1;
+        arma::uvec inner_idx = arma::regspace<arma::uvec>(order,
+                                                          knots.n_elem - order - 1);
+        arma::uvec bound_idx = {deg, knots.n_elem - order};
+
+        splines2::PeriodicBSpline bs_obj{x, knots(inner_idx), deg, knots(bound_idx)};
+        B = bs_obj.basis(true);
+    }
+
+    if (!intercept)
+        B.shed_col(0);
+
+    return B;
 }
 
 using namespace arma;
@@ -19,7 +43,6 @@ using namespace arma;
 // [[Rcpp::export]]
 arma::vec make_knots(const double &kstep, const double &a = 1, const int deg = 3, const bool &even = false)
 {
-
     vec x;
     vec xa;
     vec xb;
@@ -40,21 +63,6 @@ arma::vec make_knots(const double &kstep, const double &a = 1, const int deg = 3
     return join_cols(xa, xb);
 }
 
-// [[Rcpp::export]]
-arma::sp_mat wt_delta(const arma::vec &h)
-{
-    int r = h.n_elem;
-    arma::vec pos_neg = {-1, 1};
-    arma::vec x = repmat(pos_neg, r, 1) % repelem(1 / h, 2, 1);
-    arma::uvec i = regspace<uvec>(0, r - 1);
-    i = repelem(i, 2, 1);
-    arma::uvec p(r + 2, fill::zeros);
-    p.rows(1, p.n_rows - 2) = regspace<uvec>(1, 2, 2 * r - 1);
-    p.row(p.n_rows - 1) = 2 * r;
-    arma::sp_mat D(i, p, x, r, r + 1);
-    return D;
-}
-
 //' @title B-Spline penalty
 //'
 //' @description This function calculates the B-Spline basis penalty.
@@ -64,23 +72,26 @@ arma::sp_mat wt_delta(const arma::vec &h)
 //' For equidistant knots it coincides with the usual penalty based
 //' on the identitiy. For non-equidistant knots it is a weighted penalty
 //' with respect to the knot distances.
+//' In addition to the above, we added the possibility to calculate
+//' periodic penalties which are based on the periodic differencing matrices.
 //'
 //' @param knots Vector of knots.
 //' @param order Order of the Basis (degree + 1).
+//' @param periodic Whether the penalties should be periodic or not.
 //' @param max_diff Maximum difference order to calculate.
 //'
 //' @return Returns a list of (order - 1) penalty matrices.
 //'
 //' @examples
 //' \dontrun{
-//' # Equidisan knots with order 2
+//' # Equidistant knots with order 2
 //' knots <- 1:10
 //'
 //' P <- penalty(knots, order = 2)
 //'
 //' print(P[[1]]) # First differences
 //'
-//' # Non-equidistant knots
+//' # Non equidistant knots
 //' knots <- c(0, 0, 0, 0, 1, 3, 4, 4, 4, 4)
 //'
 //' P <- penalty(knots, order = 4)
@@ -88,34 +99,127 @@ arma::sp_mat wt_delta(const arma::vec &h)
 //' print(P[[1]]) # First differences
 //' print(P[[2]]) # Second differences
 //' print(P[[3]]) # Third differences
+//'
+//' # Periodic penalty for equidistant knots
+//' oder <- 4
+//' deg <- order - 1
+//' knots <- 1:15
+//'
+//' penalty(knots, order = order, periodic = TRUE)[[1]]
+//' penalty(knots, order = order, periodic = TRUE)[[2]]
+//' penalty(knots, order = order, periodic = TRUE)[[3]]
 //' }
 //'
 //' @export
 // [[Rcpp::export]]
 arma::field<arma::sp_mat> penalty(
     const arma::vec &knots,
-    const int &order,
-    const int &max_diff = 999)
+    const unsigned int &order,
+    const bool &periodic = false,
+    const unsigned int &max_diff = 999)
 {
-
     int K = knots.n_elem;
+    unsigned int i = 1;
     arma::field<arma::sp_mat> D(order);
     arma::field<arma::sp_mat> P(std::min(order - 1, max_diff));
-    D(0) = eye(K - order, K - order);
 
-    int i = 1;
-
-    // While i < order calculate the next difference matrix and the respective scaled penalty
-    while (i <= std::min(order - 1, max_diff))
+    if (!periodic)
     {
-        arma::vec h = diff_cpp(knots.rows(i, K - 1 - i), order - i, 1) / (order - i);
-        D(i) = wt_delta(h) * D(i - 1);
-        P(i - 1) = D(i).t() * D(i);
-        P(i - 1) *= std::pow(arma::mean(h), 2 * i);
-        i++;
+
+        D(0) = eye(K - order, K - order);
+        mat d = diff(eye(K - order, K - order));
+
+        // While i < order calculate the next difference matrix and the respective scaled penalty
+        while (i < order && i <= max_diff)
+        {
+            arma::vec h = diff_cpp(knots.rows(i, K - 1 - i), order - i, 1) / (order - i);
+            mat W_inv = diagmat(1 / h);
+            D(i) = W_inv * d.submat(0, 0, d.n_rows - i, d.n_cols - i) * D(i - 1);
+            P(i - 1) = D(i).t() * D(i);
+            P(i - 1) *= std::pow(arma::mean(h), 2 * i);
+            i++;
+        }
+    }
+    else
+    {
+        if (K - 2 * order < 3)
+        {
+            throw std::invalid_argument("At least order-1 inner knots are needed for periodic penalties. \n K <- length(knots) \n J <- K - 2*order \n J >= 3 # Must be true");
+        }
+
+        D(0) = eye(K - 2 * order + 1, K - 2 * order + 1);
+        mat dp = diff(eye(K - 2 * order + 2, K - 2 * order + 2));
+        dp.shed_col(0);
+        dp(0, dp.n_cols - 1) = -1;
+
+        // Extend the knot sequence
+        arma::uvec inner_idx = arma::regspace<arma::uvec>(order,
+                                                          K - order - 1);
+        arma::uvec bound_idx = {order - 1, K - order};
+
+        // We need this sequence to calculate the weights
+        arma::vec knots_ext = knots.subvec(bound_idx(0), bound_idx(1));
+
+        knots_ext = join_cols(knots_ext,
+                              knots(inner_idx.head(order - 1)) + knots(bound_idx(1)) - knots(bound_idx(0)));
+
+        K = knots_ext.n_elem; // Update number of Knots
+
+        arma::vec h = diff_cpp(knots_ext.rows(0, K - 2), order - 1, 1);
+        h /= (order - 1);
+        arma::mat w_inv = diagmat(1 / h);
+
+        while (i < order && i <= max_diff)
+        {
+            D(i) = w_inv * dp * D(i - 1);
+            P(i - 1) = D(i).t() * D(i);
+            P(i - 1) *= std::pow(arma::mean(h), 2 * i);
+            i++;
+        }
     }
 
     return P;
+}
+
+// [[Rcpp::export]]
+arma::mat periodic_adjacency(const int &size)
+{
+    arma::mat adj(size, size, arma::fill::zeros);
+
+    for (int i = 0; i < size; ++i)
+    {
+        adj(i, (i + 1) % size) = 1;
+        adj(i, (i - 1 + size) % size) = 1;
+    }
+
+    return adj;
+}
+
+// [[Rcpp::export]]
+arma::mat adjacency_to_incidence(const arma::mat &adj)
+{
+    int cols = adj.n_cols;
+
+    int edge = 0;
+    arma::mat incidence(0, cols);
+
+    for (int col = 0; col < cols; ++col)
+    {
+        // We only look at half the adjacency matrix, so that we only add each
+        // edge to the incidence matrix once.
+        for (int row = col; row >= 0; --row)
+        {
+            if (adj(row, col) > 0)
+            {
+                incidence.resize(cols, edge + 1);
+                incidence(row, edge) = 1;
+                incidence(col, edge) = 1;
+                ++edge;
+            }
+        }
+    }
+
+    return incidence;
 }
 
 // [[Rcpp::export]]
@@ -128,7 +232,6 @@ arma::sp_mat make_hat_matrix(
     const double &a,
     const bool &even)
 {
-
     mat H;
 
     if (kstep <= 0.5)
@@ -136,7 +239,7 @@ arma::sp_mat make_hat_matrix(
         vec knots = make_knots(kstep, a, deg, even);
         int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
 
-        mat B = splines2_basis(x, knots, deg);
+        mat B = splines2_basis(x, knots, deg, false, true);
 
         mat P(m + deg + 1, m + deg + 1);
 
@@ -174,7 +277,7 @@ arma::sp_mat make_basis_matrix(const arma::vec &x, const double &kstep, const in
     if (kstep <= 0.5)
     {
         vec knots = make_knots(kstep, a, deg, even);
-        B = splines2_basis(x, knots, deg);
+        B = splines2_basis(x, knots, deg, false, true);
         // Remove columns without contribution
         B = B.cols(find(sum(B) >= 1E-6));
         B.clean(1E-10);
@@ -193,7 +296,8 @@ arma::sp_mat make_basis_matrix(const arma::vec &x, const double &kstep, const in
 // [[Rcpp::export]]
 arma::sp_mat make_basis_matrix2(const arma::vec &x,
                                 const arma::vec &knots,
-                                const unsigned int deg)
+                                const unsigned int deg,
+                                const bool &periodic = false)
 {
     mat B;
 
@@ -204,15 +308,15 @@ arma::sp_mat make_basis_matrix2(const arma::vec &x,
     }
     else
     {
-        B = splines2_basis(x, knots, deg);
-        // Remove columns without contribution
-        B = B.cols(find(sum(B) >= 1E-6));
-        B.clean(1E-10);
+        B = splines2_basis(x, knots, deg, periodic, true);
     }
 
-    sp_mat out(B);
+    B.clean(1E-10);
 
-    return out;
+    // Remove columns without contribution
+    B = B.cols(find(sum(B) >= 1E-6));
+
+    return sp_mat(B);
 }
 
 // [[Rcpp::export]]
@@ -221,20 +325,20 @@ arma::sp_mat make_hat_matrix2(
     const arma::vec &knots,
     const int deg,
     const double &bdiff,
-    const double &lambda)
+    const double &lambda,
+    const bool &periodic)
 {
 
-    mat H;
+    mat B; // Basis matrix
+    mat P; // Penalty matrix
 
-    int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
-
-    mat B = splines2_basis(x, knots, deg);
-
-    mat P(m + deg + 1, m + deg + 1);
+    B = splines2_basis(x, knots, deg, periodic, true);
 
     // Field of penalties up to second differences
-    arma::field<arma::sp_mat> Ps = penalty(knots, deg + 1, 2);
+    arma::field<arma::sp_mat> Ps = penalty(knots, deg + 1, periodic, 2);
 
+    // It may look strange that we check for deg > 1 here, but penalties for
+    // higher differences can only be computed if deg > 1.
     if (deg > 1)
     {
         P = (2 - bdiff) * Ps(0) + (bdiff - 1) * Ps(1);
@@ -244,9 +348,8 @@ arma::sp_mat make_hat_matrix2(
         P = Ps(0);
     }
 
-    H = B * arma::pinv(B.t() * B + lambda * P) * B.t();
+    mat H = B * arma::pinv(B.t() * B + lambda * P) * B.t(); // Hat matrix
     H.clean(1E-10);
 
-    arma::sp_mat sp_H = sp_mat(H); // Return hat matrix
-    return sp_H;
+    return sp_mat(H);
 }

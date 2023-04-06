@@ -1,66 +1,71 @@
 {
     "name": "DevEnv",
     "image": "ghcr.io/berrij/devenv:dev",
-    // Grant xhost access to root user in order to start x11 devices (r plots)
     "initializeCommand": "docker pull ghcr.io/berrij/devenv:dev",
     // Extensions will get installed automatically
-    "extensions": [
-        // C++
-        "ms-vscode.cpptools",
-        "ms-vscode.cmake-tools",
-        // Python
-        "ms-python.vscode-pylance",
-        "ms-python.python",
-        "visualstudioexptteam.vscodeintellicode",
-        // R
-        "REditorSupport.r",
-        "rdebugger.r-debugger",
-        // Latex
-        "james-yu.latex-workshop",
-        "znck.grammarly",
-        // Git
-        "mhutchie.git-graph",
-        "github.vscode-pull-request-github",
-        // Markdown
-        "yzhang.markdown-all-in-one",
-        // Preview HTML
-        "daiyy.quick-html-previewer",
-        // Make fancy screenshots
-        "jeffersonlicet.snipped",
-        // Live Share
-        "ms-vsliveshare.vsliveshare",
-        // Copilot
-        "GitHub.copilot"
-    ],
-    // Set *default* container specific settings
-    // Important for radian and latex
-    "settings": {
-        // C++
-        "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-        "cmake.configureSettings": {
-            "CMAKE_TOOLCHAIN_FILE": "/usr/vcpkg/scripts/buildsystems/vcpkg.cmake"
-        },
-        // Python
-        // "python.dataScience.notebookFileRoot": "${workspaceFolder}/code",
-        "python.pythonPath": "/usr/bin/python3",
-        "python.dataScience.interactiveWindowMode": "perFile",
-        "python.dataScience.sendSelectionToInteractiveWindow": true,
-        // R
-        "r.rterm.linux": "/usr/local/bin/radian",
-        "r.bracketedPaste": true,
-        "r.sessionWatcher": true,
-        "r.plot.useHttpgd": true,
-        // Latex
-        // "latex-workshop.latex.recipe.default": "latexmk (lualatex)",
-        "latex-workshop.view.pdf.viewer": "tab",
-        "latex-workshop.linting.chktex.enabled": true,
-        "latex-workshop.linting.run": "onType",
-        "latex-workshop.synctex.afterBuild.enabled": true,
-        "latex-workshop.view.pdf.internal.synctex.keybinding": "double-click",
-        "latex-workshop.intellisense.unimathsymbols.enabled": true,
-        // Format code as you type
-        "editor.formatOnPaste": true,
-        "editor.formatOnType": true,
-        "editor.formatOnSave": true
+    "customizations": {
+        "vscode": {
+            // Extensions will get installed automatically
+            "extensions": [
+                // C++
+                "ms-vscode.cpptools-extension-pack",
+                "ms-vscode.cpptools",
+                "ms-vscode.cmake-tools",
+                // Python
+                "ms-python.vscode-pylance",
+                "ms-python.python",
+                "visualstudioexptteam.vscodeintellicode",
+                // R
+                "REditorSupport.r",
+                "rdebugger.r-debugger",
+                // Latex
+                "james-yu.latex-workshop",
+                "znck.grammarly",
+                // Git
+                "mhutchie.git-graph",
+                "github.vscode-pull-request-github",
+                // Markdown
+                "yzhang.markdown-all-in-one",
+                // Preview HTML
+                "daiyy.quick-html-previewer",
+                // Make fancy screenshots
+                "jeffersonlicet.snipped",
+                // Live Share
+                "ms-vsliveshare.vsliveshare",
+                // Copilot
+                "GitHub.copilot"
+            ],
+            // Set *default* container specific settings
+            // Important for radian and latex
+            "settings": {
+                // C++
+                "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+                "cmake.configureSettings": {
+                    "CMAKE_TOOLCHAIN_FILE": "/usr/vcpkg/scripts/buildsystems/vcpkg.cmake"
+                },
+                // Python
+                // "python.dataScience.notebookFileRoot": "${workspaceFolder}/code",
+                "python.pythonPath": "/usr/bin/python3",
+                "python.dataScience.interactiveWindowMode": "perFile",
+                "python.dataScience.sendSelectionToInteractiveWindow": true,
+                // R
+                "r.rterm.linux": "/usr/local/bin/radian",
+                "r.bracketedPaste": true,
+                "r.sessionWatcher": true,
+                "r.plot.useHttpgd": true,
+                // Latex
+                // "latex-workshop.latex.recipe.default": "latexmk (lualatex)",
+                "latex-workshop.view.pdf.viewer": "tab",
+                "latex-workshop.linting.chktex.enabled": true,
+                "latex-workshop.linting.run": "onType",
+                "latex-workshop.synctex.afterBuild.enabled": true,
+                "latex-workshop.view.pdf.internal.synctex.keybinding": "double-click",
+                "latex-workshop.intellisense.unimathsymbols.enabled": true,
+                // Format code as you type
+                "editor.formatOnPaste": true,
+                "editor.formatOnType": true,
+                "editor.formatOnSave": true
+            }
+        }
     }
 }

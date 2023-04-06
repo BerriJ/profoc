@@ -4,12 +4,14 @@
 \alias{penalty}
 \title{B-Spline penalty}
 \usage{
-penalty(knots, order, max_diff = 999L)
+penalty(knots, order, periodic = FALSE, max_diff = 999L)
 }
 \arguments{
 \item{knots}{Vector of knots.}
 
 \item{order}{Order of the Basis (degree + 1).}
+
+\item{periodic}{Whether the penalties should be periodic or not.}
 
 \item{max_diff}{Maximum difference order to calculate.}
 }
@@ -24,17 +26,19 @@ Cao, 2022 "General P-Splines for Non-Uniform B-Splines"
 For equidistant knots it coincides with the usual penalty based
 on the identitiy. For non-equidistant knots it is a weighted penalty
 with respect to the knot distances.
+In addition to the above, we added the possibility to calculate
+periodic penalties which are based on the periodic differencing matrices.
 }
 \examples{
 \dontrun{
-# Equidisan knots with order 2
+# Equidistant knots with order 2
 knots <- 1:10
 
 P <- penalty(knots, order = 2)
 
 print(P[[1]]) # First differences
 
-# Non-equidistant knots
+# Non equidistant knots
 knots <- c(0, 0, 0, 0, 1, 3, 4, 4, 4, 4)
 
 P <- penalty(knots, order = 4)
@@ -42,6 +46,15 @@ P <- penalty(knots, order = 4)
 print(P[[1]]) # First differences
 print(P[[2]]) # Second differences
 print(P[[3]]) # Third differences
+
+# Periodic penalty for equidistant knots
+oder <- 4
+deg <- order - 1
+knots <- 1:15
+
+penalty(knots, order = order, periodic = TRUE)[[1]]
+penalty(knots, order = order, periodic = TRUE)[[2]]
+penalty(knots, order = order, periodic = TRUE)[[3]]
 }
 
 }

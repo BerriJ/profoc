@@ -31,6 +31,7 @@ make_basis_mats <- function(x, # Splines basis
                             nonc = 0, # (vec of) Beta dist. noncentrality
                             tailw = 1, # (vec of) Tailweight
                             deg = 1, # (vec of) Degree of splines
+                            periodic = FALSE, # Create periodic splines
                             idx = NULL,
                             params = NULL) {
     if (is.null(params)) {
@@ -41,7 +42,8 @@ make_basis_mats <- function(x, # Splines basis
                 sigma = sigma,
                 nonc = nonc,
                 tailw = tailw,
-                deg = deg
+                deg = deg,
+                periodic = periodic
             ),
             idx = idx
         )
@@ -57,7 +59,7 @@ make_basis_mats <- function(x, # Splines basis
         n_ <- n_ - (deg_ + 1) + 2
         if (n_ < 0) {
             if (deg_ + n_ >= 1) {
-                print("n too small reduce deg_ by n-(deg_+1)")
+                print("n too small reduce deg by n-(deg+1)")
                 deg_ <- deg_ + n_
                 n_ <- 0
             } else {
@@ -80,7 +82,8 @@ make_basis_mats <- function(x, # Splines basis
             basis_list[[i]] <- make_basis_matrix2(
                 x = x,
                 knots = knots,
-                deg = deg_
+                deg = deg_,
+                periodic = params[i, "periodic"]
             )
         }
     }
@@ -99,6 +102,7 @@ make_hat_mats <- function(x,
                           deg = 1,
                           ndiff = 1.5,
                           lambda = -Inf,
+                          periodic = FALSE,
                           idx = NULL,
                           params = NULL) {
     if (is.null(params)) {
@@ -111,7 +115,8 @@ make_hat_mats <- function(x,
                 tailw = tailw,
                 deg = deg,
                 ndiff = ndiff,
-                lambda = lambda
+                lambda = lambda,
+                periodic = periodic
             ),
             idx = idx
         )
@@ -152,7 +157,8 @@ make_hat_mats <- function(x,
                 knots = knots,
                 deg = deg_,
                 bdiff = params[i, "ndiff"],
-                lambda = params[i, "lambda"]
+                lambda = params[i, "lambda"],
+                periodic = params[i, "periodic"]
             )
         } else {
             hat_list[[i]] <- Matrix::sparseMatrix(

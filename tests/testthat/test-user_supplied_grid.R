@@ -95,7 +95,8 @@ grids$b_smooth_pr <- as.matrix(expand.grid(
     sigma = 1,
     nonc = 0,
     tailw = 1,
-    deg = 1
+    deg = 1,
+    periodic = FALSE
 ))
 
 grids$b_smooth_mv <- as.matrix(expand.grid(
@@ -104,7 +105,8 @@ grids$b_smooth_mv <- as.matrix(expand.grid(
     sigma = 1,
     nonc = 0,
     tailw = 1,
-    deg = 1
+    deg = 1,
+    periodic = FALSE
 ))
 
 grids$p_smooth_pr <- as.matrix(expand.grid(
@@ -115,7 +117,8 @@ grids$p_smooth_pr <- as.matrix(expand.grid(
     tailw = 1,
     deg = 1,
     diff = 1.5,
-    lambda = -Inf
+    lambda = -Inf,
+    periodic = FALSE
 ))
 
 grids$p_smooth_mv <- as.matrix(expand.grid(
@@ -126,7 +129,8 @@ grids$p_smooth_mv <- as.matrix(expand.grid(
     tailw = 1,
     deg = 1,
     diff = 1.5,
-    lambda = -Inf
+    lambda = -Inf,
+    periodic = FALSE
 ))
 
 mod <- online(
@@ -138,5 +142,4 @@ mod <- online(
 )
 
 expect_true(all(mod$parametergrid[, "basis_pr_idx"] == grids$general[, "basis_pr_idx"]))
-
 # %%

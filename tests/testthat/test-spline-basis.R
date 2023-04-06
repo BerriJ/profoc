@@ -5,7 +5,7 @@ deg <- order - 1
 a <- sqrt(2)
 pstep <- 0.01
 
-x <- seq(pstep, 1 - pstep, pstep)
+x <- 0:100 / 100
 
 # Create desired knots:
 knots <- make_knots(kstep = kstep, deg = deg, a = a)[, 1]
@@ -25,8 +25,6 @@ deg <- order - 1
 a <- 0.2
 pstep <- 0.01
 
-x <- seq(pstep, 1 - pstep, pstep)
-
 # Create desired knots:
 knots <- make_knots(kstep = kstep, deg = deg, a = a)[, 1]
 
@@ -44,7 +42,6 @@ order <- 3
 deg <- order - 1
 a <- sqrt(2)
 pstep <- 0.01
-x <- seq(pstep, 1 - pstep, pstep)
 
 # Create desired knots:
 knots <- make_knots(kstep = kstep, deg = deg, a = a)[, 1]
@@ -57,3 +54,42 @@ new <- as.matrix(make_basis_matrix2(x, knots, deg))
 dimnames(new) <- NULL
 
 expect_equal(old, new)
+
+# Create knot sequence
+order <- 2
+deg <- order - 1
+n_inner <- 3
+mu <- 0.3
+intercept <- TRUE
+
+knots <- make_knots2(n_inner, mu = mu, deg = deg)
+
+K <- length(knots)
+
+B <- splines2_basis(x, knots, deg, intercept = intercept)
+
+# There should be K-order splines
+expect_true(dim(B)[2] == K - order)
+
+# Periodic Case
+B <- splines2_basis(x, knots, deg, periodic = TRUE, intercept = intercept)
+expect_true(dim(B)[2] == K - 2 * deg - 1)
+
+order <- 4
+deg <- order - 1
+
+knots <- make_knots2(n_inner, mu = mu, deg = deg)
+
+K <- length(knots)
+
+B <- splines2_basis(x, knots, deg, intercept = intercept)
+expect_true(!all((B[1, ] - B[nrow(B), ]) == 0))
+
+# There should be K-order splines
+expect_true(dim(B)[2] == K - order)
+
+# Periodic Case
+B <- splines2_basis(x, knots, deg, periodic = TRUE, intercept = intercept)
+expect_true(dim(B)[2] == K - 2 * deg - 1)
+
+expect_true(all((B[1, ] - B[nrow(B), ]) == 0))
