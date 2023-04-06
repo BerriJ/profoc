@@ -42,7 +42,8 @@ make_basis_mats <- function(x, # Splines basis
                 sigma = sigma,
                 nonc = nonc,
                 tailw = tailw,
-                deg = deg
+                deg = deg,
+                periodic = periodic
             ),
             idx = idx
         )
@@ -82,7 +83,7 @@ make_basis_mats <- function(x, # Splines basis
                 x = x,
                 knots = knots,
                 deg = deg_,
-                periodic = periodic
+                periodic = params[i, "periodic"]
             )
         }
     }
@@ -114,7 +115,8 @@ make_hat_mats <- function(x,
                 tailw = tailw,
                 deg = deg,
                 ndiff = ndiff,
-                lambda = lambda
+                lambda = lambda,
+                periodic = periodic
             ),
             idx = idx
         )
@@ -156,7 +158,7 @@ make_hat_mats <- function(x,
                 deg = deg_,
                 bdiff = params[i, "ndiff"],
                 lambda = params[i, "lambda"],
-                periodic = periodic
+                periodic = params[i, "periodic"]
             )
         } else {
             hat_list[[i]] <- Matrix::sparseMatrix(

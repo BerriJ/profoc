@@ -390,6 +390,7 @@ online <- function(y, experts, tau,
         nonc = val_or_def(b_smooth_pr$nonc, 0),
         tailw = val_or_def(b_smooth_pr$tailweight, 1),
         deg = val_or_def(b_smooth_pr$deg, 1),
+        periodic = val_or_def(b_smooth_pr$periodic, FALSE),
         idx = sort(unique(parametergrid[, "basis_pr_idx"])),
         params = parametergrids$b_smooth_pr
     )
@@ -405,6 +406,7 @@ online <- function(y, experts, tau,
         nonc = val_or_def(b_smooth_mv$nonc, 0),
         tailw = val_or_def(b_smooth_mv$tailweight, 1),
         deg = val_or_def(b_smooth_mv$deg, 1),
+        periodic = val_or_def(b_smooth_mv$periodic, FALSE),
         idx = sort(unique(parametergrid[, "basis_mv_idx"])),
         params = parametergrids$b_smooth_mv
     )
@@ -421,6 +423,7 @@ online <- function(y, experts, tau,
         deg = val_or_def(p_smooth_pr$deg, 1),
         ndiff = val_or_def(p_smooth_pr$ndiff, 1.5),
         lambda = val_or_def(p_smooth_pr$lambda, -Inf),
+        periodic = val_or_def(p_smooth_pr$periodic, FALSE),
         idx = sort(unique(parametergrid[, "hat_pr_idx"])),
         params = parametergrids$p_smooth_pr
     )
@@ -437,6 +440,7 @@ online <- function(y, experts, tau,
         deg = val_or_def(p_smooth_mv$deg, 1),
         ndiff = val_or_def(p_smooth_mv$ndiff, 1.5),
         lambda = val_or_def(p_smooth_mv$lambda, -Inf),
+        periodic = val_or_def(p_smooth_mv$periodic, FALSE),
         idx = sort(unique(parametergrid[, "hat_mv_idx"])),
         params = parametergrids$p_smooth_mv
     )

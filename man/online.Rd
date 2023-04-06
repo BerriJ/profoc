@@ -118,7 +118,7 @@ The "general" matrix must contain 11 named columns:
 "gamma", "loss_share", "regret_share".
 The matrices determining the basis smoothing (b_smooth_pr, b_smooth_mv) must
 contain the following named columns:
-n, mu, sigma, nonc, tailw, deg.
+n, mu, sigma, nonc, tailw, deg, periodic.
 In addition to the columns of the basis smoothing matrices, the matrices
 determining the penalized smoothing (p_smooth_pr, p_smooth_mv) must contain
 the following columns:
@@ -187,8 +187,7 @@ to parameters of the beta distribution, which defines how the knots are
 an equidistant knot sequence, \code{deg} sets the degree of the spline
 function and also influences how many outer knots will be used and
 \code{periodic} which determines whether the spline basis will be periodic.
-It's possible to provide vectors of values for each of these parameters,
-except \code{periodic}.
+It's possible to provide vectors of values for each of these parameters.
 In that case, all parameter combinations will be used to create the
 respective matrices and all candidates will be considered during
 online-learning.
