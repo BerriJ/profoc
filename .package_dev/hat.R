@@ -11,8 +11,7 @@ n_inner <- 5 # Inner knots
 mu <- 0.3
 knots <- make_knots2(n_inner, deg = deg, mu = mu)
 
-B <- splines2_basis(x, knots, deg, intercept = TRUE, periodic = TRUE)
-ts.plot(B, col = rainbow(ncol(B)), lwd = 2)
+# B <- splines2_basis(x, knots, deg, intercept = TRUE, periodic = TRUE)
 
 H <- as.matrix(make_hat_matrix2(x, knots, deg, 1, lambda = 5, periodic = TRUE))
 
@@ -30,11 +29,8 @@ plot(c(fitted, fitted), type = "o")
 # %% Vis hat matrices
 
 x <- 1:19 / 20
-lambda <- 10
-order <- 3
-deg <- order - 1
+lambda <- 5
 n_inner <- 10 # Inner knots
-mu <- 0.5
 
 par(mfrow = c(3, 5))
 for (i in 2:4) {
@@ -43,7 +39,7 @@ for (i in 2:4) {
         deg <- order - 1
         mu <- m
         knots <- make_knots2(n_inner, mu = mu, deg = deg)
-        P <- as.matrix(make_hat_matrix2(x, knots, deg, 1, lambda = 5, periodic = TRUE))
+        P <- as.matrix(make_hat_matrix2(x, knots, deg, 1, lambda = lambda, periodic = TRUE))
         image(P, main = paste("Deg=", deg, ", mu=", mu))
     }
 }
