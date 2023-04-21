@@ -8,7 +8,7 @@ deg <- order - 1
 J <- 5 # Number of inner knots. Total number of knots is J + 2*(order)
 mu <- 0.5
 sig <- 1
-knots <- make_knots2(J, mu = mu, sig = sig, deg = deg)
+knots <- make_knots(J, mu = mu, sig = sig, deg = deg)
 
 image(as.matrix(penalty(knots, order)[[differences]]))
 image(as.matrix(penalty(knots, order, periodic = TRUE)[[differences]]))
@@ -74,7 +74,7 @@ for (i in 2:4) {
         deg <- order - 1
         mu <- m
         n <- 10
-        knots <- make_knots2(n, mu = mu, deg = deg)
+        knots <- make_knots(n, mu = mu, deg = deg)
 
         P <- as.matrix(penalty(knots, order, periodic = TRUE)[[order - 1]])
 

@@ -165,9 +165,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// make_knots
-arma::vec make_knots(const double& kstep, const double& a, const int deg, const bool& even);
-RcppExport SEXP _profoc_make_knots(SEXP kstepSEXP, SEXP aSEXP, SEXP degSEXP, SEXP evenSEXP) {
+// make_knots_dep
+arma::vec make_knots_dep(const double& kstep, const double& a, const int deg, const bool& even);
+RcppExport SEXP _profoc_make_knots_dep(SEXP kstepSEXP, SEXP aSEXP, SEXP degSEXP, SEXP evenSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -175,7 +175,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type a(aSEXP);
     Rcpp::traits::input_parameter< const int >::type deg(degSEXP);
     Rcpp::traits::input_parameter< const bool& >::type even(evenSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_knots(kstep, a, deg, even));
+    rcpp_result_gen = Rcpp::wrap(make_knots_dep(kstep, a, deg, even));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -289,7 +289,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_optimize_betas", (DL_FUNC) &_profoc_optimize_betas, 13},
     {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 10},
     {"_profoc_splines2_basis", (DL_FUNC) &_profoc_splines2_basis, 5},
-    {"_profoc_make_knots", (DL_FUNC) &_profoc_make_knots, 4},
+    {"_profoc_make_knots_dep", (DL_FUNC) &_profoc_make_knots_dep, 4},
     {"_profoc_penalty", (DL_FUNC) &_profoc_penalty, 4},
     {"_profoc_periodic_adjacency", (DL_FUNC) &_profoc_periodic_adjacency, 1},
     {"_profoc_adjacency_to_incidence", (DL_FUNC) &_profoc_adjacency_to_incidence, 1},

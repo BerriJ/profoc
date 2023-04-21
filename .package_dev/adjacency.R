@@ -10,7 +10,7 @@ library(igraph)
 order <- 3
 deg <- order - 1
 n <- 3 # Number of inner knots. Total number of knots is n + 2*(order)
-knots <- profoc:::make_knots2(n, deg = deg)
+knots <- profoc:::make_knots(n, deg = deg)
 # %%
 
 # %% First differences non-periodic

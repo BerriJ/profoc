@@ -69,8 +69,8 @@ splines2_basis <- function(x, knots, deg, periodic = FALSE, intercept = TRUE) {
     .Call(`_profoc_splines2_basis`, x, knots, deg, periodic, intercept)
 }
 
-make_knots <- function(kstep, a = 1, deg = 3L, even = FALSE) {
-    .Call(`_profoc_make_knots`, kstep, a, deg, even)
+make_knots_dep <- function(kstep, a = 1, deg = 3L, even = FALSE) {
+    .Call(`_profoc_make_knots_dep`, kstep, a, deg, even)
 }
 
 #' @title B-Spline penalty

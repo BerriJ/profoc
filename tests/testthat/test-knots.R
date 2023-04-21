@@ -4,7 +4,7 @@ skip_if(debug_mode)
 x <- 1:9 / 10
 deg <- 1
 
-knots <- make_knots2(n = length(x))
+knots <- make_knots(n = length(x))
 
 expect_true(all(round(diff(knots), 10) == 0.1))
 
@@ -13,7 +13,7 @@ B <- make_basis_mats(x)$basis[[1]]
 expect_true(all(round(as.matrix(B), 10) == diag(rep.int(1, length(x)))))
 
 # n-1 should create a vector of ones
-knots <- make_knots2(n = -1)
+knots <- make_knots(n = -1)
 expect_null(knots)
 
 expect_true(all(matrix(rep.int(1, length(x))) ==

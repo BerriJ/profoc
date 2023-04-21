@@ -1,32 +1,12 @@
 skip_if(debug_mode)
-kstep <- 0.1
 order <- 4
 deg <- order - 1
 a <- sqrt(2)
-pstep <- 0.01
 
 x <- 0:100 / 100
 
 # Create desired knots:
-knots <- make_knots(kstep = kstep, deg = deg, a = a)[, 1]
-
-# Create the b-spline basis using splines
-old <- splines::splineDesign(knots, x, deg + 1, derivs = 0L, outer.ok = TRUE)
-
-# Create the b-spline basis using splines2
-new <- as.matrix(make_basis_matrix2(x, knots, deg))
-dimnames(new) <- NULL
-
-expect_equal(old, new)
-
-kstep <- 0.1
-order <- 4
-deg <- order - 1
-a <- 0.2
-pstep <- 0.01
-
-# Create desired knots:
-knots <- make_knots(kstep = kstep, deg = deg, a = a)[, 1]
+knots <- make_knots(9, deg = deg)
 
 # Create the b-spline basis using splines
 old <- splines::splineDesign(knots, x, deg + 1, derivs = 0L, outer.ok = TRUE)
@@ -44,7 +24,7 @@ a <- sqrt(2)
 pstep <- 0.01
 
 # Create desired knots:
-knots <- make_knots(kstep = kstep, deg = deg, a = a)[, 1]
+knots <- make_knots(9, deg = deg)
 
 # Create the b-spline basis using splines
 old <- splines::splineDesign(knots, x, deg + 1, derivs = 0L, outer.ok = TRUE)
@@ -62,7 +42,7 @@ n_inner <- 3
 mu <- 0.3
 intercept <- TRUE
 
-knots <- make_knots2(n_inner, mu = mu, deg = deg)
+knots <- make_knots(n_inner, mu = mu, deg = deg)
 
 K <- length(knots)
 
@@ -78,7 +58,7 @@ expect_true(dim(B)[2] == K - 2 * deg - 1)
 order <- 4
 deg <- order - 1
 
-knots <- make_knots2(n_inner, mu = mu, deg = deg)
+knots <- make_knots(n_inner, mu = mu, deg = deg)
 
 K <- length(knots)
 

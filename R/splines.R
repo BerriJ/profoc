@@ -7,10 +7,23 @@ pgbeta <- function(x, mu = .5, sig = 1, nonc = 0) {
     return(seq_beta)
 }
 
+#' Create a vector of knots for splines
+#'
+#' This function creates a knot vector for splines. The knots are distributed
+#' according to a beta distribution. The first input defines the number of inner
+#' knots. The total number of knots is \code{n + 2 * order}.
+#'
+#' @param n Number of knots
+#' @param mu Beta distribution location parameter
+#' @param sig Beta distribution scale parameter
+#' @param nonc Beta distribution noncentrality parameter
+#' @param tailw Tailweight
+#' @param deg Degree of splines
 #' @importFrom stats pbeta
 #' @importFrom utils head
 #' @importFrom utils tail
-make_knots2 <- function(n, mu = .5, sig = 1, nonc = 0, tailw = 1, deg = 1) {
+#' @export
+make_knots <- function(n, mu = .5, sig = 1, nonc = 0, tailw = 1, deg = 1) {
     if (n < 0) {
         return(NULL)
     }
@@ -67,7 +80,7 @@ make_basis_mats <- function(x, # Splines basis
             }
         }
 
-        knots <- make_knots2(
+        knots <- make_knots(
             n = n_,
             mu = params[i, "mu"],
             sig = params[i, "sigma"],
@@ -142,7 +155,7 @@ make_hat_mats <- function(x,
             }
         }
 
-        knots <- make_knots2(
+        knots <- make_knots(
             n = n_,
             mu = params[i, "mu"],
             sig = params[i, "sigma"],

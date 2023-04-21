@@ -18,7 +18,7 @@ grid <- expand.grid(
 par(mfrow = c(4, 2))
 
 for (i in 1:nrow(grid)) {
-    knots <- make_knots2(n = grid[i, "n_inner"], mu = grid[i, "mu"], deg = deg)
+    knots <- make_knots(n = grid[i, "n_inner"], mu = grid[i, "mu"], deg = deg)
     spline_cpp <- splines2_basis(
         x,
         knots,
