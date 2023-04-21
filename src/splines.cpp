@@ -6,6 +6,32 @@
 // include header file from splines2 package
 #include <splines2Armadillo.h>
 
+//' @title Create B-Spline basis
+//'
+//' @description This function creates a B-Spline matrix.
+//'
+//' @param x Vector of values.
+//' @param knots Vector of knots.
+//' @param deg Degree of the Spline functions.
+//' @param periodic Whether the basis should be periodic or not.
+//' @param intercept Whether the firs column should be kept.
+//' @return Returns a matrix of B-Spline basis functions.
+//' @examples
+//' n <- 9
+//' deg <- 3
+//' mu <- 0.35
+//' x <- 0:1000 / 1000
+//'
+//' knots <- make_knots(n, mu = mu, deg = deg)
+//'
+//' B <- splines2_basis(x, knots, deg)
+//' ts.plot(B, col = 1:dim(B)[2])
+//'
+//' # Periodic Case
+//' B <- splines2_basis(x, knots, deg, periodic = TRUE)
+//' ts.plot(B, col = 1:dim(B)[2])
+//'
+//' @export
 // [[Rcpp::export]]
 arma::mat splines2_basis(const arma::vec &x,
                          const arma::vec &knots,
