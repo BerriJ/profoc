@@ -7,7 +7,7 @@ J <- 5 # Number of inner knots. Total number of knots is J + 2*(order)
 mu <- 0.4
 sig <- 1
 
-knots <- make_knots2(J, deg = deg)
+knots <- make_knots(J, deg = deg)
 
 P1_cpp <- penalty(knots, order = deg + 1)[[1]]
 D1 <- diff(diag(J + order), differences = 1)
@@ -20,7 +20,7 @@ expect_equal(
 
 order <- 3
 deg <- order - 1
-knots <- make_knots2(J, deg = deg)
+knots <- make_knots(J, deg = deg)
 
 P1_cpp <- penalty(knots, order = deg + 1)[[1]]
 D1 <- diff(diag(J + order), differences = 1)
@@ -42,7 +42,7 @@ expect_equal(
 
 order <- 4
 deg <- order - 1
-knots <- make_knots2(J, deg = deg)
+knots <- make_knots(J, deg = deg)
 
 P2_cpp <- penalty(knots, order = deg + 1)[[3]]
 D2 <- diff(diag(J + order), differences = 3)

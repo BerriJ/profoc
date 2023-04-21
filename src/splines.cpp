@@ -41,7 +41,7 @@ arma::mat splines2_basis(const arma::vec &x,
 using namespace arma;
 
 // [[Rcpp::export]]
-arma::vec make_knots(const double &kstep, const double &a = 1, const int deg = 3, const bool &even = false)
+arma::vec make_knots_dep(const double &kstep, const double &a = 1, const int deg = 3, const bool &even = false)
 {
     vec x;
     vec xa;
@@ -236,7 +236,7 @@ arma::sp_mat make_hat_matrix(
 
     if (kstep <= 0.5)
     {
-        vec knots = make_knots(kstep, a, deg, even);
+        vec knots = make_knots_dep(kstep, a, deg, even);
         int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
 
         mat B = splines2_basis(x, knots, deg, false, true);
@@ -276,7 +276,7 @@ arma::sp_mat make_basis_matrix(const arma::vec &x, const double &kstep, const in
     // Will be passed to make_hat_matrix
     if (kstep <= 0.5)
     {
-        vec knots = make_knots(kstep, a, deg, even);
+        vec knots = make_knots_dep(kstep, a, deg, even);
         B = splines2_basis(x, knots, deg, false, true);
         // Remove columns without contribution
         B = B.cols(find(sum(B) >= 1E-6));

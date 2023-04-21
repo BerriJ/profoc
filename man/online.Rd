@@ -183,7 +183,7 @@ create the corresponding basis matrices. The arguments are:
 \code{knots} which determines the number of knots to be created, \code{mu},
 \code{sigma}, \code{sigma}, \code{nonc}, \code{tailweight} correspond to
 to parameters of the beta distribution, which defines how the knots are
-#distributed (see \code{?make_knots2} for details) the defaults will create
+#distributed (see \code{?make_knots} for details) the defaults will create
 an equidistant knot sequence, \code{deg} sets the degree of the spline
 function and also influences how many outer knots will be used and
 \code{periodic} which determines whether the spline basis will be periodic.
