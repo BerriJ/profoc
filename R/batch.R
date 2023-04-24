@@ -24,10 +24,12 @@
 #' the quantile weighted CRPS (TRUE) should be minimized.
 #' Defaults to FALSE. Which corresponds to Berrisch & Ziel (2021)
 #'
-#'
-#' @template param_basis_knot_distance_batch
-#' @template param_basis_knot_distance_power
-#' @template param_basis_deg_batch
+#' @param b_smooth A named list determining how the B-Spline matrices for
+#' probabilistic smoothing are created. Default corresponds to no probabilistic
+#' smoothing. See details.
+#' @param p_smooth A named list determining how the hat matrices  for
+#' probabilistic P-Spline smoothing are created. Default corresponds to
+#' no smoothing. See details.
 #'
 #' @template param_forget
 #'
@@ -35,12 +37,6 @@
 #' @template param_hard_threshold
 #'
 #' @template param_fixed_share
-#'
-#' @template param_p_smooth_lambda
-#' @template param_p_smooth_knot_distance
-#' @template param_p_smooth_knot_distance_power
-#' @template param_p_smooth_deg
-#' @template param_p_smooth_ndiff
 #'
 #' @template param_parametergrid_max_combinations
 #' @template param_parametergrid
@@ -67,7 +63,7 @@
 #' model <- batch(
 #'     y = matrix(y),
 #'     experts = experts,
-#'     p_smooth_lambda = 10
+#'     p_smooth = list(lambda = 10)
 #' )
 #'
 #' print(model)
@@ -88,18 +84,30 @@ batch <- function(y,
                   loss_function = "quantile",
                   loss_parameter = 1,
                   qw_crps = FALSE,
-                  basis_knot_distance = 1 / (dim(experts)[2] + 1),
-                  basis_knot_distance_power = 1,
-                  basis_deg = 1,
+                  b_smooth = list(
+                      knots = length(tau),
+                      mu = 0.5,
+                      sigma = 1,
+                      nonc = 0,
+                      tailweight = 1,
+                      deg = 1,
+                      periodic = FALSE
+                  ),
+                  p_smooth = list(
+                      knots = length(tau),
+                      mu = 0.5,
+                      sigma = 1,
+                      nonc = 0,
+                      tailweight = 1,
+                      deg = 1,
+                      ndiff = 1.5,
+                      lambda = -Inf,
+                      periodic = FALSE
+                  ),
                   forget = 0,
                   soft_threshold = -Inf,
                   hard_threshold = -Inf,
                   fixed_share = 0,
-                  p_smooth_lambda = -Inf,
-                  p_smooth_knot_distance = basis_knot_distance,
-                  p_smooth_knot_distance_power = basis_knot_distance_power,
-                  p_smooth_deg = basis_deg,
-                  p_smooth_ndiff = 1.5,
                   parametergrid_max_combinations = 100,
                   parametergrid = NULL,
                   forget_past_performance = 0,
@@ -122,59 +130,34 @@ batch <- function(y,
         # Bool is set inside C++
     }
     if (is.null(parametergrid)) {
-        if (missing(p_smooth_knot_distance)) {
-            p_smooth_knot_distance <- 0
-            inh_kstep <- TRUE
-        } else {
-            inh_kstep <- FALSE
-        }
-
-        if (missing(p_smooth_knot_distance_power)) {
-            p_smooth_knot_distance_power <- 0
-            inh_kstep_p <- TRUE
-        } else {
-            inh_kstep_p <- FALSE
-        }
-
-        if (missing(p_smooth_deg)) {
-            p_smooth_deg <- 0
-            inh_deg <- TRUE
-        } else {
-            inh_deg <- FALSE
-        }
-
         grid <- expand.grid(
-            basis_knot_distance,
-            basis_knot_distance_power,
-            basis_deg,
-            forget,
-            soft_threshold,
-            hard_threshold,
-            fixed_share,
-            p_smooth_lambda,
-            p_smooth_knot_distance,
-            p_smooth_knot_distance_power,
-            p_smooth_deg,
-            p_smooth_ndiff
+            b_knots = val_or_def(b_smooth$knots, length(tau)),
+            b_mu = val_or_def(b_smooth$mu, 0.5),
+            b_sigma = val_or_def(b_smooth$sigma, 1),
+            b_nonc = val_or_def(b_smooth$nonc, 0),
+            b_tailweight = val_or_def(b_smooth$tailweight, 1),
+            b_deg = val_or_def(b_smooth$deg, 1),
+            b_periodic = val_or_def(b_smooth$periodic, FALSE),
+            forget = val_or_def(forget, 0),
+            soft_threshold = val_or_def(soft_threshold, -Inf),
+            hard_threshold = val_or_def(hard_threshold, -Inf),
+            fixed_share = val_or_def(fixed_share, 0),
+            p_knots = val_or_def(p_smooth$knots, length(tau)),
+            p_mu = val_or_def(p_smooth$mu, 0.5),
+            p_sigma = val_or_def(p_smooth$sigma, 1),
+            p_nonc = val_or_def(p_smooth$nonc, 0),
+            p_tailweight = val_or_def(p_smooth$tailweight, 1),
+            p_deg = val_or_def(p_smooth$deg, 1),
+            p_ndiff = val_or_def(p_smooth$ndiff, 1),
+            p_lambda = val_or_def(p_smooth$lambda, -Inf),
+            p_periodic = val_or_def(p_smooth$periodic, FALSE)
         )
 
-        if (inh_kstep) {
-            grid[, 9] <- grid[, 1]
-        }
-
-        if (inh_kstep_p) {
-            grid[, 10] <- grid[, 2]
-        }
-
-        if (inh_deg) {
-            grid[, 11] <- grid[, 3]
-        }
-
         parametergrid <- as.matrix(grid)
-    } else if (ncol(parametergrid) != 12) {
-        stop("Please provide a parametergrid with 12 columns.")
+    } else if (ncol(parametergrid) != 20) {
+        # TODO: Update Docs
+        stop("Please provide a parametergrid with 20 columns.")
     }
-
 
     if (nrow(parametergrid) > parametergrid_max_combinations) {
         warning(
@@ -188,6 +171,29 @@ batch <- function(y,
             x = 1:nrow(parametergrid),
             size = parametergrid_max_combinations
         ), ]
+    }
+
+    knots <- vector("list", length = 2 * nrow(parametergrid))
+
+    dim(knots) <- c(nrow(parametergrid), 2)
+
+    for (i in seq_len(nrow(parametergrid))) {
+        knots[i, 1][[1]] <- make_knots(
+            parametergrid[i, "b_knots"],
+            parametergrid[i, "b_mu"],
+            parametergrid[i, "b_sigma"],
+            parametergrid[i, "b_nonc"],
+            parametergrid[i, "b_tailweight"],
+            parametergrid[i, "b_deg"]
+        )
+        knots[i, 2][[1]] <- make_knots(
+            parametergrid[i, "p_knots"],
+            parametergrid[i, "p_mu"],
+            parametergrid[i, "p_sigma"],
+            parametergrid[i, "p_nonc"],
+            parametergrid[i, "p_tailweight"],
+            parametergrid[i, "p_deg"]
+        )
     }
 
     model <- batch_rcpp(
@@ -205,11 +211,11 @@ batch <- function(y,
         loss_parameter = loss_parameter,
         qw_crps = qw_crps,
         param_grid = parametergrid,
+        knots = knots,
         forget_past_performance = forget_past_performance,
         allow_quantile_crossing = allow_quantile_crossing,
         trace = trace
     )
-
     dimnames(model$specification$data$y) <- dimnames(y)
 
     if (intercept & !is.null(dimnames(experts))) {
