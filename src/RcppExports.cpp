@@ -14,8 +14,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // batch_rcpp
-Rcpp::List batch_rcpp(arma::mat& y, arma::cube& experts, arma::vec tau, const bool& affine, const bool& positive, const bool& intercept, const bool& debias, const unsigned int& lead_time, const unsigned int initial_window, const unsigned int rolling_window, const std::string loss_function, const double& loss_parameter, const bool& qw_crps, const arma::mat& param_grid, const double& forget_past_performance, bool allow_quantile_crossing, const bool trace);
-RcppExport SEXP _profoc_batch_rcpp(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP affineSEXP, SEXP positiveSEXP, SEXP interceptSEXP, SEXP debiasSEXP, SEXP lead_timeSEXP, SEXP initial_windowSEXP, SEXP rolling_windowSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP qw_crpsSEXP, SEXP param_gridSEXP, SEXP forget_past_performanceSEXP, SEXP allow_quantile_crossingSEXP, SEXP traceSEXP) {
+Rcpp::List batch_rcpp(arma::mat& y, arma::cube& experts, arma::vec tau, const bool& affine, const bool& positive, const bool& intercept, const bool& debias, const unsigned int& lead_time, const unsigned int initial_window, const unsigned int rolling_window, const std::string loss_function, const double& loss_parameter, const bool& qw_crps, std::map<std::string, arma::colvec>& param_grid, arma::field<arma::vec>& knots, const double& forget_past_performance, bool allow_quantile_crossing, const bool trace);
+RcppExport SEXP _profoc_batch_rcpp(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP affineSEXP, SEXP positiveSEXP, SEXP interceptSEXP, SEXP debiasSEXP, SEXP lead_timeSEXP, SEXP initial_windowSEXP, SEXP rolling_windowSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP qw_crpsSEXP, SEXP param_gridSEXP, SEXP knotsSEXP, SEXP forget_past_performanceSEXP, SEXP allow_quantile_crossingSEXP, SEXP traceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -32,11 +32,12 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::string >::type loss_function(loss_functionSEXP);
     Rcpp::traits::input_parameter< const double& >::type loss_parameter(loss_parameterSEXP);
     Rcpp::traits::input_parameter< const bool& >::type qw_crps(qw_crpsSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type param_grid(param_gridSEXP);
+    Rcpp::traits::input_parameter< std::map<std::string, arma::colvec>& >::type param_grid(param_gridSEXP);
+    Rcpp::traits::input_parameter< arma::field<arma::vec>& >::type knots(knotsSEXP);
     Rcpp::traits::input_parameter< const double& >::type forget_past_performance(forget_past_performanceSEXP);
     Rcpp::traits::input_parameter< bool >::type allow_quantile_crossing(allow_quantile_crossingSEXP);
     Rcpp::traits::input_parameter< const bool >::type trace(traceSEXP);
-    rcpp_result_gen = Rcpp::wrap(batch_rcpp(y, experts, tau, affine, positive, intercept, debias, lead_time, initial_window, rolling_window, loss_function, loss_parameter, qw_crps, param_grid, forget_past_performance, allow_quantile_crossing, trace));
+    rcpp_result_gen = Rcpp::wrap(batch_rcpp(y, experts, tau, affine, positive, intercept, debias, lead_time, initial_window, rolling_window, loss_function, loss_parameter, qw_crps, param_grid, knots, forget_past_performance, allow_quantile_crossing, trace));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -281,7 +282,7 @@ END_RCPP
 RcppExport SEXP _rcpp_module_boot_conlineEx();
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_profoc_batch_rcpp", (DL_FUNC) &_profoc_batch_rcpp, 17},
+    {"_profoc_batch_rcpp", (DL_FUNC) &_profoc_batch_rcpp, 18},
     {"_profoc_loss", (DL_FUNC) &_profoc_loss, 7},
     {"_profoc_loss_grad_wrt_w", (DL_FUNC) &_profoc_loss_grad_wrt_w, 7},
     {"_profoc_sample_int", (DL_FUNC) &_profoc_sample_int, 3},

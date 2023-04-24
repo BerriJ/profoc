@@ -18,18 +18,14 @@ batch(
   loss_function = "quantile",
   loss_parameter = 1,
   qw_crps = FALSE,
-  basis_knot_distance = 1/(dim(experts)[2] + 1),
-  basis_knot_distance_power = 1,
-  basis_deg = 1,
+  b_smooth = list(knots = length(tau), mu = 0.5, sigma = 1, nonc = 0, tailweight = 1, deg
+    = 1, periodic = FALSE),
+  p_smooth = list(knots = length(tau), mu = 0.5, sigma = 1, nonc = 0, tailweight = 1, deg
+    = 1, ndiff = 1.5, lambda = -Inf, periodic = FALSE),
   forget = 0,
   soft_threshold = -Inf,
   hard_threshold = -Inf,
   fixed_share = 0,
-  p_smooth_lambda = -Inf,
-  p_smooth_knot_distance = basis_knot_distance,
-  p_smooth_knot_distance_power = basis_knot_distance_power,
-  p_smooth_deg = basis_deg,
-  p_smooth_ndiff = 1.5,
   parametergrid_max_combinations = 100,
   parametergrid = NULL,
   forget_past_performance = 0,
@@ -79,16 +75,13 @@ an expanding window.}
 the quantile weighted CRPS (TRUE) should be minimized.
 Defaults to FALSE. Which corresponds to Berrisch & Ziel (2021)}
 
-\item{basis_knot_distance}{determines the distance of the knots in the probability
-basis. Defaults to \code{1 / (dim(experts)[2] + 1)}.}
+\item{b_smooth}{A named list determining how the B-Spline matrices for
+probabilistic smoothing are created. Default corresponds to no probabilistic
+smoothing. See details.}
 
-\item{basis_knot_distance_power}{Parameter which defines the symmetry of the
-basis reducing the probability space. Defaults to 1, which corresponds to
-equidistant knots. Values less than 1 create more knots in the center, while
-values above 1 concentrate more knots in the tails.}
-
-\item{basis_deg}{Degree of the basis reducing the probability space.
-Defaults to 1.}
+\item{p_smooth}{A named list determining how the hat matrices  for
+probabilistic P-Spline smoothing are created. Default corresponds to
+no smoothing. See details.}
 
 \item{forget}{Adds an exponential forgetting to the optimization.
 Past observations will get less influence on the optimization.
@@ -110,24 +103,6 @@ leads to the 'follow the leader' strategy if method is set to "ewa".}
 
 \item{fixed_share}{Amount of fixed share to be added to the weights.
 Defaults to 0. 1 leads to uniform weights.}
-
-\item{p_smooth_lambda}{Penalization parameter used in the smoothing step.
--Inf causes the smoothing step to be skipped (default).}
-
-\item{p_smooth_knot_distance}{determines the distance of the knots. Defaults to
-the value of basis_knot_distance.
-Corresponds to the grid steps when knot_distance_power = 1 (the default).}
-
-\item{p_smooth_knot_distance_power}{Parameter which defines the symmetry of
-the P-Spline basis. Takes the value of basis_knot_distance_power if unspecified.}
-
-\item{p_smooth_deg}{Degree of the B-Spine basis functions.
-Defaults to the value of basis_deg.}
-
-\item{p_smooth_ndiff}{Degree of the differencing operator in the smoothing equation.
-1.5 (default) leads to shrinkage towards a constant. Can take values from 1 to 2.
-If a value in between is used, a weighted sum of the first and second
-differentiation matrix is calculated.}
 
 \item{parametergrid_max_combinations}{Integer specifying the maximum
 number of parameter combinations that should be considered. If
@@ -162,6 +137,33 @@ calculating a one-step-ahead forecast.
 
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 }
+\details{
+batch selects various parameters automatically based on
+the past loss. For this, the parameters smoothing parameters (see below)
+can be specified as numeric vectors containing values to consider.
+
+This package offers two options for smoothing (Basis Smoothing
+and P-Splines).
+Parameters \code{b_smooth} and \code{p_smooth} take named lists to
+create the corresponding basis and hat matrices. The arguments are:
+\code{knots} which determines the number of knots to be created, \code{mu},
+\code{sigma}, \code{sigma}, \code{nonc}, \code{tailweight} correspond to
+to parameters of the beta distribution, which defines how the knots are
+#distributed (see \code{?make_knots} for details) the defaults will create
+an equidistant knot sequence, \code{deg} sets the degree of the spline
+function and also influences how many outer knots will be used and
+\code{periodic} which determines whether the spline basis will be periodic.
+It's possible to provide vectors of values for each of these parameters.
+In that case, all parameter combinations will be used to create the
+respective matrices and all candidates will be considered during
+online-learning. In addition to the inputs mentioned
+before  \code{p_smooth} requires \code{ndiff} which determines the degree
+of differentiation applied to the basis-matrix (can take any value
+between and including 1 and 2), \code{lambda} which determines the degree
+of penalization applied to the smoothing, higher values will give
+smoother weight functions. As for the other parameters, it is possible
+to provide multiple values.
+}
 \examples{
 \dontrun{
 T <- 50 # Observations
@@ -179,7 +181,7 @@ for (t in 1:T) {
 model <- batch(
     y = matrix(y),
     experts = experts,
-    p_smooth_lambda = 10
+    p_smooth = list(lambda = 10)
 )
 
 print(model)

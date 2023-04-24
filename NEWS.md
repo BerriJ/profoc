@@ -5,6 +5,9 @@ profoc 1.2.0
 
 * Periodic splines and penalties added for smoothing the weights in `online()`.
 
+### Internal changes
+* `profoc` now depends on `R >= 4.3.0` to ensure C++17 support.
+
 profoc 1.1.1
 ==============
 

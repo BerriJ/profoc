@@ -54,9 +54,7 @@ results <- batch(
     positive = TRUE,
     initial_window = init_win,
     lead_time = lead,
-    trace = FALSE,
-    basis_knot_distance = 0.01,
-    basis_deg = 1
+    trace = FALSE
 )
 
 # ts.plot(results$weights[, , 1], col = rainbow(ncol(results$weights)))
