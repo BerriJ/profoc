@@ -28,24 +28,29 @@ for (t in 1:T) {
 # %%
 
 # %% Create grid
-
 grid <- expand.grid(
-    0.01, # basis_kstep
-    1, # kstep_power
-    1, # basis_deg
-    0.1, # forget_regret
-    c(0.01, 0.15), # soft_threshold
-    0, # hard_threshold
-    c(0, 0.04), # fixed_share
-    -Inf, # lambda
-    0.01, # p_smooth_knot_distance
-    1, # p_smooth_knot_distance_power
-    3, # p_smooth_deg
-    2, # p_smooth_ndiff
-    1, # gamma
-    0, # loss_share
-    0 # regret_share
+    b_knots = length(prob_grid),
+    b_mu = 0.5,
+    b_sigma = 1,
+    b_nonc = 0,
+    b_tailweight = 1,
+    b_deg = 1,
+    b_periodic = FALSE,
+    forget = 0,
+    soft_threshold = -Inf,
+    hard_threshold = -Inf,
+    fixed_share = 0,
+    p_knots = length(prob_grid),
+    p_mu = 0.5,
+    p_sigma = 1,
+    p_nonc = 0,
+    p_tailweight = 1,
+    p_deg = c(1, 2, 3),
+    p_ndiff = c(1, 2),
+    p_lambda = c(-Inf, 1, 5, 10),
+    p_periodic = c(TRUE, FALSE)
 )
+
 grid <- as.matrix(grid)
 # %%
 
@@ -53,12 +58,8 @@ grid <- as.matrix(grid)
 res <- batch(
     matrix(y),
     experts,
-    parametergrid = grid[, 1:12], # No gamma parameter in batch
+    parametergrid = grid, # No gamma parameter in batch
     trace = FALSE
-)
-
-expect_true(
-    all(res$parametergrid == grid[, 1:12])
 )
 # %%
 
@@ -66,9 +67,9 @@ expect_true(
 expect_error(batch(
     matrix(y),
     experts,
-    parametergrid = grid[, -c(12:13)], # No gamma parameter in batch
+    parametergrid = grid[, -12], # No gamma parameter in batch
     trace = FALSE
-), "Please provide a parametergrid with 12 columns.")
+), "Please provide a parametergrid with 20 columns.")
 # %%
 
 # %% Online setting

@@ -13,6 +13,21 @@ using namespace arma;
 // conline class was exposed via "profoc_types.h"
 // So we can use it here as input and output if necessary
 
+// Example:
+// [[Rcpp::export]]
+bool test_class_input(conline &obj)
+{
+    return obj.trace;
+}
+
+// [[Rcpp::export]]
+conline test_class_output()
+{
+    conline instance;
+    instance.trace = false;
+    return instance;
+}
+
 // Constructor
 
 // Getters
@@ -37,7 +52,6 @@ void conline::set_defaults()
 
 void conline::set_grid_objects()
 {
-
     opt_index.zeros(T + 1);
     if (save_past_performance)
     {
@@ -596,7 +610,6 @@ void conline::init_update(
     arma::mat &new_y,
     arma::field<arma::cube> &new_experts)
 {
-
     clock.tick("init");
 
     // This creates a references not copies

@@ -14,8 +14,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // batch_rcpp
-Rcpp::List batch_rcpp(arma::mat& y, arma::cube& experts, arma::vec tau, const bool& affine, const bool& positive, const bool& intercept, const bool& debias, const unsigned int& lead_time, const unsigned int initial_window, const unsigned int rolling_window, const std::string loss_function, const double& loss_parameter, const bool& qw_crps, const arma::mat& param_grid, const double& forget_past_performance, bool allow_quantile_crossing, const bool trace);
-RcppExport SEXP _profoc_batch_rcpp(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP affineSEXP, SEXP positiveSEXP, SEXP interceptSEXP, SEXP debiasSEXP, SEXP lead_timeSEXP, SEXP initial_windowSEXP, SEXP rolling_windowSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP qw_crpsSEXP, SEXP param_gridSEXP, SEXP forget_past_performanceSEXP, SEXP allow_quantile_crossingSEXP, SEXP traceSEXP) {
+Rcpp::List batch_rcpp(arma::mat& y, arma::cube& experts, arma::vec tau, const bool& affine, const bool& positive, const bool& intercept, const bool& debias, const unsigned int& lead_time, const unsigned int initial_window, const unsigned int rolling_window, const std::string loss_function, const double& loss_parameter, const bool& qw_crps, std::map<std::string, arma::colvec>& param_grid, arma::field<arma::vec>& knots, const double& forget_past_performance, bool allow_quantile_crossing, const bool trace);
+RcppExport SEXP _profoc_batch_rcpp(SEXP ySEXP, SEXP expertsSEXP, SEXP tauSEXP, SEXP affineSEXP, SEXP positiveSEXP, SEXP interceptSEXP, SEXP debiasSEXP, SEXP lead_timeSEXP, SEXP initial_windowSEXP, SEXP rolling_windowSEXP, SEXP loss_functionSEXP, SEXP loss_parameterSEXP, SEXP qw_crpsSEXP, SEXP param_gridSEXP, SEXP knotsSEXP, SEXP forget_past_performanceSEXP, SEXP allow_quantile_crossingSEXP, SEXP traceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -32,11 +32,33 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::string >::type loss_function(loss_functionSEXP);
     Rcpp::traits::input_parameter< const double& >::type loss_parameter(loss_parameterSEXP);
     Rcpp::traits::input_parameter< const bool& >::type qw_crps(qw_crpsSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type param_grid(param_gridSEXP);
+    Rcpp::traits::input_parameter< std::map<std::string, arma::colvec>& >::type param_grid(param_gridSEXP);
+    Rcpp::traits::input_parameter< arma::field<arma::vec>& >::type knots(knotsSEXP);
     Rcpp::traits::input_parameter< const double& >::type forget_past_performance(forget_past_performanceSEXP);
     Rcpp::traits::input_parameter< bool >::type allow_quantile_crossing(allow_quantile_crossingSEXP);
     Rcpp::traits::input_parameter< const bool >::type trace(traceSEXP);
-    rcpp_result_gen = Rcpp::wrap(batch_rcpp(y, experts, tau, affine, positive, intercept, debias, lead_time, initial_window, rolling_window, loss_function, loss_parameter, qw_crps, param_grid, forget_past_performance, allow_quantile_crossing, trace));
+    rcpp_result_gen = Rcpp::wrap(batch_rcpp(y, experts, tau, affine, positive, intercept, debias, lead_time, initial_window, rolling_window, loss_function, loss_parameter, qw_crps, param_grid, knots, forget_past_performance, allow_quantile_crossing, trace));
+    return rcpp_result_gen;
+END_RCPP
+}
+// test_class_input
+bool test_class_input(conline& obj);
+RcppExport SEXP _profoc_test_class_input(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< conline& >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_class_input(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
+// test_class_output
+conline test_class_output();
+RcppExport SEXP _profoc_test_class_output() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(test_class_output());
     return rcpp_result_gen;
 END_RCPP
 }
@@ -165,20 +187,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// make_knots_dep
-arma::vec make_knots_dep(const double& kstep, const double& a, const int deg, const bool& even);
-RcppExport SEXP _profoc_make_knots_dep(SEXP kstepSEXP, SEXP aSEXP, SEXP degSEXP, SEXP evenSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const double& >::type kstep(kstepSEXP);
-    Rcpp::traits::input_parameter< const double& >::type a(aSEXP);
-    Rcpp::traits::input_parameter< const int >::type deg(degSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type even(evenSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_knots_dep(kstep, a, deg, even));
-    return rcpp_result_gen;
-END_RCPP
-}
 // penalty
 arma::field<arma::sp_mat> penalty(const arma::vec& knots, const unsigned int& order, const bool& periodic, const unsigned int& max_diff);
 RcppExport SEXP _profoc_penalty(SEXP knotsSEXP, SEXP orderSEXP, SEXP periodicSEXP, SEXP max_diffSEXP) {
@@ -215,41 +223,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// make_hat_matrix
-arma::sp_mat make_hat_matrix(const arma::vec& x, const double& kstep, const double& lambda, const double& bdiff, const int deg, const double& a, const bool& even);
-RcppExport SEXP _profoc_make_hat_matrix(SEXP xSEXP, SEXP kstepSEXP, SEXP lambdaSEXP, SEXP bdiffSEXP, SEXP degSEXP, SEXP aSEXP, SEXP evenSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const double& >::type kstep(kstepSEXP);
-    Rcpp::traits::input_parameter< const double& >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< const double& >::type bdiff(bdiffSEXP);
-    Rcpp::traits::input_parameter< const int >::type deg(degSEXP);
-    Rcpp::traits::input_parameter< const double& >::type a(aSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type even(evenSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_hat_matrix(x, kstep, lambda, bdiff, deg, a, even));
-    return rcpp_result_gen;
-END_RCPP
-}
 // make_basis_matrix
-arma::sp_mat make_basis_matrix(const arma::vec& x, const double& kstep, const int deg, const double& a, const bool& even);
-RcppExport SEXP _profoc_make_basis_matrix(SEXP xSEXP, SEXP kstepSEXP, SEXP degSEXP, SEXP aSEXP, SEXP evenSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const double& >::type kstep(kstepSEXP);
-    Rcpp::traits::input_parameter< const int >::type deg(degSEXP);
-    Rcpp::traits::input_parameter< const double& >::type a(aSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type even(evenSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_basis_matrix(x, kstep, deg, a, even));
-    return rcpp_result_gen;
-END_RCPP
-}
-// make_basis_matrix2
-arma::sp_mat make_basis_matrix2(const arma::vec& x, const arma::vec& knots, const unsigned int deg, const bool& periodic);
-RcppExport SEXP _profoc_make_basis_matrix2(SEXP xSEXP, SEXP knotsSEXP, SEXP degSEXP, SEXP periodicSEXP) {
+arma::sp_mat make_basis_matrix(const arma::vec& x, const arma::vec& knots, const unsigned int deg, const bool& periodic);
+RcppExport SEXP _profoc_make_basis_matrix(SEXP xSEXP, SEXP knotsSEXP, SEXP degSEXP, SEXP periodicSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -257,13 +233,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type knots(knotsSEXP);
     Rcpp::traits::input_parameter< const unsigned int >::type deg(degSEXP);
     Rcpp::traits::input_parameter< const bool& >::type periodic(periodicSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_basis_matrix2(x, knots, deg, periodic));
+    rcpp_result_gen = Rcpp::wrap(make_basis_matrix(x, knots, deg, periodic));
     return rcpp_result_gen;
 END_RCPP
 }
-// make_hat_matrix2
-arma::sp_mat make_hat_matrix2(const arma::vec& x, const arma::vec& knots, const int deg, const double& bdiff, const double& lambda, const bool& periodic);
-RcppExport SEXP _profoc_make_hat_matrix2(SEXP xSEXP, SEXP knotsSEXP, SEXP degSEXP, SEXP bdiffSEXP, SEXP lambdaSEXP, SEXP periodicSEXP) {
+// make_hat_matrix
+arma::sp_mat make_hat_matrix(const arma::vec& x, const arma::vec& knots, const int deg, const double& bdiff, const double& lambda, const bool& periodic);
+RcppExport SEXP _profoc_make_hat_matrix(SEXP xSEXP, SEXP knotsSEXP, SEXP degSEXP, SEXP bdiffSEXP, SEXP lambdaSEXP, SEXP periodicSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -273,7 +249,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type bdiff(bdiffSEXP);
     Rcpp::traits::input_parameter< const double& >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< const bool& >::type periodic(periodicSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_hat_matrix2(x, knots, deg, bdiff, lambda, periodic));
+    rcpp_result_gen = Rcpp::wrap(make_hat_matrix(x, knots, deg, bdiff, lambda, periodic));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -281,7 +257,9 @@ END_RCPP
 RcppExport SEXP _rcpp_module_boot_conlineEx();
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_profoc_batch_rcpp", (DL_FUNC) &_profoc_batch_rcpp, 17},
+    {"_profoc_batch_rcpp", (DL_FUNC) &_profoc_batch_rcpp, 18},
+    {"_profoc_test_class_input", (DL_FUNC) &_profoc_test_class_input, 1},
+    {"_profoc_test_class_output", (DL_FUNC) &_profoc_test_class_output, 0},
     {"_profoc_loss", (DL_FUNC) &_profoc_loss, 7},
     {"_profoc_loss_grad_wrt_w", (DL_FUNC) &_profoc_loss_grad_wrt_w, 7},
     {"_profoc_sample_int", (DL_FUNC) &_profoc_sample_int, 3},
@@ -289,14 +267,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_optimize_betas", (DL_FUNC) &_profoc_optimize_betas, 13},
     {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 10},
     {"_profoc_splines2_basis", (DL_FUNC) &_profoc_splines2_basis, 5},
-    {"_profoc_make_knots_dep", (DL_FUNC) &_profoc_make_knots_dep, 4},
     {"_profoc_penalty", (DL_FUNC) &_profoc_penalty, 4},
     {"_profoc_periodic_adjacency", (DL_FUNC) &_profoc_periodic_adjacency, 1},
     {"_profoc_adjacency_to_incidence", (DL_FUNC) &_profoc_adjacency_to_incidence, 1},
-    {"_profoc_make_hat_matrix", (DL_FUNC) &_profoc_make_hat_matrix, 7},
-    {"_profoc_make_basis_matrix", (DL_FUNC) &_profoc_make_basis_matrix, 5},
-    {"_profoc_make_basis_matrix2", (DL_FUNC) &_profoc_make_basis_matrix2, 4},
-    {"_profoc_make_hat_matrix2", (DL_FUNC) &_profoc_make_hat_matrix2, 6},
+    {"_profoc_make_basis_matrix", (DL_FUNC) &_profoc_make_basis_matrix, 4},
+    {"_profoc_make_hat_matrix", (DL_FUNC) &_profoc_make_hat_matrix, 6},
     {"_rcpp_module_boot_conlineEx", (DL_FUNC) &_rcpp_module_boot_conlineEx, 0},
     {NULL, NULL, 0}
 };

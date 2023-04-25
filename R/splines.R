@@ -92,7 +92,7 @@ make_basis_mats <- function(x, # Splines basis
         if (is.null(knots)) {
             basis_list[[i]] <- Matrix::Matrix(rep.int(1, length(x)), sparse = TRUE)
         } else {
-            basis_list[[i]] <- make_basis_matrix2(
+            basis_list[[i]] <- make_basis_matrix(
                 x = x,
                 knots = knots,
                 deg = deg_,
@@ -165,7 +165,7 @@ make_hat_mats <- function(x,
         )
 
         if (params[i, "lambda"] != -Inf) {
-            hat_list[[i]] <- make_hat_matrix2(
+            hat_list[[i]] <- make_hat_matrix(
                 x = x,
                 knots = knots,
                 deg = deg_,

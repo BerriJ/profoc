@@ -1,6 +1,16 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::depends(RcppProgress)]]
 #include <RcppArmadillo.h>
+
+// forward declarations
+namespace Rcpp
+{
+    template <>
+    std::map<std::string, arma::colvec> as(SEXP matsexp);
+    template <>
+    SEXP wrap(const std::map<std::string, arma::colvec> &mymap);
+}
+
 #include <progress.hpp>
 
 #include <loss.h>
@@ -25,7 +35,8 @@ Rcpp::List batch_rcpp(
     const std::string loss_function,
     const double &loss_parameter,
     const bool &qw_crps,
-    const arma::mat &param_grid,
+    std::map<std::string, arma::colvec> &param_grid,
+    arma::field<arma::vec> &knots,
     const double &forget_past_performance,
     bool allow_quantile_crossing,
     const bool trace)
@@ -67,8 +78,7 @@ Rcpp::List batch_rcpp(
         tau.fill(tau(0));
     }
 
-    const unsigned int X = param_grid.n_rows;
-    mat chosen_params(T, param_grid.n_cols);
+    const unsigned int X = param_grid.begin()->second.n_elem;
     vec opt_index(T + 1, fill::zeros);
     cube past_performance(T, P, X, fill::zeros);
     vec tmp_performance(X, fill::zeros);
@@ -91,68 +101,37 @@ Rcpp::List batch_rcpp(
     mat predictions_final(T + T_E_Y, P, fill::zeros);
 
     // Smoothing Setup
-    field<mat> hat_mats(param_grid.n_rows);
+    field<mat> hat_mats(X);
     vec spline_basis_x = arma::regspace(1, P) / (P + 1);
-
-    // Only if smoothing is possible (tau.size > 1)
-    if (P > 1)
-    {
-        // Init hat matrix field
-        for (unsigned int x = 0; x < X; x++)
-        {
-            // In second step: skip if recalc is not necessary:
-            if (x > 0 &&
-                param_grid(x, 7) == param_grid(x - 1, 7) &&
-                param_grid(x, 8) == param_grid(x - 1, 8) &&
-                param_grid(x, 10) == param_grid(x - 1, 10) &&
-                param_grid(x, 11) == param_grid(x - 1, 11) &&
-                param_grid(x, 9) == param_grid(x - 1, 9))
-            {
-                hat_mats(x) = hat_mats(x - 1);
-            }
-            else
-            {
-                if (param_grid(x, 7) != -datum::inf)
-                    hat_mats(x) = make_hat_matrix(spline_basis_x,
-                                                  param_grid(x, 8),  // kstep
-                                                  param_grid(x, 7),  // lambda
-                                                  param_grid(x, 11), // differences
-                                                  param_grid(x, 10), // degree
-                                                  param_grid(x, 9),  // uneven grid
-                                                  P % 2 == 0);       // even
-            }
-            R_CheckUserInterrupt();
-            prog.increment(); // Update progress
-        }
-    }
 
     field<sp_mat> basis_mats(X);
     field<mat> beta(X);
 
-    // Init hat matrix field
-    for (unsigned int x = 0; x < X; x++)
+    // Only if smoothing is possible (tau.size > 1)
+    if (P > 1)
     {
-
-        // In second step: skip if recalc is not necessary:
-        if (x > 0 &&
-            param_grid(x, 2) == param_grid(x - 1, 2) &&
-            param_grid(x, 0) == param_grid(x - 1, 0) &&
-            param_grid(x, 1) == param_grid(x - 1, 1))
-        {
-            basis_mats(x) = basis_mats(x - 1);
-        }
-        else
+        // Init basis matrix field
+        for (unsigned int x = 0; x < X; x++)
         {
             basis_mats(x) = make_basis_matrix(spline_basis_x,
-                                              param_grid(x, 0), // kstep
-                                              param_grid(x, 2), // degree
-                                              param_grid(x, 1), // uneven grid
-                                              P % 2 == 0);      // even
+                                              knots(x, 0),
+                                              param_grid["b_deg"](x),
+                                              param_grid["p_periodic"](x));
+
+            beta(x) = (weights_tmp.slice(x).t() * pinv(mat(basis_mats(x))).t()).t();
+
+            R_CheckUserInterrupt();
+
+            if (param_grid["p_lambda"](x) != -datum::inf)
+                hat_mats(x) = make_hat_matrix(spline_basis_x,
+                                              knots(x, 1),
+                                              param_grid["p_deg"](x),
+                                              param_grid["p_ndiff"](x),
+                                              param_grid["p_lambda"](x),
+                                              param_grid["p_periodic"](x));
+
+            prog.increment(); // Update progress
         }
-
-        beta(x) = (weights_tmp.slice(x).t() * pinv(mat(basis_mats(x))).t()).t();
-
-        R_CheckUserInterrupt();
     }
 
     // Predictions at t < lead_time + initial_window  using initial weights
@@ -230,23 +209,23 @@ Rcpp::List batch_rcpp(
                         debias,
                         loss_function,
                         tau(p),
-                        param_grid(x, 3), // Forget
+                        param_grid["forget"](x), // Forget
                         loss_parameter);
 
                     // Apply thresholds
                     for (double &e : weights_tmp(span(p), span(intercept * debias, K - 1), span(x)))
                     {
-                        threshold_soft(e, param_grid(x, 4));
+                        threshold_soft(e, param_grid["soft_threshold"](x));
                     }
 
                     for (double &e : weights_tmp(span(p), span(intercept * debias, K - 1), span(x)))
                     {
-                        threshold_hard(e, param_grid(x, 5));
+                        threshold_hard(e, param_grid["hard_threshold"](x));
                     }
 
                     // Add fixed_share
-                    weights_tmp(span(p), span(intercept * debias, K - 1), span(x)) *= (1 - param_grid(x, 6));
-                    weights_tmp(span(p), span(intercept * debias, K - 1), span(x)) += (param_grid(x, 6) / (K - intercept * debias));
+                    weights_tmp(span(p), span(intercept * debias, K - 1), span(x)) *= (1 - param_grid["fixed_share"](x));
+                    weights_tmp(span(p), span(intercept * debias, K - 1), span(x)) += (param_grid["fixed_share"](x) / (K - intercept * debias));
                 }
                 R_CheckUserInterrupt();
             }
@@ -262,7 +241,7 @@ Rcpp::List batch_rcpp(
                     debias,
                     loss_function,
                     tau,
-                    param_grid(x, 3), // Forget
+                    param_grid["forget"](x), // Forget
                     loss_parameter,
                     basis_mats(x),
                     beta(x),
@@ -273,25 +252,24 @@ Rcpp::List batch_rcpp(
                     // Apply thresholds
                     for (double &e : beta(x).row(l))
                     {
-                        threshold_soft(e, param_grid(x, 4));
+                        threshold_soft(e, param_grid["soft_threshold"](x));
                     }
 
                     for (double &e : beta(x).row(l))
                     {
-                        threshold_hard(e, param_grid(x, 5));
+                        threshold_hard(e, param_grid["hard_threshold"](x));
                     }
 
                     // Add fixed_share
-                    beta(x).row(l) =
-                        (1 - param_grid(x, 6)) * beta(x).row(l) +
-                        (param_grid(x, 6) / K);
+                    beta(x).row(l) *= (1 - param_grid["fixed_share"](x));
+                    beta(x).row(l) += (param_grid["fixed_share"](x) / (K - intercept * debias));
                 }
 
                 weights_tmp.slice(x) = basis_mats(x) * beta(x);
             }
 
             // Smoothing
-            if (param_grid(x, 7) != -datum::inf)
+            if (param_grid["p_lambda"](x) != -datum::inf)
             {
                 weights_tmp.slice(x) = hat_mats(x) * weights_tmp.slice(x);
             }
@@ -318,8 +296,7 @@ Rcpp::List batch_rcpp(
         // Sum past_performance in each slice
         cum_performance = (1 - forget_past_performance) * cum_performance + tmp_performance;
         opt_index(t + 1) = cum_performance.index_min();
-        chosen_params.row(t) = param_grid.row(opt_index(t + 1));
-    }
+    } // t
 
     // Save Weights and Prediction
     weights.row(T) = weights_tmp.slice(opt_index(T));
@@ -367,31 +344,10 @@ Rcpp::List batch_rcpp(
         }
     }
 
-    // Set unused values to NA
-    chosen_params.rows(0, lead_time + initial_window - 1).fill(datum::nan);
-
     // 1-Indexing for R-Output
     opt_index = opt_index + 1;
 
-    Rcpp::CharacterVector param_names =
-        Rcpp::CharacterVector::create("basis_knot_distance",
-                                      "basis_knot_distance_power",
-                                      "basis_deg",
-                                      "forget",
-                                      "threshold_soft",
-                                      "threshold_hard",
-                                      "fixed_share",
-                                      "p_smooth_lambda",
-                                      "p_smooth_knot_distance",
-                                      "p_smooth_knot_distance_power",
-                                      "p_smooth_deg",
-                                      "smooth_diff");
-
     Rcpp::NumericMatrix parametergrid_out = Rcpp::wrap(param_grid);
-    Rcpp::colnames(parametergrid_out) = param_names;
-
-    Rcpp::NumericMatrix chosen_parameters = Rcpp::wrap(chosen_params);
-    Rcpp::colnames(chosen_parameters) = param_names;
 
     Rcpp::List model_data = Rcpp::List::create(
         Rcpp::Named("y") = y,
@@ -423,7 +379,6 @@ Rcpp::List batch_rcpp(
         Rcpp::Named("forecaster_loss") = loss_for,
         Rcpp::Named("experts_loss") = loss_exp,
         Rcpp::Named("past_performance") = past_performance,
-        Rcpp::Named("chosen_parameters") = chosen_parameters,
         Rcpp::Named("parametergrid") = parametergrid_out,
         Rcpp::Named("opt_index") = opt_index,
         Rcpp::Named("basis_matrices") = basis_mats,
@@ -432,4 +387,5 @@ Rcpp::List batch_rcpp(
     out.attr("class") = "batch";
 
     return out;
+    // return 0;
 }

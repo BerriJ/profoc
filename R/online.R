@@ -70,8 +70,6 @@
 #' vector of shares to consider.
 #' @template param_trace
 #'
-#' @template details_online
-#'
 #' @examples
 #' \dontrun{
 #' T <- 50 # Observations
