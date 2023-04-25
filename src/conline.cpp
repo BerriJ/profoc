@@ -86,6 +86,8 @@ void conline::set_grid_objects()
     beta.set_size(X);
     beta0field.set_size(X);
 
+#define vr arma::vectorise
+
     for (unsigned int x = 0; x < X; x++)
     {
         clock.tick("init");
@@ -289,13 +291,13 @@ void conline::learn()
                         }
                         else
                         {
-                            lexp_ext.row(p) = arma::vectorise(loss_array(t).tube(d, p)).t();
+                            lexp_ext.row(p) = vr(loss_array(t).tube(d, p)).t();
                             lexp.row(p) = (1 - params["loss_share"](x)) * lexp_int.row(p) + params["loss_share"](x) * lexp_ext.row(p);
                         }
                     }
                     else
                     {
-                        lexp_ext.row(p) = arma::vectorise(loss_array(t).tube(d, p)).t();
+                        lexp_ext.row(p) = vr(loss_array(t).tube(d, p)).t();
                         lexp.row(p) = lexp_ext.row(p);
                     }
                     lfor(p) = loss(y(t, d),
@@ -349,71 +351,101 @@ void conline::learn()
                 for (unsigned int pr = 0; pr < regret.n_cols; pr++)
                 {
 
-                    vec r = regret.tube(dr, pr);
+// Some aliases for convenience
+#define eta_ eta(x).tube(dr, pr)
+#define V_ V(x).tube(dr, pr)
+#define E_ E(x).tube(dr, pr)
+#define r regret.tube(dr, pr)
+#define R_ R(x).tube(dr, pr)
+#define beta_ beta(x).tube(dr, pr)
+#define forget params["forget_regret"](x)
+#define beta0 beta0field(x).tube(dr, pr)
 
+                    // Check if a valid method was chosen
+                    if (method != "boa" &&
+                        method != "bewa" &&
+                        method != "ewa" &&
+                        method != "ml_poly")
+
+                    {
+                        Rcpp::stop("Choose 'boa', 'bewa', 'ml_poly' or 'ewa' as method.");
+                    }
+
+                    // Learning Rate
                     if (method == "ewa")
                     {
-                        // Update the cumulative regret used by eta
-                        R(x).tube(dr, pr) = vectorise(R(x).tube(dr, pr) * (1 - params["forget_regret"](x))) + r;
-                        eta(x).tube(dr, pr).fill(params["gamma"](x));
-                        beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(params["gamma"](x) * vectorise(R(x).tube(dr, pr)).t());
+                        eta_.fill(params["gamma"](x));
                     }
                     else if (method == "ml_poly")
                     {
-                        // Update the cumulative regret used by ML_Poly
-                        R(x)
-                            .tube(dr, pr) = vectorise(R(x).tube(dr, pr) * (1 - params["forget_regret"](x))) + r;
-
-                        // Update the learning rate
-                        eta(x).tube(dr, pr) = 1 / (1 / vectorise(eta(x).tube(dr, pr)).t() + square(r.t()));
-
-                        beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K * params["gamma"](x) % vectorise(eta(x).tube(dr, pr)).t() % pmax_arma(vectorise(R(x).tube(dr, pr)).t(), exp(-700));
-                        beta(x).tube(dr, pr) /= accu(beta(x).tube(dr, pr));
+                        eta_ = 1 / (1 / vr(eta_) + square(vr(r)));
                     }
                     else if (method == "boa" || method == "bewa")
                     {
-                        V(x).tube(dr, pr) = vectorise(V(x).tube(dr, pr)).t() * (1 - params["forget_regret"](x)) + square(r.t());
+                        V_ = vr(V_) * (1 - forget) + square(vr(r));
 
-                        E(x).tube(dr, pr) = max(vectorise(E(x).tube(dr, pr)).t() * (1 - params["forget_regret"](x)), abs(r.t()));
+                        E_ = max(vr(E_) * (1 - forget), abs(vr(r)));
 
-                        eta(x).tube(dr, pr) =
+                        eta_ =
                             pmin_arma(
-                                min(1 / (2 * vectorise(E(x).tube(dr, pr))),
-                                    sqrt(-log(vectorise(beta0field(x).tube(dr, pr))) / vectorise(V(x).tube(dr, pr)))),
+                                min(1 / (2 * vr(E_)),
+                                    sqrt(-log(vr(beta0)) / vr(V_))),
                                 exp(350));
-
-                        vec r_reg = r - vectorise(eta(x).tube(dr, pr)) % square(r);
-
-                        R(x).tube(dr, pr) *= (1 - params["forget_regret"](x)); // forget
-                        R(x).tube(dr, pr) +=
-                            0.5 * (r_reg + conv_to<colvec>::from(vectorise(eta(x).tube(dr, pr)) % r > 0.5) % (2 * vectorise(E(x).tube(dr, pr))));
-
-                        if (method == "boa")
-                        {
-                            // Wintenberger
-                            beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(log(params["gamma"](x) * vectorise(eta(x).tube(dr, pr)).t()) + params["gamma"](x) * vectorise(eta(x).tube(dr, pr)).t() % vectorise(R(x).tube(dr, pr)).t());
-                        }
-                        else
-                        {
-                            // Gaillard
-                            beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(params["gamma"](x) * vectorise(eta(x).tube(dr, pr)).t() % vectorise(R(x).tube(dr, pr)).t());
-                        }
                     }
-                    else
+
+                    // Regret
+                    if (method == "ewa")
                     {
-                        Rcpp::stop("Choose 'boa', 'bewa', 'ml_poly' or 'ewa' as method.");
+                        R_ = vr(R_ * (1 - forget)) + vr(r);
+                    }
+                    else if (method == "ml_poly")
+                    {
+                        R(x)
+                            .tube(dr, pr) = vr(R_ * (1 - forget)) + vr(r);
+                    }
+                    else if (method == "boa" || method == "bewa")
+                    {
+
+                        vec r_reg = vr(r) - vr(eta_) % square(vr(r));
+
+                        R_ *= (1 - forget); // forget
+                        R_ +=
+                            0.5 * (r_reg + vr(vr(eta_) % vr(r) > 0.5) % (2 * vr(E_)));
+                    }
+
+                    // Weights
+
+                    if (method == "ewa")
+                    {
+                        beta_ = vr(beta0).t() * K % softmax_r(params["gamma"](x) * vr(R_).t());
+                    }
+                    else if (method == "ml_poly")
+                    {
+
+                        beta_ = vr(beta0).t() * K * params["gamma"](x) % vr(eta_).t() % pmax_arma(vr(R_).t(), exp(-700));
+                        beta_ /= accu(beta_);
+                    }
+                    else if (method == "boa")
+                    {
+                        // Wintenberger
+                        beta_ = vr(beta0).t() * K % softmax_r(log(params["gamma"](x) * vr(eta_).t()) + params["gamma"](x) * vr(eta_).t() % vr(R_).t());
+                    }
+                    else if (method == "bewa")
+                    {
+                        // Gaillard
+                        beta_ = vr(beta0).t() * K % softmax_r(params["gamma"](x) * vr(eta_).t() % vr(R_).t());
                     }
 
                     //   // Apply thresholds
                     if (params["soft_threshold"](x) > 0)
                     {
-                        int best_k = beta(x).tube(dr, pr).index_max();
+                        int best_k = beta_.index_max();
 
-                        for (double &e : beta(x).tube(dr, pr))
+                        for (double &e : beta_)
                         {
                             threshold_soft(e, params["soft_threshold"](x));
                         }
-                        if (accu(beta(x).tube(dr, pr)) == 0)
+                        if (accu(beta_) == 0)
                         {
                             beta(x)(dr, pr, best_k) = 1;
                         }
@@ -421,20 +453,20 @@ void conline::learn()
 
                     if (params["hard_threshold"](x) > 0)
                     {
-                        int best_k = beta(x).tube(dr, pr).index_max();
-                        for (double &e : beta(x).tube(dr, pr))
+                        int best_k = beta_.index_max();
+                        for (double &e : beta_)
                         {
                             threshold_hard(e, params["hard_threshold"](x));
                         }
-                        if (accu(beta(x).tube(dr, pr)) == 0)
+                        if (accu(beta_) == 0)
                         {
                             beta(x)(dr, pr, best_k) = 1;
                         }
                     }
 
                     // Add fixed_share
-                    beta(x).tube(dr, pr) =
-                        (1 - params["fixed_share"](x)) * vectorise(beta(x).tube(dr, pr)) +
+                    beta_ =
+                        (1 - params["fixed_share"](x)) * vr(beta_) +
                         (params["fixed_share"](x) / K);
                 } // pr
             }     // dr
