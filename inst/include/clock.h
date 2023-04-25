@@ -57,7 +57,7 @@ namespace Rcpp
             }
         }
 
-        // Ppass data to R
+        // Pass data to R
         void stop()
         {
             DataFrame df = DataFrame::create(
