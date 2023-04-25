@@ -1,6 +1,16 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::depends(RcppProgress)]]
 #include <RcppArmadillo.h>
+
+// forward declarations
+namespace Rcpp
+{
+    template <>
+    std::map<std::string, arma::colvec> as(SEXP matsexp);
+    template <>
+    SEXP wrap(const std::map<std::string, arma::colvec> &mymap);
+}
+
 #include <progress.hpp>
 
 #include <loss.h>
