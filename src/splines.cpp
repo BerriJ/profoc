@@ -66,29 +66,6 @@ arma::mat splines2_basis(const arma::vec &x,
 
 using namespace arma;
 
-// [[Rcpp::export]]
-arma::vec make_knots_dep(const double &kstep, const double &a = 1, const int deg = 3, const bool &even = false)
-{
-    vec x;
-    vec xa;
-    vec xb;
-
-    if (even)
-    {
-        x = arma::linspace((0 - deg * 2 * kstep), 1 - kstep, (1 / (2 * kstep) - 0.5) + deg + 1);
-        xa = sign(x) % pow(arma::abs(x), a) / 2;
-        xb = 1 - reverse(xa.subvec(0, xa.n_elem - 1));
-    }
-    else
-    {
-        x = arma::linspace(0 - deg * 2 * kstep, 1, 1 / (2 * kstep) + deg + 1);
-        xa = sign(x) % pow(arma::abs(x), a) / 2;
-        xb = 1 - reverse(xa.subvec(0, xa.n_elem - 2));
-    }
-
-    return join_cols(xa, xb);
-}
-
 //' @title B-Spline penalty
 //'
 //' @description This function calculates the B-Spline basis penalty.
@@ -246,77 +223,6 @@ arma::mat adjacency_to_incidence(const arma::mat &adj)
     }
 
     return incidence;
-}
-
-// [[Rcpp::export]]
-arma::sp_mat make_hat_matrix(
-    const arma::vec &x,
-    const double &kstep,
-    const double &lambda,
-    const double &bdiff,
-    const int deg,
-    const double &a,
-    const bool &even)
-{
-    mat H;
-
-    if (kstep <= 0.5)
-    {
-        vec knots = make_knots_dep(kstep, a, deg, even);
-        int m = knots.n_elem - 2 * (deg)-2; // Number of inner knots
-
-        mat B = splines2_basis(x, knots, deg, false, true);
-
-        mat P(m + deg + 1, m + deg + 1);
-
-        // Field of penalties up to second differences
-        arma::field<arma::sp_mat> Ps = penalty(knots, deg + 1, 2);
-
-        if (deg > 1)
-        {
-            P = (2 - bdiff) * Ps(0) + (bdiff - 1) * Ps(1);
-        }
-        else
-        {
-            P = Ps(0);
-        }
-
-        H = B * arma::pinv(B.t() * B + lambda * P) * B.t();
-        H.clean(1E-10);
-    }
-    else
-    {
-        mat identity(x.n_elem, x.n_elem, fill::eye);
-        H = identity;
-    }
-
-    arma::sp_mat sp_H = sp_mat(H); // Return hat matrix
-    return sp_H;
-}
-
-// [[Rcpp::export]]
-arma::sp_mat make_basis_matrix(const arma::vec &x, const double &kstep, const int deg, const double &a, const bool &even)
-{
-    mat B;
-
-    // Will be passed to make_hat_matrix
-    if (kstep <= 0.5)
-    {
-        vec knots = make_knots_dep(kstep, a, deg, even);
-        B = splines2_basis(x, knots, deg, false, true);
-        // Remove columns without contribution
-        B = B.cols(find(sum(B) >= 1E-6));
-        B.clean(1E-10);
-    }
-    else
-    {
-        mat B_(x.n_elem, 1, fill::ones);
-        B = B_;
-    }
-
-    sp_mat out(B);
-
-    return out;
 }
 
 // [[Rcpp::export]]

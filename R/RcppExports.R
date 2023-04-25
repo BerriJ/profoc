@@ -103,10 +103,6 @@ splines2_basis <- function(x, knots, deg, periodic = FALSE, intercept = TRUE) {
     .Call(`_profoc_splines2_basis`, x, knots, deg, periodic, intercept)
 }
 
-make_knots_dep <- function(kstep, a = 1, deg = 3L, even = FALSE) {
-    .Call(`_profoc_make_knots_dep`, kstep, a, deg, even)
-}
-
 #' @title B-Spline penalty
 #'
 #' @description This function calculates the B-Spline basis penalty.
@@ -165,14 +161,6 @@ periodic_adjacency <- function(size) {
 
 adjacency_to_incidence <- function(adj) {
     .Call(`_profoc_adjacency_to_incidence`, adj)
-}
-
-make_hat_matrix <- function(x, kstep, lambda, bdiff, deg, a, even) {
-    .Call(`_profoc_make_hat_matrix`, x, kstep, lambda, bdiff, deg, a, even)
-}
-
-make_basis_matrix <- function(x, kstep, deg, a, even) {
-    .Call(`_profoc_make_basis_matrix`, x, kstep, deg, a, even)
 }
 
 make_basis_matrix2 <- function(x, knots, deg, periodic = FALSE) {
