@@ -100,7 +100,7 @@ void conline::set_grid_objects()
 
         arma::cube eta_(Dr, Pr, K, fill::zeros);
         eta(x) = eta_;
-        if (method == "ml_poly")
+        if (method == "ml_poly" || method == "potential")
         {
             eta_.fill(exp(350));
             eta(x) = eta_;
@@ -365,14 +365,20 @@ void conline::learn()
                     if (method != "boa" &&
                         method != "bewa" &&
                         method != "ewa" &&
-                        method != "ml_poly")
+                        method != "ml_poly" &&
+                        method != "potential")
 
                     {
                         Rcpp::stop("Choose 'boa', 'bewa', 'ml_poly' or 'ewa' as method.");
                     }
 
                     // Learning Rate
-                    if (method == "ewa")
+                    if (method == "potential")
+                    {
+                        // TODO
+                        eta_ = 1 / (1 / vr(eta_) + square(vr(r)));
+                    }
+                    else if (method == "ewa")
                     {
                         eta_.fill(params["gamma"](x));
                     }
@@ -394,14 +400,17 @@ void conline::learn()
                     }
 
                     // Regret
-                    if (method == "ewa")
+                    if (method == "potential")
+                    {
+                        R_ = vr(R_ * (1 - forget)) + vr(r);
+                    }
+                    else if (method == "ewa")
                     {
                         R_ = vr(R_ * (1 - forget)) + vr(r);
                     }
                     else if (method == "ml_poly")
                     {
-                        R(x)
-                            .tube(dr, pr) = vr(R_ * (1 - forget)) + vr(r);
+                        R_ = vr(R_ * (1 - forget)) + vr(r);
                     }
                     else if (method == "boa" || method == "bewa")
                     {
@@ -414,8 +423,15 @@ void conline::learn()
                     }
 
                     // Weights
+                    if (method == "potential")
+                    {
+                        // TODO
+                        beta_ = vr(eta_).t() % vr(R_).t();
+                        // beta_ = vr(R_).t();
 
-                    if (method == "ewa")
+                        // beta_ /= accu(beta_);
+                    }
+                    else if (method == "ewa")
                     {
                         beta_ = vr(beta0).t() * K % softmax_r(params["gamma"](x) * vr(R_).t());
                     }
@@ -485,19 +501,22 @@ void conline::learn()
                 clock.tock("smoothing");
             }
 
-#pragma omp parallel for
             //  Enshure that constraints hold
-            for (unsigned int p = 0; p < P; p++)
+            if (method != "potential")
             {
-                for (unsigned int d = 0; d < D; d++)
+#pragma omp parallel for
+                for (unsigned int p = 0; p < P; p++)
                 {
-                    // Positivity
-                    weights_tmp(x)(span(d), span(p), span::all) =
-                        pmax_arma(weights_tmp(x)(span(d), span(p), span::all), exp(-700));
+                    for (unsigned int d = 0; d < D; d++)
+                    {
+                        // Positivity
+                        weights_tmp(x)(span(d), span(p), span::all) =
+                            pmax_arma(weights_tmp(x)(span(d), span(p), span::all), exp(-700));
 
-                    // // Affinity
-                    weights_tmp(x)(span(d), span(p), span::all) /=
-                        accu(weights_tmp(x)(span(d), span(p), span::all));
+                        // // Affinity
+                        weights_tmp(x)(span(d), span(p), span::all) /=
+                            accu(weights_tmp(x)(span(d), span(p), span::all));
+                    }
                 }
             }
             if (save_past_performance)

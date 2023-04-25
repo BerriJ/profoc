@@ -22,3 +22,11 @@ std::set<uint64_t> sample_int(
 
     return set;
 }
+
+// [[Rcpp::export]]
+arma::vec abstest(
+    arma::vec x)
+{
+
+    return arma::abs(x);
+}

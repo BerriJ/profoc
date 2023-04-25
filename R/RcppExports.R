@@ -25,6 +25,10 @@ sample_int <- function(N, size, seed) {
     .Call(`_profoc_sample_int`, N, size, seed)
 }
 
+abstest <- function(x) {
+    .Call(`_profoc_abstest`, x)
+}
+
 optimize_weights <- function(truth, experts, affine = FALSE, positive = FALSE, intercept = FALSE, debias = TRUE, loss_function = "quantile", tau = 0.5, forget = 0, loss_scaling = 1) {
     .Call(`_profoc_optimize_weights`, truth, experts, affine, positive, intercept, debias, loss_function, tau, forget, loss_scaling)
 }

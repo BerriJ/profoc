@@ -195,7 +195,27 @@ online <- function(y, experts, tau,
     names$experts <- list(NULL)
 
     # Prepare experts
-    if (length(edim) == 3) {
+    if (length(edim) == 2) {
+        # Univariate Point Predictions
+        enames <- dimnames(experts)[[2]]
+        if (is.null(enames)) {
+            enames <- paste0("E", 1:edim[2])
+        }
+        dnames <- "D1"
+        experts <- array(
+            unlist(experts),
+            dim = c(edim[1], 1, 1, edim[2])
+        )
+        experts <- lapply(seq_len(edim[1]),
+            asub,
+            x = experts,
+            dims = 1,
+            drop = FALSE
+        )
+        experts <- lapply(experts, adrop, drop = 1)
+        dim(experts) <- c(edim[1], 1)
+        model_instance$experts <- experts
+    } else if (length(edim) == 3) {
         enames <- dimnames(experts)[[3]]
         if (is.null(enames)) {
             enames <- paste0("E", 1:edim[3])
@@ -243,6 +263,7 @@ online <- function(y, experts, tau,
         experts <- array_to_list(experts)
         model_instance$experts <- experts
     }
+
     names$experts[[2]] <- dnames
     names$experts[[4]] <- enames
 
