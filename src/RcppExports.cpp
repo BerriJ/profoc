@@ -223,9 +223,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// make_basis_matrix2
-arma::sp_mat make_basis_matrix2(const arma::vec& x, const arma::vec& knots, const unsigned int deg, const bool& periodic);
-RcppExport SEXP _profoc_make_basis_matrix2(SEXP xSEXP, SEXP knotsSEXP, SEXP degSEXP, SEXP periodicSEXP) {
+// make_basis_matrix
+arma::sp_mat make_basis_matrix(const arma::vec& x, const arma::vec& knots, const unsigned int deg, const bool& periodic);
+RcppExport SEXP _profoc_make_basis_matrix(SEXP xSEXP, SEXP knotsSEXP, SEXP degSEXP, SEXP periodicSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -233,13 +233,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type knots(knotsSEXP);
     Rcpp::traits::input_parameter< const unsigned int >::type deg(degSEXP);
     Rcpp::traits::input_parameter< const bool& >::type periodic(periodicSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_basis_matrix2(x, knots, deg, periodic));
+    rcpp_result_gen = Rcpp::wrap(make_basis_matrix(x, knots, deg, periodic));
     return rcpp_result_gen;
 END_RCPP
 }
-// make_hat_matrix2
-arma::sp_mat make_hat_matrix2(const arma::vec& x, const arma::vec& knots, const int deg, const double& bdiff, const double& lambda, const bool& periodic);
-RcppExport SEXP _profoc_make_hat_matrix2(SEXP xSEXP, SEXP knotsSEXP, SEXP degSEXP, SEXP bdiffSEXP, SEXP lambdaSEXP, SEXP periodicSEXP) {
+// make_hat_matrix
+arma::sp_mat make_hat_matrix(const arma::vec& x, const arma::vec& knots, const int deg, const double& bdiff, const double& lambda, const bool& periodic);
+RcppExport SEXP _profoc_make_hat_matrix(SEXP xSEXP, SEXP knotsSEXP, SEXP degSEXP, SEXP bdiffSEXP, SEXP lambdaSEXP, SEXP periodicSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -249,7 +249,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type bdiff(bdiffSEXP);
     Rcpp::traits::input_parameter< const double& >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< const bool& >::type periodic(periodicSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_hat_matrix2(x, knots, deg, bdiff, lambda, periodic));
+    rcpp_result_gen = Rcpp::wrap(make_hat_matrix(x, knots, deg, bdiff, lambda, periodic));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -270,8 +270,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_penalty", (DL_FUNC) &_profoc_penalty, 4},
     {"_profoc_periodic_adjacency", (DL_FUNC) &_profoc_periodic_adjacency, 1},
     {"_profoc_adjacency_to_incidence", (DL_FUNC) &_profoc_adjacency_to_incidence, 1},
-    {"_profoc_make_basis_matrix2", (DL_FUNC) &_profoc_make_basis_matrix2, 4},
-    {"_profoc_make_hat_matrix2", (DL_FUNC) &_profoc_make_hat_matrix2, 6},
+    {"_profoc_make_basis_matrix", (DL_FUNC) &_profoc_make_basis_matrix, 4},
+    {"_profoc_make_hat_matrix", (DL_FUNC) &_profoc_make_hat_matrix, 6},
     {"_rcpp_module_boot_conlineEx", (DL_FUNC) &_rcpp_module_boot_conlineEx, 0},
     {NULL, NULL, 0}
 };

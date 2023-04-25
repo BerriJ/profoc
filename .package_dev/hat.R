@@ -13,7 +13,7 @@ knots <- make_knots(n_inner, deg = deg, mu = mu)
 
 # B <- splines2_basis(x, knots, deg, intercept = TRUE, periodic = TRUE)
 
-H <- as.matrix(make_hat_matrix2(x, knots, deg, 1, lambda = 5, periodic = TRUE))
+H <- as.matrix(make_hat_matrix(x, knots, deg, 1, lambda = 5, periodic = TRUE))
 
 image(H)
 
@@ -39,7 +39,7 @@ for (i in 2:4) {
         deg <- order - 1
         mu <- m
         knots <- make_knots(n_inner, mu = mu, deg = deg)
-        P <- as.matrix(make_hat_matrix2(x, knots, deg, 1, lambda = lambda, periodic = TRUE))
+        P <- as.matrix(make_hat_matrix(x, knots, deg, 1, lambda = lambda, periodic = TRUE))
         image(P, main = paste("Deg=", deg, ", mu=", mu))
     }
 }
