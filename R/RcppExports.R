@@ -5,6 +5,14 @@ batch_rcpp <- function(y, experts, tau, affine, positive, intercept, debias, lea
     .Call(`_profoc_batch_rcpp`, y, experts, tau, affine, positive, intercept, debias, lead_time, initial_window, rolling_window, loss_function, loss_parameter, qw_crps, param_grid, knots, forget_past_performance, allow_quantile_crossing, trace)
 }
 
+test_class_input <- function(obj) {
+    .Call(`_profoc_test_class_input`, obj)
+}
+
+test_class_output <- function() {
+    .Call(`_profoc_test_class_output`)
+}
+
 loss <- function(y, x, pred = 0, method = "quantile", tau = 0.5, a = 1, gradient = TRUE) {
     .Call(`_profoc_loss`, y, x, pred, method, tau, a, gradient)
 }
