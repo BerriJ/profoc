@@ -163,11 +163,11 @@ adjacency_to_incidence <- function(adj) {
     .Call(`_profoc_adjacency_to_incidence`, adj)
 }
 
-make_basis_matrix2 <- function(x, knots, deg, periodic = FALSE) {
-    .Call(`_profoc_make_basis_matrix2`, x, knots, deg, periodic)
+make_basis_matrix <- function(x, knots, deg, periodic = FALSE) {
+    .Call(`_profoc_make_basis_matrix`, x, knots, deg, periodic)
 }
 
-make_hat_matrix2 <- function(x, knots, deg, bdiff, lambda, periodic) {
-    .Call(`_profoc_make_hat_matrix2`, x, knots, deg, bdiff, lambda, periodic)
+make_hat_matrix <- function(x, knots, deg, bdiff, lambda, periodic) {
+    .Call(`_profoc_make_hat_matrix`, x, knots, deg, bdiff, lambda, periodic)
 }
 

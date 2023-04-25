@@ -226,10 +226,10 @@ arma::mat adjacency_to_incidence(const arma::mat &adj)
 }
 
 // [[Rcpp::export]]
-arma::sp_mat make_basis_matrix2(const arma::vec &x,
-                                const arma::vec &knots,
-                                const unsigned int deg,
-                                const bool &periodic = false)
+arma::sp_mat make_basis_matrix(const arma::vec &x,
+                               const arma::vec &knots,
+                               const unsigned int deg,
+                               const bool &periodic = false)
 {
     mat B;
 
@@ -252,7 +252,7 @@ arma::sp_mat make_basis_matrix2(const arma::vec &x,
 }
 
 // [[Rcpp::export]]
-arma::sp_mat make_hat_matrix2(
+arma::sp_mat make_hat_matrix(
     const arma::vec &x,
     const arma::vec &knots,
     const int deg,

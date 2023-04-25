@@ -113,22 +113,22 @@ Rcpp::List batch_rcpp(
         // Init basis matrix field
         for (unsigned int x = 0; x < X; x++)
         {
-            basis_mats(x) = make_basis_matrix2(spline_basis_x,
-                                               knots(x, 0),
-                                               param_grid["b_deg"](x),
-                                               param_grid["p_periodic"](x));
+            basis_mats(x) = make_basis_matrix(spline_basis_x,
+                                              knots(x, 0),
+                                              param_grid["b_deg"](x),
+                                              param_grid["p_periodic"](x));
 
             beta(x) = (weights_tmp.slice(x).t() * pinv(mat(basis_mats(x))).t()).t();
 
             R_CheckUserInterrupt();
 
             if (param_grid["p_lambda"](x) != -datum::inf)
-                hat_mats(x) = make_hat_matrix2(spline_basis_x,
-                                               knots(x, 1),
-                                               param_grid["p_deg"](x),
-                                               param_grid["p_ndiff"](x),
-                                               param_grid["p_lambda"](x),
-                                               param_grid["p_periodic"](x));
+                hat_mats(x) = make_hat_matrix(spline_basis_x,
+                                              knots(x, 1),
+                                              param_grid["p_deg"](x),
+                                              param_grid["p_ndiff"](x),
+                                              param_grid["p_lambda"](x),
+                                              param_grid["p_periodic"](x));
 
             prog.increment(); // Update progress
         }
