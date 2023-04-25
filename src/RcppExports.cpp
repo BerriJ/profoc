@@ -41,6 +41,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// test_class_input
+bool test_class_input(conline& obj);
+RcppExport SEXP _profoc_test_class_input(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< conline& >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(test_class_input(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
+// test_class_output
+conline test_class_output();
+RcppExport SEXP _profoc_test_class_output() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(test_class_output());
+    return rcpp_result_gen;
+END_RCPP
+}
 // loss
 double loss(const double& y, const double& x, const double& pred, const std::string method, const double& tau, const double& a, const bool& gradient);
 RcppExport SEXP _profoc_loss(SEXP ySEXP, SEXP xSEXP, SEXP predSEXP, SEXP methodSEXP, SEXP tauSEXP, SEXP aSEXP, SEXP gradientSEXP) {
@@ -283,6 +304,8 @@ RcppExport SEXP _rcpp_module_boot_conlineEx();
 
 static const R_CallMethodDef CallEntries[] = {
     {"_profoc_batch_rcpp", (DL_FUNC) &_profoc_batch_rcpp, 18},
+    {"_profoc_test_class_input", (DL_FUNC) &_profoc_test_class_input, 1},
+    {"_profoc_test_class_output", (DL_FUNC) &_profoc_test_class_output, 0},
     {"_profoc_loss", (DL_FUNC) &_profoc_loss, 7},
     {"_profoc_loss_grad_wrt_w", (DL_FUNC) &_profoc_loss_grad_wrt_w, 7},
     {"_profoc_sample_int", (DL_FUNC) &_profoc_sample_int, 3},
