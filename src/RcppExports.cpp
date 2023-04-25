@@ -187,20 +187,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// make_knots_dep
-arma::vec make_knots_dep(const double& kstep, const double& a, const int deg, const bool& even);
-RcppExport SEXP _profoc_make_knots_dep(SEXP kstepSEXP, SEXP aSEXP, SEXP degSEXP, SEXP evenSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const double& >::type kstep(kstepSEXP);
-    Rcpp::traits::input_parameter< const double& >::type a(aSEXP);
-    Rcpp::traits::input_parameter< const int >::type deg(degSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type even(evenSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_knots_dep(kstep, a, deg, even));
-    return rcpp_result_gen;
-END_RCPP
-}
 // penalty
 arma::field<arma::sp_mat> penalty(const arma::vec& knots, const unsigned int& order, const bool& periodic, const unsigned int& max_diff);
 RcppExport SEXP _profoc_penalty(SEXP knotsSEXP, SEXP orderSEXP, SEXP periodicSEXP, SEXP max_diffSEXP) {
@@ -234,38 +220,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type adj(adjSEXP);
     rcpp_result_gen = Rcpp::wrap(adjacency_to_incidence(adj));
-    return rcpp_result_gen;
-END_RCPP
-}
-// make_hat_matrix
-arma::sp_mat make_hat_matrix(const arma::vec& x, const double& kstep, const double& lambda, const double& bdiff, const int deg, const double& a, const bool& even);
-RcppExport SEXP _profoc_make_hat_matrix(SEXP xSEXP, SEXP kstepSEXP, SEXP lambdaSEXP, SEXP bdiffSEXP, SEXP degSEXP, SEXP aSEXP, SEXP evenSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const double& >::type kstep(kstepSEXP);
-    Rcpp::traits::input_parameter< const double& >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< const double& >::type bdiff(bdiffSEXP);
-    Rcpp::traits::input_parameter< const int >::type deg(degSEXP);
-    Rcpp::traits::input_parameter< const double& >::type a(aSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type even(evenSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_hat_matrix(x, kstep, lambda, bdiff, deg, a, even));
-    return rcpp_result_gen;
-END_RCPP
-}
-// make_basis_matrix
-arma::sp_mat make_basis_matrix(const arma::vec& x, const double& kstep, const int deg, const double& a, const bool& even);
-RcppExport SEXP _profoc_make_basis_matrix(SEXP xSEXP, SEXP kstepSEXP, SEXP degSEXP, SEXP aSEXP, SEXP evenSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const double& >::type kstep(kstepSEXP);
-    Rcpp::traits::input_parameter< const int >::type deg(degSEXP);
-    Rcpp::traits::input_parameter< const double& >::type a(aSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type even(evenSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_basis_matrix(x, kstep, deg, a, even));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -313,12 +267,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_profoc_optimize_betas", (DL_FUNC) &_profoc_optimize_betas, 13},
     {"_profoc_oracle", (DL_FUNC) &_profoc_oracle, 10},
     {"_profoc_splines2_basis", (DL_FUNC) &_profoc_splines2_basis, 5},
-    {"_profoc_make_knots_dep", (DL_FUNC) &_profoc_make_knots_dep, 4},
     {"_profoc_penalty", (DL_FUNC) &_profoc_penalty, 4},
     {"_profoc_periodic_adjacency", (DL_FUNC) &_profoc_periodic_adjacency, 1},
     {"_profoc_adjacency_to_incidence", (DL_FUNC) &_profoc_adjacency_to_incidence, 1},
-    {"_profoc_make_hat_matrix", (DL_FUNC) &_profoc_make_hat_matrix, 7},
-    {"_profoc_make_basis_matrix", (DL_FUNC) &_profoc_make_basis_matrix, 5},
     {"_profoc_make_basis_matrix2", (DL_FUNC) &_profoc_make_basis_matrix2, 4},
     {"_profoc_make_hat_matrix2", (DL_FUNC) &_profoc_make_hat_matrix2, 6},
     {"_rcpp_module_boot_conlineEx", (DL_FUNC) &_rcpp_module_boot_conlineEx, 0},
