@@ -20,7 +20,7 @@ calculating a one-step-ahead forecast.
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">profoc</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.2.0</span>
       </span>
     </div>
 
@@ -73,18 +73,14 @@ calculating a one-step-ahead forecast.</p>
 <span>  loss_function <span class="op">=</span> <span class="st">"quantile"</span>,</span>
 <span>  loss_parameter <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  qw_crps <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  basis_knot_distance <span class="op">=</span> <span class="fl">1</span><span class="op">/</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">experts</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>  basis_knot_distance_power <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  basis_deg <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  b_smooth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>knots <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">tau</span><span class="op">)</span>, mu <span class="op">=</span> <span class="fl">0.5</span>, sigma <span class="op">=</span> <span class="fl">1</span>, nonc <span class="op">=</span> <span class="fl">0</span>, tailweight <span class="op">=</span> <span class="fl">1</span>, deg</span>
+<span>    <span class="op">=</span> <span class="fl">1</span>, periodic <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>  p_smooth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>knots <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">tau</span><span class="op">)</span>, mu <span class="op">=</span> <span class="fl">0.5</span>, sigma <span class="op">=</span> <span class="fl">1</span>, nonc <span class="op">=</span> <span class="fl">0</span>, tailweight <span class="op">=</span> <span class="fl">1</span>, deg</span>
+<span>    <span class="op">=</span> <span class="fl">1</span>, ndiff <span class="op">=</span> <span class="fl">1.5</span>, lambda <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span>, periodic <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
 <span>  forget <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  soft_threshold <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span>,</span>
 <span>  hard_threshold <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span>,</span>
 <span>  fixed_share <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  p_smooth_lambda <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span>,</span>
-<span>  p_smooth_knot_distance <span class="op">=</span> <span class="va">basis_knot_distance</span>,</span>
-<span>  p_smooth_knot_distance_power <span class="op">=</span> <span class="va">basis_knot_distance_power</span>,</span>
-<span>  p_smooth_deg <span class="op">=</span> <span class="va">basis_deg</span>,</span>
-<span>  p_smooth_ndiff <span class="op">=</span> <span class="fl">1.5</span>,</span>
 <span>  parametergrid_max_combinations <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  parametergrid <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  forget_past_performance <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -162,21 +158,16 @@ the quantile weighted CRPS (TRUE) should be minimized.
 Defaults to FALSE. Which corresponds to Berrisch &amp; Ziel (2021)</p></dd>
 
 
-<dt>basis_knot_distance</dt>
-<dd><p>determines the distance of the knots in the probability
-basis. Defaults to <code>1 / (dim(experts)[2] + 1)</code>.</p></dd>
+<dt>b_smooth</dt>
+<dd><p>A named list determining how the B-Spline matrices for
+probabilistic smoothing are created. Default corresponds to no probabilistic
+smoothing. See details.</p></dd>
 
 
-<dt>basis_knot_distance_power</dt>
-<dd><p>Parameter which defines the symmetry of the
-basis reducing the probability space. Defaults to 1, which corresponds to
-equidistant knots. Values less than 1 create more knots in the center, while
-values above 1 concentrate more knots in the tails.</p></dd>
-
-
-<dt>basis_deg</dt>
-<dd><p>Degree of the basis reducing the probability space.
-Defaults to 1.</p></dd>
+<dt>p_smooth</dt>
+<dd><p>A named list determining how the hat matrices  for
+probabilistic P-Spline smoothing are created. Default corresponds to
+no smoothing. See details.</p></dd>
 
 
 <dt>forget</dt>
@@ -206,34 +197,6 @@ leads to the 'follow the leader' strategy if method is set to "ewa".</p></dd>
 <dt>fixed_share</dt>
 <dd><p>Amount of fixed share to be added to the weights.
 Defaults to 0. 1 leads to uniform weights.</p></dd>
-
-
-<dt>p_smooth_lambda</dt>
-<dd><p>Penalization parameter used in the smoothing step.
--Inf causes the smoothing step to be skipped (default).</p></dd>
-
-
-<dt>p_smooth_knot_distance</dt>
-<dd><p>determines the distance of the knots. Defaults to
-the value of basis_knot_distance.
-Corresponds to the grid steps when knot_distance_power = 1 (the default).</p></dd>
-
-
-<dt>p_smooth_knot_distance_power</dt>
-<dd><p>Parameter which defines the symmetry of
-the P-Spline basis. Takes the value of basis_knot_distance_power if unspecified.</p></dd>
-
-
-<dt>p_smooth_deg</dt>
-<dd><p>Degree of the B-Spine basis functions.
-Defaults to the value of basis_deg.</p></dd>
-
-
-<dt>p_smooth_ndiff</dt>
-<dd><p>Degree of the differencing operator in the smoothing equation.
-1.5 (default) leads to shrinkage towards a constant. Can take values from 1 to 2.
-If a value in between is used, a weighted sum of the first and second
-differentiation matrix is calculated.</p></dd>
 
 
 <dt>parametergrid_max_combinations</dt>
@@ -275,6 +238,33 @@ combination. Defaults to 0.</p></dd>
 It is possible to impose a convexity constraint to the
 weights by setting affine and positive to TRUE.</p>
     </div>
+    <div id="details">
+    <h2>Details</h2>
+    <p>batch selects various parameters automatically based on
+the past loss. For this, the parameters smoothing parameters (see below)
+can be specified as numeric vectors containing values to consider.</p>
+<p>This package offers two options for smoothing (Basis Smoothing
+and P-Splines).
+Parameters <code>b_smooth</code> and <code>p_smooth</code> take named lists to
+create the corresponding basis and hat matrices. The arguments are:
+<code>knots</code> which determines the number of knots to be created, <code>mu</code>,
+<code>sigma</code>, <code>sigma</code>, <code>nonc</code>, <code>tailweight</code> correspond to
+to parameters of the beta distribution, which defines how the knots are
+#distributed (see <code><a href="make_knots.html">?make_knots</a></code> for details) the defaults will create
+an equidistant knot sequence, <code>deg</code> sets the degree of the spline
+function and also influences how many outer knots will be used and
+<code>periodic</code> which determines whether the spline basis will be periodic.
+It's possible to provide vectors of values for each of these parameters.
+In that case, all parameter combinations will be used to create the
+respective matrices and all candidates will be considered during
+online-learning. In addition to the inputs mentioned
+before  <code>p_smooth</code> requires <code>ndiff</code> which determines the degree
+of differentiation applied to the basis-matrix (can take any value
+between and including 1 and 2), <code>lambda</code> which determines the degree
+of penalization applied to the smoothing, higher values will give
+smoother weight functions. As for the other parameters, it is possible
+to provide multiple values.</p>
+    </div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
@@ -294,7 +284,7 @@ weights by setting affine and positive to TRUE.</p>
 <span class="r-in"><span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu">batch</span><span class="op">(</span></span></span>
 <span class="r-in"><span>    y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>    experts <span class="op">=</span> <span class="va">experts</span>,</span></span>
-<span class="r-in"><span>    p_smooth_lambda <span class="op">=</span> <span class="fl">10</span></span></span>
+<span class="r-in"><span>    p_smooth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>lambda <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span></span>

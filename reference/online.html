@@ -19,7 +19,7 @@ using CRPS Learning.
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">profoc</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.2.0</span>
       </span>
     </div>
 
@@ -66,12 +66,14 @@ using CRPS Learning.</p>
 <span>  loss_parameter <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  loss_gradient <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"bewa"</span>,</span>
-<span>  b_smooth_pr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>knots <span class="op">=</span> <span class="va">P</span>, mu <span class="op">=</span> <span class="fl">0.5</span>, sigma <span class="op">=</span> <span class="fl">1</span>, nonc <span class="op">=</span> <span class="fl">0</span>, tailweight <span class="op">=</span> <span class="fl">1</span>, deg <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  b_smooth_pr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>knots <span class="op">=</span> <span class="va">P</span>, mu <span class="op">=</span> <span class="fl">0.5</span>, sigma <span class="op">=</span> <span class="fl">1</span>, nonc <span class="op">=</span> <span class="fl">0</span>, tailweight <span class="op">=</span> <span class="fl">1</span>, deg <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>    periodic <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
 <span>  p_smooth_pr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>knots <span class="op">=</span> <span class="va">P</span>, mu <span class="op">=</span> <span class="fl">0.5</span>, sigma <span class="op">=</span> <span class="fl">1</span>, nonc <span class="op">=</span> <span class="fl">0</span>, tailweight <span class="op">=</span> <span class="fl">1</span>, deg <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>    ndiff <span class="op">=</span> <span class="fl">1.5</span>, lambda <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span><span class="op">)</span>,</span>
-<span>  b_smooth_mv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>knots <span class="op">=</span> <span class="va">D</span>, mu <span class="op">=</span> <span class="fl">0.5</span>, sigma <span class="op">=</span> <span class="fl">1</span>, nonc <span class="op">=</span> <span class="fl">0</span>, tailweight <span class="op">=</span> <span class="fl">1</span>, deg <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>    ndiff <span class="op">=</span> <span class="fl">1.5</span>, lambda <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span>, periodic <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>  b_smooth_mv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>knots <span class="op">=</span> <span class="va">D</span>, mu <span class="op">=</span> <span class="fl">0.5</span>, sigma <span class="op">=</span> <span class="fl">1</span>, nonc <span class="op">=</span> <span class="fl">0</span>, tailweight <span class="op">=</span> <span class="fl">1</span>, deg <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>    periodic <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
 <span>  p_smooth_mv <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>knots <span class="op">=</span> <span class="va">D</span>, mu <span class="op">=</span> <span class="fl">0.5</span>, sigma <span class="op">=</span> <span class="fl">1</span>, nonc <span class="op">=</span> <span class="fl">0</span>, tailweight <span class="op">=</span> <span class="fl">1</span>, deg <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>    ndiff <span class="op">=</span> <span class="fl">1.5</span>, lambda <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span><span class="op">)</span>,</span>
+<span>    ndiff <span class="op">=</span> <span class="fl">1.5</span>, lambda <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span>, periodic <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
 <span>  forget_regret <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  soft_threshold <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span>,</span>
 <span>  hard_threshold <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span>,</span>
@@ -208,7 +210,7 @@ The "general" matrix must contain 11 named columns:
 "gamma", "loss_share", "regret_share".
 The matrices determining the basis smoothing (b_smooth_pr, b_smooth_mv) must
 contain the following named columns:
-n, mu, sigma, nonc, tailw, deg.
+n, mu, sigma, nonc, tailw, deg, periodic.
 In addition to the columns of the basis smoothing matrices, the matrices
 determining the penalized smoothing (p_smooth_pr, p_smooth_mv) must contain
 the following columns:
@@ -283,13 +285,14 @@ containing values to consider.</p>
 and P-Splines). Both options can be used to smooth the weights
 over dimension D (covariates) or P (quantiles) or both.
 Parameters <code>b_smooth_pr</code> and <code>b_smooth_mv</code> take named lists to
-create the corresponding basis matrices. The arguments include are:
+create the corresponding basis matrices. The arguments are:
 <code>knots</code> which determines the number of knots to be created, <code>mu</code>,
 <code>sigma</code>, <code>sigma</code>, <code>nonc</code>, <code>tailweight</code> correspond to
 to parameters of the beta distribution, which defines how the knots are
-#distributed (see <code>?make_knots2</code> for details) the defaults will create
+#distributed (see <code><a href="make_knots.html">?make_knots</a></code> for details) the defaults will create
 an equidistant knot sequence, <code>deg</code> sets the degree of the spline
-function and also influences how many outer knots will be used.
+function and also influences how many outer knots will be used and
+<code>periodic</code> which determines whether the spline basis will be periodic.
 It's possible to provide vectors of values for each of these parameters.
 In that case, all parameter combinations will be used to create the
 respective matrices and all candidates will be considered during

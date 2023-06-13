@@ -6,7 +6,9 @@ doi:10.48550/arXiv.2201.06808
 .
 For equidistant knots it coincides with the usual penalty based
 on the identitiy. For non-equidistant knots it is a weighted penalty
-with respect to the knot distances.'><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
+with respect to the knot distances.
+In addition to the above, we added the possibility to calculate
+periodic penalties which are based on the periodic differencing matrices.'><!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]--></head><body data-spy="scroll" data-target="#toc">
@@ -24,7 +26,7 @@ with respect to the knot distances.'><!-- mathjax --><script src="https://cdnjs.
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">profoc</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.2.0</span>
       </span>
     </div>
 
@@ -63,11 +65,13 @@ Cao, 2022 "General P-Splines for Non-Uniform B-Splines"
 .
 For equidistant knots it coincides with the usual penalty based
 on the identitiy. For non-equidistant knots it is a weighted penalty
-with respect to the knot distances.</p>
+with respect to the knot distances.
+In addition to the above, we added the possibility to calculate
+periodic penalties which are based on the periodic differencing matrices.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">penalty</span><span class="op">(</span><span class="va">knots</span>, <span class="va">order</span>, max_diff <span class="op">=</span> <span class="fl">999L</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">penalty</span><span class="op">(</span><span class="va">knots</span>, <span class="va">order</span>, periodic <span class="op">=</span> <span class="cn">FALSE</span>, max_diff <span class="op">=</span> <span class="fl">999L</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -78,6 +82,10 @@ with respect to the knot distances.</p>
 
 <dt>order</dt>
 <dd><p>Order of the Basis (degree + 1).</p></dd>
+
+
+<dt>periodic</dt>
+<dd><p>Whether the penalties should be periodic or not.</p></dd>
 
 
 <dt>max_diff</dt>
@@ -94,14 +102,14 @@ with respect to the knot distances.</p>
     <div id="ref-examples">
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="co"># Equidisan knots with order 2</span></span></span>
+<span class="r-in"><span><span class="co"># Equidistant knots with order 2</span></span></span>
 <span class="r-in"><span><span class="va">knots</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">P</span> <span class="op">&lt;-</span> <span class="fu">penalty</span><span class="op">(</span><span class="va">knots</span>, order <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">P</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="co"># First differences</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Non-equidistant knots</span></span></span>
+<span class="r-in"><span><span class="co"># Non equidistant knots</span></span></span>
 <span class="r-in"><span><span class="va">knots</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">3</span>, <span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">P</span> <span class="op">&lt;-</span> <span class="fu">penalty</span><span class="op">(</span><span class="va">knots</span>, order <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></span>
@@ -109,6 +117,15 @@ with respect to the knot distances.</p>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">P</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="co"># First differences</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">P</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="co"># Second differences</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">P</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="co"># Third differences</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Periodic penalty for equidistant knots</span></span></span>
+<span class="r-in"><span><span class="va">oder</span> <span class="op">&lt;-</span> <span class="fl">4</span></span></span>
+<span class="r-in"><span><span class="va">deg</span> <span class="op">&lt;-</span> <span class="va">order</span> <span class="op">-</span> <span class="fl">1</span></span></span>
+<span class="r-in"><span><span class="va">knots</span> <span class="op">&lt;-</span> <span class="fl">1</span><span class="op">:</span><span class="fl">15</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">penalty</span><span class="op">(</span><span class="va">knots</span>, order <span class="op">=</span> <span class="va">order</span>, periodic <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="fu">penalty</span><span class="op">(</span><span class="va">knots</span>, order <span class="op">=</span> <span class="va">order</span>, periodic <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="fu">penalty</span><span class="op">(</span><span class="va">knots</span>, order <span class="op">=</span> <span class="va">order</span>, periodic <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">[[</span><span class="fl">3</span><span class="op">]</span><span class="op">]</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
