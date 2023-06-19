@@ -426,7 +426,7 @@ void conline::learn()
                     if (method == "potential")
                     {
                         // TODO
-                        beta_ = vr(eta_).t() % vr(R_).t();
+                        beta_ = params["gamma"](x) * vr(eta_).t() % vr(R_).t();
                         // beta_ = vr(R_).t();
 
                         // beta_ /= accu(beta_);
