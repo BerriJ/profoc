@@ -72,5 +72,11 @@
         "numbers": "cpp",
         "semaphore": "cpp",
         "stop_token": "cpp"
-    }
+    },
+    "grammarly.selectors": [
+        {
+            "language": "rmd",
+            "scheme": "file"
+        }
+    ]
 }

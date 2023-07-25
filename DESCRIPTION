@@ -32,6 +32,9 @@ Language: en-US
 Suggests: 
     testthat (>= 3.0.0),
     gamlss.dist,
-    ggplot2
+    ggplot2,
+    knitr,
+    rmarkdown
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
+VignetteBuilder: knitr

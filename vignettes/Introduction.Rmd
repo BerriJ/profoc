@@ -1,0 +1,34 @@
+---
+title: "A Short Introduction to profoc"
+author: Jonathan Berrisch
+date: "`r Sys.Date()`"
+bibliography:
+  - ../inst/bib/profoc.bib
+output:
+  rmarkdown::html_vignette:
+    number_sections: yes
+    toc: no
+vignette: >
+  %\VignetteIndexEntry{Introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(profoc)
+```
+
+# Introduction
+
+The R package **profoc** offers a user-friendly way to apply online-learning algorithms for forecast combination. It implements multiple algorithms as well as loss functions. The algorithms are implemented in C++ and can be used in R via Rcpp [@eddelbuettel2013springer]. The main function `online()` offers a high-level interface to the learning algorithms and their extensions. It is a wrapper to the C++ class `conline` which implements the online-learning algorithms. The class functions as a low-level interface. We exposed it for advanced users who need to adjust specific details. 
+
+In this introductory vignette, we demonstrate the use of `online()` to run the core algorithms. We also show how the results can be inspected. Various popular extensions of the core algorithms, methods for deployment in production, and the low-level interface will be covered in separate vignettes.
+
+## Online Learning
