@@ -6,7 +6,7 @@ bibliography:
   - ../inst/bib/profoc.bib
 output:
   rmarkdown::html_vignette:
-    number_sections: yes
+    number_sections: no
     toc: no
 vignette: >
   %\VignetteIndexEntry{Introduction}
@@ -32,3 +32,34 @@ The R package **profoc** offers a user-friendly way to apply online-learning alg
 In this introductory vignette, we demonstrate the use of `online()` to run the core algorithms. We also show how the results can be inspected. Various popular extensions of the core algorithms, methods for deployment in production, and the low-level interface will be covered in separate vignettes.
 
 ## Online Learning
+
+For brevity, we consider a univariate probabilistic forecast combination problem.
+
+Let $\boldsymbol{y}$ be a vector of realized values of length $T$. Additionally, you have $K$ probabilistic expert forecasts for each observation in $\boldsymbol{y}$. The goal is to combine the expert forecasts to obtain a combined forecast $\widetilde{y}_{t|t-1}$ for each observation $y_t$ in $\boldsymbol{y}$. Formally:
+
+\begin{equation}
+    \widetilde{y}_{t|t-1} = \sum_{k=1}^K w_{t,k} \widehat{y}_{t,k}
+\end{equation}.
+
+Let's simulate some data in R before we apply the combination algorithm. 
+
+```{r}
+set.seed(2002)
+T <- 2^5 # Observations
+N <- 2 # Experts
+P <- 99 # Size of probability grid
+probs <- 1:P / (P + 1)
+
+y <- matrix(rnorm(T)) # Realized observations
+
+# Experts deviate in mean and standard deviation from true process
+experts_mu <- c(-1, 3)
+experts_sd <- c(1, 2)
+
+experts <- array(dim = c(T, P, N)) # Expert predictions
+
+for (t in 1:T) {
+  experts[t, , 1] <- qnorm(probs, mean = experts_mu[1], sd = experts_sd[1])
+  experts[t, , 2] <- qnorm(probs, mean = experts_mu[2], sd = experts_sd[2])
+}
+```
