@@ -36,7 +36,8 @@ Suggests:
     tidyr,
     knitr,
     rmarkdown,
-    svglite
+    svglite,
+    gdtools
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
