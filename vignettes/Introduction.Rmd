@@ -17,6 +17,9 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
+  dev = "svglite", # Use svg figures
+  warning = FALSE,
+  message = FALSE,
   comment = "#>"
 )
 ```
@@ -27,7 +30,9 @@ library(profoc)
 
 # Introduction
 
-The R package **profoc** offers a user-friendly way to apply online-learning algorithms for forecast combination. It implements multiple algorithms as well as loss functions. The algorithms are implemented in C++ and can be used in R via Rcpp [@eddelbuettel2013springer]. The main function `online()` offers a high-level interface to the learning algorithms and their extensions. It is a wrapper to the C++ class `conline` which implements the online-learning algorithms. The class functions as a low-level interface. We exposed it for advanced users who need to adjust specific details. 
+**profoc** offers a user-friendly way to apply online-learning algorithms for forecast combination. These algorithms reach fast convergence rates while being very efficient. The monograph by [@cesa2006prediction] is a great starting point for reading about the theory behind these algorithms.
+
+It implements multiple algorithms as well as loss functions. The algorithms are implemented in C++ and can be used in R via Rcpp [@eddelbuettel2013springer]. The main function `online()` offers a high-level interface to the learning algorithms and their extensions. It is a wrapper to the C++ class `conline` which implements the core online-learning algorithms as well as some pre- and post-processing and extensions. The class functions as a low-level interface. We exposed it for advanced users who need to adjust specific details. Its granularity allows for a high degree of flexibility. We utilized Rcpp Modules [@eddelbuettel2022exposing] to expose the class to R.
 
 In this introductory vignette, we demonstrate the use of `online()` to run the core algorithms. We also show how the results can be inspected. Various popular extensions of the core algorithms, methods for deployment in production, and the low-level interface will be covered in separate vignettes.
 
@@ -35,16 +40,16 @@ In this introductory vignette, we demonstrate the use of `online()` to run the c
 
 For brevity, we consider a univariate probabilistic forecast combination problem.
 
-Let $\boldsymbol{y}$ be a vector of realized values of length $T$. Additionally, you have $K$ probabilistic expert forecasts for each observation in $\boldsymbol{y}$. The goal is to combine the expert forecasts to obtain a combined forecast $\widetilde{y}_{t|t-1}$ for each observation $y_t$ in $\boldsymbol{y}$. Formally:
+Let $\boldsymbol{y}$ be a vector of realized values of length $\text{T} = 32$. Additionally, we have $\text{K}=2$ probabilistic expert forecasts for each observation in $\boldsymbol{y}$. These probabilistic forecasts are equidistant grids of $\text{P}$ quantiles. The goal is to combine the expert forecasts to obtain a combined forecast $\widetilde{y}_{t|t-1}$ for each observation $y_t$ in $\boldsymbol{y}$. Formally:
 
 \begin{equation}
-    \widetilde{y}_{t|t-1} = \sum_{k=1}^K w_{t,k} \widehat{y}_{t,k}
-\end{equation}.
+    \widetilde{y}_{t|t-1} = \sum_{k=1}^K w_{t,k} \widehat{y}_{t,k}.
+\end{equation}
 
-Let's simulate some data in R before we apply the combination algorithm. 
+Let's simulate this setting in R before we apply the combination algorithm. 
 
 ```{r}
-set.seed(2002)
+set.seed(1)
 T <- 2^5 # Observations
 N <- 2 # Experts
 P <- 99 # Size of probability grid
@@ -62,4 +67,70 @@ for (t in 1:T) {
   experts[t, , 1] <- qnorm(probs, mean = experts_mu[1], sd = experts_sd[1])
   experts[t, , 2] <- qnorm(probs, mean = experts_mu[2], sd = experts_sd[2])
 }
+```
+
+The situation can be depicted as follows:
+
+```{r, echo = FALSE, out.width='100%', fig.width=7, fig.height = 4}
+library(ggplot2)
+library(tidyr)
+
+text_size <- 16
+width <- 12
+height <- 6
+
+col_lightgray <- "#e7e7e7"
+col_blue <- "#F24159"
+col_b_smooth <- "#5391AE"
+col_p_smooth <- "#85B464"
+col_pointwise <- "#E2D269"
+col_b_constant <- "#7A4E8A"
+col_p_constant <- "#BC677B"
+col_optimum <- "#666666"
+col_auto <- "#EA915E"
+
+df <- data.frame(x = sort(y), y = seq(from = 1 / T, to = 1, by = 1 / T))
+df$xend <- c(df$x[2:nrow(df)], df$x[nrow(df)])
+df$yend <- df$y
+df[T, "xend"] <- 7.5
+
+data_plot <-
+  ggplot(df, aes(x = x, y = y, xend = xend, yend = yend)) +
+  stat_function(
+    fun = pnorm, n = 10000,
+    args = list(mean = experts_mu[2], sd = experts_sd[2]),
+    aes(col = "Expert 2"), linewidth = 1.5
+  ) +
+  stat_function(
+    fun = pnorm, n = 10000,
+    args = list(mean = experts_mu[1], sd = experts_sd[1]),
+    aes(col = "Expert 1"), linewidth = 1.5
+  ) +
+  stat_function(
+    fun = pnorm,
+    n = 10000,
+    linewidth = 1.5, aes(col = "DGP") # , linetype = "dashed"
+  ) +
+  geom_point(aes(col = "ECDF"), linewidth = 1.5, show.legend = FALSE) +
+  geom_segment(aes(col = "ECDF")) +
+  geom_segment(data = tibble(
+    x_ = -5,
+    xend_ = min(y),
+    y_ = 0,
+    yend_ = 0
+  ), aes(x = x_, xend = xend_, y = y_, yend = yend_)) +
+  theme_minimal() +
+  theme(
+    # text = element_text(size = text_size),
+    legend.position = "bottom"
+  ) +
+  ylab("Probability p") +
+  xlab("Value") +
+  scale_colour_manual(NULL, values = c("#969696", "#252525", col_auto, col_blue)) +
+  guides(color = guide_legend(
+    # nrow = 2,
+    # byrow = FALSE
+  )) +
+  scale_x_continuous(limits = c(-5, 7.5))
+data_plot
 ```

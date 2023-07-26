@@ -2,6 +2,9 @@
     "name": "DevEnv",
     "image": "ghcr.io/berrij/devenv:dev",
     "initializeCommand": "docker pull ghcr.io/berrij/devenv:dev",
+    "runArgs": [
+        "--rm"
+    ],
     // Extensions will get installed automatically
     "customizations": {
         "vscode": {

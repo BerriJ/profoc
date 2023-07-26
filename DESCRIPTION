@@ -33,8 +33,10 @@ Suggests:
     testthat (>= 3.0.0),
     gamlss.dist,
     ggplot2,
+    tidyr,
     knitr,
-    rmarkdown
+    rmarkdown,
+    svglite
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
