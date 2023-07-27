@@ -4,5 +4,8 @@ development:
 template:
   bootstrap: 5
   bootswatch: flatly
-  navbar:
-    bg: light
+  bslib:
+    pkgdown-nav-height: 100px
+
+navbar:
+  bg: light
