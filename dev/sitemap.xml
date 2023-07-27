@@ -1,78 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>/LICENSE.html</loc>
+    <loc>/dev/LICENSE.html</loc>
   </url>
   <url>
-    <loc>/articles/Introduction.html</loc>
+    <loc>/dev/articles/Introduction.html</loc>
   </url>
   <url>
-    <loc>/articles/index.html</loc>
+    <loc>/dev/articles/index.html</loc>
   </url>
   <url>
-    <loc>/authors.html</loc>
+    <loc>/dev/authors.html</loc>
   </url>
   <url>
-    <loc>/index.html</loc>
+    <loc>/dev/index.html</loc>
   </url>
   <url>
-    <loc>/news/index.html</loc>
+    <loc>/dev/news/index.html</loc>
   </url>
   <url>
-    <loc>/reference/autoplot.batch.html</loc>
+    <loc>/dev/reference/autoplot.batch.html</loc>
   </url>
   <url>
-    <loc>/reference/autoplot.html</loc>
+    <loc>/dev/reference/autoplot.html</loc>
   </url>
   <url>
-    <loc>/reference/autoplot.online.html</loc>
+    <loc>/dev/reference/autoplot.online.html</loc>
   </url>
   <url>
-    <loc>/reference/batch.html</loc>
+    <loc>/dev/reference/batch.html</loc>
   </url>
   <url>
-    <loc>/reference/conline.html</loc>
+    <loc>/dev/reference/conline.html</loc>
   </url>
   <url>
-    <loc>/reference/index.html</loc>
+    <loc>/dev/reference/index.html</loc>
   </url>
   <url>
-    <loc>/reference/make_knots.html</loc>
+    <loc>/dev/reference/make_knots.html</loc>
   </url>
   <url>
-    <loc>/reference/online.html</loc>
+    <loc>/dev/reference/online.html</loc>
   </url>
   <url>
-    <loc>/reference/oracle.html</loc>
+    <loc>/dev/reference/oracle.html</loc>
   </url>
   <url>
-    <loc>/reference/penalty.html</loc>
+    <loc>/dev/reference/penalty.html</loc>
   </url>
   <url>
-    <loc>/reference/plot.batch.html</loc>
+    <loc>/dev/reference/plot.batch.html</loc>
   </url>
   <url>
-    <loc>/reference/plot.online.html</loc>
+    <loc>/dev/reference/plot.online.html</loc>
   </url>
   <url>
-    <loc>/reference/predict.online.html</loc>
+    <loc>/dev/reference/predict.online.html</loc>
   </url>
   <url>
-    <loc>/reference/print.batch.html</loc>
+    <loc>/dev/reference/print.batch.html</loc>
   </url>
   <url>
-    <loc>/reference/print.online.html</loc>
+    <loc>/dev/reference/print.online.html</loc>
   </url>
   <url>
-    <loc>/reference/profoc-package.html</loc>
+    <loc>/dev/reference/profoc-package.html</loc>
   </url>
   <url>
-    <loc>/reference/splines2_basis.html</loc>
+    <loc>/dev/reference/splines2_basis.html</loc>
   </url>
   <url>
-    <loc>/reference/summary.online.html</loc>
+    <loc>/dev/reference/summary.online.html</loc>
   </url>
   <url>
-    <loc>/reference/update.online.html</loc>
+    <loc>/dev/reference/update.online.html</loc>
   </url>
 </urlset>
