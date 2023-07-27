@@ -24,15 +24,11 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
-library(profoc)
-```
-
 # A Short Introduction to profoc
 
 **profoc** offers a user-friendly way to apply online-learning algorithms for forecast combination. These algorithms reach fast convergence rates while being very efficient. The monograph by [@cesa2006prediction] is a great starting point for reading about the theory behind these algorithms.
 
-It implements multiple algorithms as well as loss functions. The algorithms are implemented in C++ and can be used in R via Rcpp [@eddelbuettel2013springer]. The main function `online()` offers a high-level interface to the learning algorithms and their extensions. It is a wrapper to the C++ class `conline` which implements the core online-learning algorithms as well as some pre- and post-processing and extensions. The class functions as a low-level interface. We exposed it for advanced users who need to adjust specific details. Its granularity allows for a high degree of flexibility. We utilized Rcpp Modules [@eddelbuettel2022exposing] to expose the class to R.
+The algorithms are implemented in C++ and can be used in R via Rcpp [@eddelbuettel2013springer]. The main function `online()` offers a high-level interface to the learning algorithms and their extensions. It is a wrapper to the C++ class `conline`. The class functions as a low-level interface. Its granularity allows for a high degree of flexibility. We exposed it to offer maximum flexibility to advanced users. We utilized Rcpp Modules [@eddelbuettel2022exposing] to expose the class to R.
 
 In this introductory vignette, we demonstrate the use of `online()` to run the core algorithms. We also show how the results can be inspected. Various popular extensions of the core algorithms, methods for deployment in production, and the low-level interface will be covered in separate vignettes.
 
@@ -134,3 +130,33 @@ data_plot <-
   scale_x_continuous(limits = c(-5, 7.5))
 data_plot
 ```
+
+Most parameters of `online()` contain sensible defaults. So in this example, it is sufficient to provide the data and the probability grid. 
+
+```{r}
+library(profoc)
+
+results <- online(
+  y = y,
+  experts = experts,
+  tau = probs
+)
+```
+
+The code above will compute the CRPS Learning algorithm described in [@berrisch2021crps]. This algorithm is based on Bernstein online aggregation [@wintenberger2017optimal] and uses the quantile loss to compute weights on the probability grid. Other algorithms like `ewa` or `ml-poly` can be computed by setting the `method` argument accordingly.  
+
+Printing the result object will present the loss of the experts and the computed combination:
+
+```{r}
+print(results)
+```
+
+These are averages over time, over the probability grid, and possibly also over all marginals. The losses of the Experts and the Forecaster can be accessed via `results$experts_loss` and `results$forecaster_loss` respectively.
+
+We continue by inspecting the weights which were assigned during the online learning process:
+
+```{r}
+dim(results$weights)
+```
+
+# References {-}

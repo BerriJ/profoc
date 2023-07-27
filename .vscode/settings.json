@@ -76,7 +76,8 @@
     "grammarly.selectors": [
         {
             "language": "rmd",
-            "scheme": "file"
+            "scheme": "file",
+            "pattern": "vignettes/Introduction.Rmd"
         }
     ]
 }
