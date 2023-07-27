@@ -8,5 +8,5 @@ template:
     pkgdown-nav-height: 100px
 
 navbar:
-  type: light
+  type: dark
   bg: light
