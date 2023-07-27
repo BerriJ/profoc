@@ -1,5 +1,5 @@
 ---
-title: "A Short Introduction to profoc"
+title: "Introduction"
 author: Jonathan Berrisch
 date: "`r Sys.Date()`"
 bibliography:
@@ -17,7 +17,7 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  dev = "svglite", # Use svg figures
+  dev = "svg", # Use svg figures
   warning = FALSE,
   message = FALSE,
   comment = "#>"
@@ -28,7 +28,7 @@ knitr::opts_chunk$set(
 library(profoc)
 ```
 
-# Introduction
+# A Short Introduction to profoc
 
 **profoc** offers a user-friendly way to apply online-learning algorithms for forecast combination. These algorithms reach fast convergence rates while being very efficient. The monograph by [@cesa2006prediction] is a great starting point for reading about the theory behind these algorithms.
 
