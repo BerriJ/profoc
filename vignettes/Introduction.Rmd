@@ -1,5 +1,5 @@
 ---
-title: "Introduction"
+title: "A Short Introduction to profoc"
 author: Jonathan Berrisch
 date: "`r Sys.Date()`"
 bibliography:
@@ -22,8 +22,6 @@ knitr::opts_chunk$set(
   message = FALSE,
   comment = "#>"
 )
-
-gdtools::register_gfont(family = "Open Sans", subset = c("latin", "latin-ext", "greek"))
 ```
 
 ```{r setup}
