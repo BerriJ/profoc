@@ -3,10 +3,9 @@ development:
 
 template:
   bootstrap: 5
-  bootswatch: flatly
+  bootswatch: yeti
   bslib:
     pkgdown-nav-height: 100px
 
 navbar:
-  type: dark
-  bg: light
+  bg: dark
