@@ -17,7 +17,7 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  dev = "svg", # Use svg figures
+  # dev = "svg",
   warning = FALSE,
   message = FALSE,
   comment = "#>"
@@ -71,7 +71,7 @@ for (t in 1:T) {
 
 The situation can be depicted as follows:
 
-```{r, echo = FALSE, out.width='100%', fig.width=7, fig.height = 4}
+```{r, echo = FALSE, out.width='100%', fig.width=7, fig.height = 4, dpi = 300}
 library(ggplot2)
 library(tidyr)
 
