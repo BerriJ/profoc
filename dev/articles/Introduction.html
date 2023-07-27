@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>A Short Introduction to profoc • profoc</title>
+<title>Introduction • profoc</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="A Short Introduction to profoc">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Introduction">
 <meta property="og:description" content="profoc">
 <meta name="robots" content="noindex">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
@@ -51,7 +51,7 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/Introduction.html">A Short Introduction to profoc</a>
+      <a href="../articles/Introduction.html">Introduction</a>
     </li>
   </ul>
 </li>
@@ -79,11 +79,11 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>A Short Introduction to profoc</h1>
+      <h1 data-toc-skip>Introduction</h1>
                         <h4 data-toc-skip class="author">Jonathan
 Berrisch</h4>
             
-            <h4 data-toc-skip class="date">2023-07-25</h4>
+            <h4 data-toc-skip class="date">2023-07-27</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/BerriJ/profoc/blob/HEAD/vignettes/Introduction.Rmd" class="external-link"><code>vignettes/Introduction.Rmd</code></a></small>
       <div class="hidden name"><code>Introduction.Rmd</code></div>
@@ -95,17 +95,24 @@ Berrisch</h4>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://profoc.berrisch.biz/" class="external-link">profoc</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
-<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+<h2 id="a-short-introduction-to-profoc">A Short Introduction to profoc<a class="anchor" aria-label="anchor" href="#a-short-introduction-to-profoc"></a>
 </h2>
-<p>The R package <strong>profoc</strong> offers a user-friendly way to
-apply online-learning algorithms for forecast combination. It implements
-multiple algorithms as well as loss functions. The algorithms are
-implemented in C++ and can be used in R via Rcpp <span class="citation">(Eddelbuettel 2013)</span>. The main function
+<p><strong>profoc</strong> offers a user-friendly way to apply
+online-learning algorithms for forecast combination. These algorithms
+reach fast convergence rates while being very efficient. The monograph
+by <span class="citation">(Cesa-Bianchi and Lugosi 2006)</span> is a
+great starting point for reading about the theory behind these
+algorithms.</p>
+<p>It implements multiple algorithms as well as loss functions. The
+algorithms are implemented in C++ and can be used in R via Rcpp <span class="citation">(Eddelbuettel 2013)</span>. The main function
 <code><a href="../reference/online.html">online()</a></code> offers a high-level interface to the learning
 algorithms and their extensions. It is a wrapper to the C++ class
-<code>conline</code> which implements the online-learning algorithms.
-The class functions as a low-level interface. We exposed it for advanced
-users who need to adjust specific details.</p>
+<code>conline</code> which implements the core online-learning
+algorithms as well as some pre- and post-processing and extensions. The
+class functions as a low-level interface. We exposed it for advanced
+users who need to adjust specific details. Its granularity allows for a
+high degree of flexibility. We utilized Rcpp Modules <span class="citation">(Eddelbuettel and François 2022)</span> to expose the
+class to R.</p>
 <p>In this introductory vignette, we demonstrate the use of
 <code><a href="../reference/online.html">online()</a></code> to run the core algorithms. We also show how the
 results can be inspected. Various popular extensions of the core
@@ -117,18 +124,19 @@ interface will be covered in separate vignettes.</p>
 <p>For brevity, we consider a univariate probabilistic forecast
 combination problem.</p>
 <p>Let <span class="math inline">\(\boldsymbol{y}\)</span> be a vector
-of realized values of length <span class="math inline">\(T\)</span>.
-Additionally, you have <span class="math inline">\(K\)</span>
-probabilistic expert forecasts for each observation in <span class="math inline">\(\boldsymbol{y}\)</span>. The goal is to combine
-the expert forecasts to obtain a combined forecast <span class="math inline">\(\widetilde{y}_{t|t-1}\)</span> for each
+of realized values of length <span class="math inline">\(\text{T} =
+32\)</span>. Additionally, we have <span class="math inline">\(\text{K}=2\)</span> probabilistic expert forecasts
+for each observation in <span class="math inline">\(\boldsymbol{y}\)</span>. These probabilistic
+forecasts are equidistant grids of <span class="math inline">\(\text{P}\)</span> quantiles. The goal is to
+combine the expert forecasts to obtain a combined forecast <span class="math inline">\(\widetilde{y}_{t|t-1}\)</span> for each
 observation <span class="math inline">\(y_t\)</span> in <span class="math inline">\(\boldsymbol{y}\)</span>. Formally:</p>
 <p><span class="math display">\[\begin{equation}
-    \widetilde{y}_{t|t-1} = \sum_{k=1}^K w_{t,k} \widehat{y}_{t,k}
-\end{equation}\]</span>.</p>
-<p>Let’s simulate some data in R before we apply the combination
+    \widetilde{y}_{t|t-1} = \sum_{k=1}^K w_{t,k} \widehat{y}_{t,k}.
+\end{equation}\]</span></p>
+<p>Let’s simulate this setting in R before we apply the combination
 algorithm.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2002</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="cn">T</span> <span class="op">&lt;-</span> <span class="fl">2</span><span class="op">^</span><span class="fl">5</span> <span class="co"># Observations</span></span>
 <span><span class="va">N</span> <span class="op">&lt;-</span> <span class="fl">2</span> <span class="co"># Experts</span></span>
 <span><span class="va">P</span> <span class="op">&lt;-</span> <span class="fl">99</span> <span class="co"># Size of probability grid</span></span>
@@ -146,10 +154,21 @@ algorithm.</p>
 <span>  <span class="va">experts</span><span class="op">[</span><span class="va">t</span>, , <span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="va">probs</span>, mean <span class="op">=</span> <span class="va">experts_mu</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, sd <span class="op">=</span> <span class="va">experts_sd</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
 <span>  <span class="va">experts</span><span class="op">[</span><span class="va">t</span>, , <span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">qnorm</a></span><span class="op">(</span><span class="va">probs</span>, mean <span class="op">=</span> <span class="va">experts_mu</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, sd <span class="op">=</span> <span class="va">experts_sd</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
+<p>The situation can be depicted as follows:</p>
+<p><img src="Introduction_files/figure-html/unnamed-chunk-3-1.png" width="100%"></p>
 <div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-cesa2006prediction" class="csl-entry">
+Cesa-Bianchi, Nicolo, and Gábor Lugosi. 2006. <em><span class="nocase">Prediction, learning, and games</span></em>. Cambridge
+university press. <a href="https://doi.org/10.1017/CBO9780511546921" class="external-link">https://doi.org/10.1017/CBO9780511546921</a>.
+</div>
 <div id="ref-eddelbuettel2013springer" class="csl-entry">
 Eddelbuettel, Dirk. 2013. <em>Seamless <span>R</span> and
 <span>C++</span> Integration with <span>Rcpp</span></em>. Springer.
+</div>
+<div id="ref-eddelbuettel2022exposing" class="csl-entry">
+Eddelbuettel, Dirk, and Romain François. 2022. <span>“Exposing c++
+Functions and Classes with Rcpp Modules.”</span> <em>Vignette Included
+in R Package Rcpp, URL Https://CRAN. R-Project. Org/Package= Rcpp</em>.
 </div>
 </div>
 </div>
