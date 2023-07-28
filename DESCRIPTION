@@ -23,7 +23,8 @@ Imports:
     Matrix,
     abind,
     methods,
-    lifecycle
+    lifecycle,
+    generics
 LinkingTo: Rcpp, RcppArmadillo (>= 0.10.7.5.0), RcppProgress, splines2 (>= 0.4.4)
 URL: https://profoc.berrisch.biz/
 BugReports: https://github.com/BerriJ/profoc/issues
