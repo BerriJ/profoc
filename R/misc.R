@@ -38,10 +38,16 @@ val_or_def <- function(val, def) {
 post_process_model <- function(model, names) {
     model$specification$data$names <- names
     dimnames(model$specification$data$y) <- names$y
-    model$weights <- list_to_array(model$weights)
     model$past_performance <- list_to_array(model$past_performance)
     model$experts_loss <- list_to_array(model$experts_loss)
+    dimnames(model$experts_loss)[[3]] <- model$specification$data$tau
     dimnames(model$experts_loss)[[4]] <- names$experts[[4]]
+
+    # Post process weights
+    model$weights <- list_to_array(model$weights)
+
+    class(model$weights) <- "online.weights"
+
     return(model)
 }
 
