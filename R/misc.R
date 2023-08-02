@@ -46,6 +46,13 @@ post_process_model <- function(model, names) {
     # Post process weights
     model$weights <- list_to_array(model$weights)
 
+    dimnames(model$weights) <- list(
+        t = 1:dim(model$weights)[1],
+        d = names$experts[[2]],
+        p = names$experts[[3]],
+        k = names$experts[[4]]
+    )
+
     class(model$weights) <- "online.weights"
 
     return(model)
