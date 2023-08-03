@@ -5,7 +5,7 @@ An R package for probabilistic forecast combination
 ------------
 
 <!-- badges: start -->
-[![R-CMD-check](https://img.shields.io/github/actions/workflow/status/berrij/profoc/R-CMD-check.yaml?branch=main&style=for-the-badge)](https://github.com/BerriJ/profoc/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://img.shields.io/github/actions/workflow/status/berrij/profoc/R-CMD-check.yaml?&style=for-the-badge)](https://github.com/BerriJ/profoc/actions/workflows/R-CMD-check.yaml)
 [![GitHub Workflow Status (branch)](https://img.shields.io/github/actions/workflow/status/berrij/profoc/pkgdown.yaml?label=Documentation&style=for-the-badge)](https://profoc.berrisch.biz/)
 [![Lifecycle: stable](https://img.shields.io/badge/Lifecycle-stable-brightgreen?style=for-the-badge)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
