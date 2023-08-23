@@ -1,3 +1,14 @@
+profoc 1.2.1
+==============
+
+## Improvements
+
+* `online()` now supports contains `predictions_got_sorted`. A vector which indicates whether the predictions were sorted or not (in the case of quantile crossing).
+* A `tidy.online.weights()` method was added to convert the `weights` array of an `online()` output to a tibble for further analysis, plotting etc.
+* A [Get started](https://profoc.berrisch.biz/articles/profoc.html) article was added to the docs.
+* Docs of the development version were added to the [website](https://profoc.berrisch.biz/dev/)
+
+
 profoc 1.2.0
 ==============
 

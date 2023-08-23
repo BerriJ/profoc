@@ -33,7 +33,7 @@ You can install the latest stable release from GitHub using:
 remotes::install_github("BerriJ/profoc")
 ```
 
-You can install the latest development release from GitHub using:
+You can install the latest development version from GitHub using:
 
 ``` r
 # install.packages("remotes")
