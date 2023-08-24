@@ -148,7 +148,7 @@ probability grid.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://profoc.berrisch.biz/" class="external-link">profoc</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/online.html">online</a></span><span class="op">(</span></span>
+<span><span class="va">combination</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/online.html">online</a></span><span class="op">(</span></span>
 <span>  y <span class="op">=</span> <span class="va">y</span>,</span>
 <span>  experts <span class="op">=</span> <span class="va">experts</span>,</span>
 <span>  tau <span class="op">=</span> <span class="va">probs</span></span>
@@ -162,20 +162,51 @@ to compute weights on the probability grid. Other algorithms like
 <p>Printing the result object will present the loss of the experts and
 the computed combination:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">combination</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  Name        Loss     </span></span>
 <span><span class="co">#&gt;  E1          0.4486700</span></span>
 <span><span class="co">#&gt;  E2          0.9804200</span></span>
 <span><span class="co">#&gt;  Combination 0.2925581</span></span></code></pre></div>
 <p>These are averages over time, over the probability grid, and possibly
 also over all marginals. The losses of the Experts and the Forecaster
-can be accessed via <code>results$experts_loss</code> and
-<code>results$forecaster_loss</code> respectively.</p>
+can be accessed via <code>combination$experts_loss</code> and
+<code>combination$forecaster_loss</code> respectively.</p>
 <p>We continue by inspecting the weights which were assigned during the
 online learning process:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">results</span><span class="op">$</span><span class="va">weights</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">combination</span><span class="op">$</span><span class="va">weights</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 33  1 99  2</span></span></code></pre></div>
+<p>The most recent weights can be plotted using <code><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot()</a></code>
+if <code>ggplot2</code> is available.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">combination</span><span class="op">)</span></span></code></pre></div>
+<p><img src="profoc_files/figure-html/unnamed-chunk-7-1.png" width="100%"></p>
+<p>We see that expert one receveives high weights, in particular in the
+right tail. This is because the predictions of expert one are closer to
+the true DGP, especially in the right tail.</p>
+<p>We offer <code><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy()</a></code> methods for the most important objects.
+These methods return a <code>tibble</code> which can be used for further
+analysis. So we can use <code><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy()</a></code> to extract the weights of
+the algorithm:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">combination</span><span class="op">$</span><span class="va">weights</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6,534 × 5</span></span></span>
+<span><span class="co">#&gt;    t     d     p     k          w</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 1     D1    0.01  E1    0.5   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 2     D1    0.01  E1    0.378 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 3     D1    0.01  E1    0.285 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 4     D1    0.01  E1    0.213 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 5     D1    0.01  E1    0.160 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 6     D1    0.01  E1    0.135 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 7     D1    0.01  E1    0.116 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 8     D1    0.01  E1    0.102 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 9     D1    0.01  E1    0.089<span style="text-decoration: underline;">9</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 10    D1    0.01  E1    0.080<span style="text-decoration: underline;">2</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 6,524 more rows</span></span></span></code></pre></div>
+<p>The <code>tibble</code> above is in the long format. So it is well
+prepared for further analysis using <code>ggplot2</code>,
+<code>dplyr</code>, etc..</p>
 </div>
 </div>
 <div class="section level2">

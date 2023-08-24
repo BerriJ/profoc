@@ -22,9 +22,6 @@
     <loc>/dev/reference/autoplot.batch.html</loc>
   </url>
   <url>
-    <loc>/dev/reference/autoplot.html</loc>
-  </url>
-  <url>
     <loc>/dev/reference/autoplot.online.html</loc>
   </url>
   <url>
@@ -65,6 +62,9 @@
   </url>
   <url>
     <loc>/dev/reference/profoc-package.html</loc>
+  </url>
+  <url>
+    <loc>/dev/reference/reexports.html</loc>
   </url>
   <url>
     <loc>/dev/reference/splines2_basis.html</loc>
