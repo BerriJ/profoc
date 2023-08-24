@@ -120,6 +120,7 @@ data_plot <-
     # text = element_text(size = text_size),
     legend.position = "bottom"
   ) +
+  ggtitle("Data generating Process") +
   ylab("Probability p") +
   xlab("Value") +
   scale_colour_manual(NULL, values = c("#969696", "#252525", col_auto, col_blue)) +
@@ -136,7 +137,7 @@ Most parameters of `online()` contain sensible defaults. So in this example, it 
 ```{r}
 library(profoc)
 
-results <- online(
+combination <- online(
   y = y,
   experts = experts,
   tau = probs
@@ -148,15 +149,34 @@ The code above will compute the CRPS Learning algorithm described in [@berrisch2
 Printing the result object will present the loss of the experts and the computed combination:
 
 ```{r}
-print(results)
+print(combination)
 ```
 
-These are averages over time, over the probability grid, and possibly also over all marginals. The losses of the Experts and the Forecaster can be accessed via `results$experts_loss` and `results$forecaster_loss` respectively.
+These are averages over time, over the probability grid, and possibly also over all marginals. The losses of the Experts and the Forecaster can be accessed via `combination$experts_loss` and `combination$forecaster_loss` respectively.
 
 We continue by inspecting the weights which were assigned during the online learning process:
 
 ```{r}
-dim(results$weights)
+dim(combination$weights)
 ```
 
+The most recent weights can be plotted using `autoplot()` if `ggplot2` is available.
+
+```{r, echo = TRUE, out.width='100%', fig.width=7, fig.height = 4, dpi = 300}
+autoplot(combination)
+```
+
+We see that expert one receveives high weights, in particular in the right tail. This is because the predictions of expert one are closer to the true DGP, especially in the right tail. 
+
+We offer `tidy()` methods for the most important objects. These methods return a `tibble` which can be used for further analysis. So we can use `tidy()` to extract the weights of the algorithm:
+
+```{r}
+tidy(combination$weights)
+```
+
+The `tibble` above is in the long format. So it is well prepared for further analysis using `ggplot2`, `dplyr`, etc..
+
 # References {-}
+
+
+

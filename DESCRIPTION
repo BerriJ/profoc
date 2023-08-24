@@ -25,7 +25,8 @@ Imports:
     methods,
     lifecycle,
     generics,
-    tibble
+    tibble,
+    ggplot2
 LinkingTo: Rcpp, RcppArmadillo (>= 0.10.7.5.0), RcppProgress, splines2 (>= 0.4.4)
 URL: https://profoc.berrisch.biz/
 BugReports: https://github.com/BerriJ/profoc/issues
@@ -34,7 +35,6 @@ Language: en-US
 Suggests: 
     testthat (>= 3.0.0),
     gamlss.dist,
-    ggplot2,
     knitr,
     rmarkdown
 Config/testthat/edition: 3

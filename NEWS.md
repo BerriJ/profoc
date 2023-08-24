@@ -8,6 +8,10 @@ profoc 1.2.1
 * A [Get started](https://profoc.berrisch.biz/articles/profoc.html) article was added to the docs.
 * Docs of the development version were added to the [website](https://profoc.berrisch.biz/dev/)
 
+## Fixes
+
+* This release fixes import / export of of the `autoplot()` method. In consequence, ggplot2 became a new dependency of this package.
+
 profoc 1.2.0
 ==============
 
