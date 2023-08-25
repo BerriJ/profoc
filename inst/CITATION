@@ -13,7 +13,7 @@ bibentry(
   ),
   year = year,
   note = paste0("{", note, "}"),
-  url = meta$URL,
+  url = "https://profoc.berrisch.biz",
   textVersion = paste0(
     "Berrisch, J., & Ziel, F. (", year, "). ", "The profoc Package: An R package for probabilistic forecast combination using CRPS Learning. ",
     note, ". ", meta$URL
