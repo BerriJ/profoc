@@ -9,7 +9,8 @@
 ## And with R 3.4.0, and RcppArmadillo 0.7.960.*, we turn C++11 on as OpenMP
 ## support within Armadillo prefers / requires it
 
-MAKEFLAGS = -j12
+# Paralelization (must be set locally since CRAN does not like that)
+# MAKEFLAGS = -j12 
 
 INC = -I../inst/include -I../inst/include/optim
 
