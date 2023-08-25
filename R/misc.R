@@ -55,6 +55,31 @@ post_process_model <- function(model, names) {
 
     class(model$weights) <- "online.weights"
 
+    dimnames(model$predictions) <- list(
+        t = 1:dim(model$predictions)[1],
+        d = names$experts[[2]],
+        p = names$experts[[3]]
+    )
+
+    class(model$predictions) <- "online.predictions"
+
+    dimnames(model$forecaster_loss) <- list(
+        t = 1:dim(model$forecaster_loss)[1],
+        d = names$experts[[2]],
+        p = names$experts[[3]]
+    )
+
+    class(model$forecaster_loss) <- "online.forecaster_loss"
+
+    dimnames(model$experts_loss) <- list(
+        t = 1:dim(model$experts_loss)[1],
+        d = names$experts[[2]],
+        p = names$experts[[3]],
+        k = names$experts[[4]]
+    )
+
+    class(model$experts_loss) <- "online.experts_loss"
+
     return(model)
 }
 

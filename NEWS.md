@@ -4,7 +4,7 @@ profoc 1.2.1
 ## Improvements
 
 * `online()` outputs now include `predictions_got_sorted`. A matrix which indicates whether quantile crossing occured and predictions have been sorted.
-* A `tidy.online.weights()` method was added to convert the `weights` array of an `online()` output to a tibble for further analysis, plotting etc.
+* `tidy()` methods were added to convert `weights`, `predictions` and loss objects of `online()` output to a tibble (for further analysis, plotting etc.)
 * A [Get started](https://profoc.berrisch.biz/articles/profoc.html) article was added to the docs.
 * Docs of the development version were added to the [website](https://profoc.berrisch.biz/dev/)
 

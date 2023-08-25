@@ -132,7 +132,7 @@ data_plot <-
 data_plot
 ```
 
-Most parameters of `online()` contain sensible defaults. So in this example, it is sufficient to provide the data and the probability grid. 
+Most parameters of `online()` contain sensible defaults. So, in this example, it is sufficient to provide the data and the probability grid. 
 
 ```{r}
 library(profoc)
@@ -144,7 +144,7 @@ combination <- online(
 )
 ```
 
-The code above will compute the CRPS Learning algorithm described in [@berrisch2021crps]. This algorithm is based on Bernstein online aggregation [@wintenberger2017optimal] and uses the quantile loss to compute weights on the probability grid. Other algorithms like `ewa` or `ml-poly` can be computed by setting the `method` argument accordingly.  
+The code above will compute the CRPS Learning algorithm described in [@berrisch2021crps]. This algorithm is based on Bernstein online aggregation [@wintenberger2017optimal] and uses the quantile loss to calculate weights on the probability grid. Other algorithms like `ewa` or `ml-poly` can be computed by setting the `method` argument accordingly.  
 
 Printing the result object will present the loss of the experts and the computed combination:
 
@@ -152,29 +152,51 @@ Printing the result object will present the loss of the experts and the computed
 print(combination)
 ```
 
-These are averages over time, over the probability grid, and possibly also over all marginals. The losses of the Experts and the Forecaster can be accessed via `combination$experts_loss` and `combination$forecaster_loss` respectively.
+These are averages over time, the probability grid, and possibly all marginals. The losses of the Experts and the Forecaster can be accessed via `combination$experts_loss` and `combination$forecaster_loss`, respectively.
 
-We continue by inspecting the weights which were assigned during the online learning process:
+We continue by inspecting the weights that were assigned during the online learning process:
 
 ```{r}
 dim(combination$weights)
 ```
 
-The most recent weights can be plotted using `autoplot()` if `ggplot2` is available.
+We can visualize the most recent weights with `autoplot()`:
 
 ```{r, echo = TRUE, out.width='100%', fig.width=7, fig.height = 4, dpi = 300}
 autoplot(combination)
 ```
 
-We see that expert one receveives high weights, in particular in the right tail. This is because the predictions of expert one are closer to the true DGP, especially in the right tail. 
+Expert one receives high weights, particularly in the right tail.  This is because the predictions of expert one are closer to the true DGP, especially in the right tail. 
 
-We offer `tidy()` methods for the most important objects. These methods return a `tibble` which can be used for further analysis. So we can use `tidy()` to extract the weights of the algorithm:
+We currently offer `tidy()` methods for selected output elements (`weights`, `predictions`, `forecaster_loss`, and `experts_loss`).  These methods return a `tibble` for further analysis.  For example, we can easily plot the weights of both experts for selected quantiles over time with just a few lines of code using `{dplyr}` and `{ggplot2}`:
 
-```{r}
-tidy(combination$weights)
+```{r, echo = TRUE, out.width='100%', fig.width=7, fig.height = 4, dpi = 300}
+library(dplyr)
+library(ggplot2)
+
+tidy(combination$weights) |>
+  filter(p %in% c(0.05, 0.5, 0.95)) |>
+  ggplot(aes(x = t, y = w, col = k)) +
+  geom_line(linewidth = 1) +
+  facet_wrap(~p, ncol = 1)
 ```
 
-The `tibble` above is in the long format. So it is well prepared for further analysis using `ggplot2`, `dplyr`, etc..
+Finally, we can inspect and visualize the predictions:
+
+```{r, echo = TRUE, out.width='100%', fig.width=7, fig.height = 4, dpi = 300}
+tidy(combination$predictions)
+
+tidy(combination$predictions) |>
+  ggplot(aes(x = t, y = prediction, group = p, colour = p)) +
+  geom_line() +
+  scale_color_continuous(low = "#FFDD00", high = "#0057B7") +
+  # A little hacky way to add the realized values
+  geom_line(aes(x = t, y = rep(y, each = 99)),
+    linetype = "dashed", col = "black", linewidth = 1
+  )
+```
+
+Vignettes on advanced topics will be added in the future. For now, we refer to the function references. 
 
 # References {-}
 
