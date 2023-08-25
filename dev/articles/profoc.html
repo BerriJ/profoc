@@ -73,7 +73,7 @@
                         <h4 data-toc-skip class="author">Jonathan
 Berrisch</h4>
             
-            <h4 data-toc-skip class="date">2023-08-24</h4>
+            <h4 data-toc-skip class="date">2023-08-25</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/BerriJ/profoc/blob/HEAD/vignettes/profoc.Rmd" class="external-link"><code>vignettes/profoc.Rmd</code></a></small>
       <div class="d-none name"><code>profoc.Rmd</code></div>
@@ -143,10 +143,10 @@ algorithm.</p>
 <p>The situation can be depicted as follows:</p>
 <p><img src="profoc_files/figure-html/unnamed-chunk-3-1.png" width="100%"></p>
 <p>Most parameters of <code><a href="../reference/online.html">online()</a></code> contain sensible defaults.
-So in this example, it is sufficient to provide the data and the
+So, in this example, it is sufficient to provide the data and the
 probability grid.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://profoc.berrisch.biz/" class="external-link">profoc</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://profoc.berrisch.biz">profoc</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">combination</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/online.html">online</a></span><span class="op">(</span></span>
 <span>  y <span class="op">=</span> <span class="va">y</span>,</span>
@@ -156,7 +156,7 @@ probability grid.</p>
 <p>The code above will compute the CRPS Learning algorithm described in
 <span class="citation">(Berrisch and Ziel 2021)</span>. This algorithm
 is based on Bernstein online aggregation <span class="citation">(Wintenberger 2017)</span> and uses the quantile loss
-to compute weights on the probability grid. Other algorithms like
+to calculate weights on the probability grid. Other algorithms like
 <code>ewa</code> or <code>ml-poly</code> can be computed by setting the
 <code>method</code> argument accordingly.</p>
 <p>Printing the result object will present the loss of the experts and
@@ -167,46 +167,69 @@ the computed combination:</p>
 <span><span class="co">#&gt;  E1          0.4486700</span></span>
 <span><span class="co">#&gt;  E2          0.9804200</span></span>
 <span><span class="co">#&gt;  Combination 0.2925581</span></span></code></pre></div>
-<p>These are averages over time, over the probability grid, and possibly
-also over all marginals. The losses of the Experts and the Forecaster
-can be accessed via <code>combination$experts_loss</code> and
-<code>combination$forecaster_loss</code> respectively.</p>
-<p>We continue by inspecting the weights which were assigned during the
+<p>These are averages over time, the probability grid, and possibly all
+marginals. The losses of the Experts and the Forecaster can be accessed
+via <code>combination$experts_loss</code> and
+<code>combination$forecaster_loss</code>, respectively.</p>
+<p>We continue by inspecting the weights that were assigned during the
 online learning process:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">combination</span><span class="op">$</span><span class="va">weights</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 33  1 99  2</span></span></code></pre></div>
-<p>The most recent weights can be plotted using <code><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot()</a></code>
-if <code>ggplot2</code> is available.</p>
+<p>We can visualize the most recent weights with
+<code><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot()</a></code>:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">combination</span><span class="op">)</span></span></code></pre></div>
 <p><img src="profoc_files/figure-html/unnamed-chunk-7-1.png" width="100%"></p>
-<p>We see that expert one receveives high weights, in particular in the
-right tail. This is because the predictions of expert one are closer to
-the true DGP, especially in the right tail.</p>
-<p>We offer <code><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy()</a></code> methods for the most important objects.
-These methods return a <code>tibble</code> which can be used for further
-analysis. So we can use <code><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy()</a></code> to extract the weights of
-the algorithm:</p>
+<p>Expert one receives high weights, particularly in the right tail.
+This is because the predictions of expert one are closer to the true
+DGP, especially in the right tail.</p>
+<p>We currently offer <code><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy()</a></code> methods for selected output
+elements (<code>weights</code>, <code>predictions</code>,
+<code>forecaster_loss</code>, and <code>experts_loss</code>). These
+methods return a <code>tibble</code> for further analysis. For example,
+we can easily plot the weights of both experts for selected quantiles
+over time with just a few lines of code using <a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a> and
+<a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a>:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">combination</span><span class="op">$</span><span class="va">weights</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6,534 × 5</span></span></span>
-<span><span class="co">#&gt;    t     d     p     k          w</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 1     D1    0.01  E1    0.5   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 2     D1    0.01  E1    0.378 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 3     D1    0.01  E1    0.285 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 4     D1    0.01  E1    0.213 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 5     D1    0.01  E1    0.160 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 6     D1    0.01  E1    0.135 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 7     D1    0.01  E1    0.116 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 8     D1    0.01  E1    0.102 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 9     D1    0.01  E1    0.089<span style="text-decoration: underline;">9</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 10    D1    0.01  E1    0.080<span style="text-decoration: underline;">2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 6,524 more rows</span></span></span></code></pre></div>
-<p>The <code>tibble</code> above is in the long format. So it is well
-prepared for further analysis using <code>ggplot2</code>,
-<code>dplyr</code>, etc..</p>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">combination</span><span class="op">$</span><span class="va">weights</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">p</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.05</span>, <span class="fl">0.5</span>, <span class="fl">0.95</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">t</span>, y <span class="op">=</span> <span class="va">w</span>, col <span class="op">=</span> <span class="va">k</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="va">p</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<p><img src="profoc_files/figure-html/unnamed-chunk-8-1.png" width="100%"></p>
+<p>Finally, we can inspect and visualize the predictions:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">combination</span><span class="op">$</span><span class="va">predictions</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3,168 × 4</span></span></span>
+<span><span class="co">#&gt;        t d         p prediction</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>     1 D1     0.01     -<span style="color: #BB0000;">2.49</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>     1 D1     0.02     -<span style="color: #BB0000;">2.08</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>     1 D1     0.03     -<span style="color: #BB0000;">1.82</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>     1 D1     0.04     -<span style="color: #BB0000;">1.63</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>     1 D1     0.05     -<span style="color: #BB0000;">1.47</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>     1 D1     0.06     -<span style="color: #BB0000;">1.33</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>     1 D1     0.07     -<span style="color: #BB0000;">1.21</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>     1 D1     0.08     -<span style="color: #BB0000;">1.11</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>     1 D1     0.09     -<span style="color: #BB0000;">1.01</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>     1 D1     0.1      -<span style="color: #BB0000;">0.922</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 3,158 more rows</span></span></span>
+<span></span>
+<span><span class="fu"><a href="https://generics.r-lib.org/reference/tidy.html" class="external-link">tidy</a></span><span class="op">(</span><span class="va">combination</span><span class="op">$</span><span class="va">predictions</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">t</span>, y <span class="op">=</span> <span class="va">prediction</span>, group <span class="op">=</span> <span class="va">p</span>, colour <span class="op">=</span> <span class="va">p</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_colour_continuous.html" class="external-link">scale_color_continuous</a></span><span class="op">(</span>low <span class="op">=</span> <span class="st">"#FFDD00"</span>, high <span class="op">=</span> <span class="st">"#0057B7"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="co"># A little hacky way to add the realized values</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">t</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="va">y</span>, each <span class="op">=</span> <span class="fl">99</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    linetype <span class="op">=</span> <span class="st">"dashed"</span>, col <span class="op">=</span> <span class="st">"black"</span>, linewidth <span class="op">=</span> <span class="fl">1</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<p><img src="profoc_files/figure-html/unnamed-chunk-9-1.png" width="100%"></p>
+<p>Vignettes on advanced topics will be added in the future. For now, we
+refer to the function references.</p>
 </div>
 </div>
 <div class="section level2">
