@@ -1,6 +1,6 @@
 #' Tidy the Weights of an Online object
 #'
-#' `tidy` will tansform the weights array of an online object
+#' `tidy` will transform the weights array of an online object
 #' into a tibble that is better suited for plotting and analysis.
 #' @param x The weights of an `online` object.
 #' @param ... Not currently used.
@@ -20,7 +20,7 @@ tidy.online.weights <- function(x, ...) {
 
 #' Tidy the Predictions of an Online object
 #'
-#' `tidy` will tansform the `predictions` array of an online object
+#' `tidy` will transform the `predictions` array of an online object
 #' into a tibble that is better suited for plotting and analysis.
 #' @param x The predictions of an `online` object.
 #' @param ... Not currently used.
@@ -41,7 +41,7 @@ tidy.online.predictions <- function(x, ...) {
 
 #' Tidy the Experts' losses of an Online object
 #'
-#' `tidy` will tansform the `experts_loss` array of an online object
+#' `tidy` will transform the `experts_loss` array of an online object
 #' into a tibble that is better suited for plotting and analysis.
 #' @param x The experts_loss of an `online` object.
 #' @param ... Not currently used.
@@ -62,7 +62,7 @@ tidy.online.experts_loss <- function(x, ...) {
 
 #' Tidy the Experts' losses of an Online object
 #'
-#' `tidy` will tansform the `forecaster_loss`` array of an online object
+#' `tidy` will transform the `forecaster_loss`` array of an online object
 #' into a tibble that is better suited for plotting and analysis.
 #' @param x The forecaster_loss of an `online` object.
 #' @param ... Not currently used.
