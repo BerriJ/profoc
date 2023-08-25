@@ -17,6 +17,6 @@ to the time, marginals, probabilities, and predictions
 of the online-learning computation.
 }
 \description{
-\code{tidy} will tansform the \code{predictions} array of an online object
+\code{tidy} will transform the \code{predictions} array of an online object
 into a tibble that is better suited for plotting and analysis.
 }
