@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
   message = FALSE,
   comment = "#>"
 )
-Sys.setenv("OMP_THREAD_LIMIT" = 3)
+Sys.setenv("OMP_THREAD_LIMIT" = 2)
 ```
 
 # A Short Introduction to profoc
