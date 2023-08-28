@@ -38,10 +38,48 @@ val_or_def <- function(val, def) {
 post_process_model <- function(model, names) {
     model$specification$data$names <- names
     dimnames(model$specification$data$y) <- names$y
-    model$weights <- list_to_array(model$weights)
     model$past_performance <- list_to_array(model$past_performance)
     model$experts_loss <- list_to_array(model$experts_loss)
+    dimnames(model$experts_loss)[[3]] <- model$specification$data$tau
     dimnames(model$experts_loss)[[4]] <- names$experts[[4]]
+
+    # Post process weights
+    model$weights <- list_to_array(model$weights)
+
+    dimnames(model$weights) <- list(
+        t = 1:dim(model$weights)[1],
+        d = names$experts[[2]],
+        p = names$experts[[3]],
+        k = names$experts[[4]]
+    )
+
+    class(model$weights) <- "online.weights"
+
+    dimnames(model$predictions) <- list(
+        t = 1:dim(model$predictions)[1],
+        d = names$experts[[2]],
+        p = names$experts[[3]]
+    )
+
+    class(model$predictions) <- "online.predictions"
+
+    dimnames(model$forecaster_loss) <- list(
+        t = 1:dim(model$forecaster_loss)[1],
+        d = names$experts[[2]],
+        p = names$experts[[3]]
+    )
+
+    class(model$forecaster_loss) <- "online.forecaster_loss"
+
+    dimnames(model$experts_loss) <- list(
+        t = 1:dim(model$experts_loss)[1],
+        d = names$experts[[2]],
+        p = names$experts[[3]],
+        k = names$experts[[4]]
+    )
+
+    class(model$experts_loss) <- "online.experts_loss"
+
     return(model)
 }
 

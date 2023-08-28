@@ -1,0 +1,205 @@
+---
+title: "Introduction"
+author: Jonathan Berrisch
+date: "`r Sys.Date()`"
+bibliography:
+  - ../inst/bib/profoc.bib
+output:
+  rmarkdown::html_vignette:
+    number_sections: no
+    toc: no
+vignette: >
+  %\VignetteIndexEntry{Introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  # dev = "svg",
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>"
+)
+Sys.setenv("OMP_THREAD_LIMIT" = 2)
+```
+
+# A Short Introduction to profoc
+
+**profoc** offers a user-friendly way to apply online-learning algorithms for forecast combination. These algorithms reach fast convergence rates while being very efficient. The monograph by [@cesa2006prediction] is a great starting point for reading about the theory behind these algorithms.
+
+The algorithms are implemented in C++ and can be used in R via Rcpp [@eddelbuettel2013springer]. The main function `online()` offers a high-level interface to the learning algorithms and their extensions. It is a wrapper to the C++ class `conline`. The class functions as a low-level interface. Its granularity allows for a high degree of flexibility. We exposed it to offer maximum flexibility to advanced users. We utilized Rcpp Modules [@eddelbuettel2022exposing] to expose the class to R.
+
+In this introductory vignette, we demonstrate the use of `online()` to run the core algorithms. We also show how the results can be inspected. Various popular extensions of the core algorithms, methods for deployment in production, and the low-level interface will be covered in separate vignettes.
+
+## Online Learning
+
+For brevity, we consider a univariate probabilistic forecast combination problem.
+
+Let $\boldsymbol{y}$ be a vector of realized values of length $\text{T} = 32$. Additionally, we have $\text{K}=2$ probabilistic expert forecasts for each observation in $\boldsymbol{y}$. These probabilistic forecasts are equidistant grids of $\text{P}$ quantiles. The goal is to combine the expert forecasts to obtain a combined forecast $\widetilde{y}_{t|t-1}$ for each observation $y_t$ in $\boldsymbol{y}$. Formally:
+
+\begin{equation}
+    \widetilde{y}_{t|t-1} = \sum_{k=1}^K w_{t,k} \widehat{y}_{t,k}.
+\end{equation}
+
+Let's simulate this setting in R before we apply the combination algorithm. 
+
+```{r}
+set.seed(1)
+T <- 2^5 # Observations
+N <- 2 # Experts
+P <- 99 # Size of probability grid
+probs <- 1:P / (P + 1)
+
+y <- matrix(rnorm(T)) # Realized observations
+
+# Experts deviate in mean and standard deviation from true process
+experts_mu <- c(-1, 3)
+experts_sd <- c(1, 2)
+
+experts <- array(dim = c(T, P, N)) # Expert predictions
+
+for (t in 1:T) {
+  experts[t, , 1] <- qnorm(probs, mean = experts_mu[1], sd = experts_sd[1])
+  experts[t, , 2] <- qnorm(probs, mean = experts_mu[2], sd = experts_sd[2])
+}
+```
+
+The situation can be depicted as follows:
+
+```{r, echo = FALSE, out.width='100%', fig.width=7, fig.height = 4, dpi = 300}
+library(ggplot2)
+library(tibble)
+
+text_size <- 16
+width <- 12
+height <- 6
+
+col_lightgray <- "#e7e7e7"
+col_blue <- "#F24159"
+col_b_smooth <- "#5391AE"
+col_p_smooth <- "#85B464"
+col_pointwise <- "#E2D269"
+col_b_constant <- "#7A4E8A"
+col_p_constant <- "#BC677B"
+col_optimum <- "#666666"
+col_auto <- "#EA915E"
+
+df <- data.frame(x = sort(y), y = seq(from = 1 / T, to = 1, by = 1 / T))
+df$xend <- c(df$x[2:nrow(df)], df$x[nrow(df)])
+df$yend <- df$y
+df[T, "xend"] <- 7.5
+
+data_plot <-
+  ggplot(df, aes(x = x, y = y, xend = xend, yend = yend)) +
+  stat_function(
+    fun = pnorm, n = 10000,
+    args = list(mean = experts_mu[2], sd = experts_sd[2]),
+    aes(col = "Expert 2"), linewidth = 1.5
+  ) +
+  stat_function(
+    fun = pnorm, n = 10000,
+    args = list(mean = experts_mu[1], sd = experts_sd[1]),
+    aes(col = "Expert 1"), linewidth = 1.5
+  ) +
+  stat_function(
+    fun = pnorm,
+    n = 10000,
+    linewidth = 1.5, aes(col = "DGP") # , linetype = "dashed"
+  ) +
+  geom_point(aes(col = "ECDF"), linewidth = 1.5, show.legend = FALSE) +
+  geom_segment(aes(col = "ECDF")) +
+  geom_segment(data = tibble(
+    x_ = -5,
+    xend_ = min(y),
+    y_ = 0,
+    yend_ = 0
+  ), aes(x = x_, xend = xend_, y = y_, yend = yend_)) +
+  theme_minimal() +
+  theme(
+    # text = element_text(size = text_size),
+    legend.position = "bottom"
+  ) +
+  ggtitle("Data generating Process") +
+  ylab("Probability p") +
+  xlab("Value") +
+  scale_colour_manual(NULL, values = c("#969696", "#252525", col_auto, col_blue)) +
+  guides(color = guide_legend(
+    # nrow = 2,
+    # byrow = FALSE
+  )) +
+  scale_x_continuous(limits = c(-5, 7.5))
+data_plot
+```
+
+Most parameters of `online()` contain sensible defaults. So, in this example, it is sufficient to provide the data and the probability grid. 
+
+```{r}
+library(profoc)
+
+combination <- online(
+  y = y,
+  experts = experts,
+  tau = probs
+)
+```
+
+The code above will compute the CRPS Learning algorithm described in [@berrisch2021crps]. This algorithm is based on Bernstein online aggregation [@wintenberger2017optimal] and uses the quantile loss to calculate weights on the probability grid. Other algorithms like `ewa` or `ml-poly` can be computed by setting the `method` argument accordingly.  
+
+Printing the result object will present the loss of the experts and the computed combination:
+
+```{r}
+print(combination)
+```
+
+These are averages over time, the probability grid, and possibly all marginals. The losses of the Experts and the Forecaster can be accessed via `combination$experts_loss` and `combination$forecaster_loss`, respectively.
+
+We continue by inspecting the weights that were assigned during the online learning process:
+
+```{r}
+dim(combination$weights)
+```
+
+We can visualize the most recent weights with `autoplot()`:
+
+```{r, echo = TRUE, out.width='100%', fig.width=7, fig.height = 4, dpi = 300}
+autoplot(combination)
+```
+
+Expert one receives high weights, particularly in the right tail.  This is because the predictions of expert one are closer to the true DGP, especially in the right tail. 
+
+We currently offer `tidy()` methods for selected output elements (`weights`, `predictions`, `forecaster_loss`, and `experts_loss`).  These methods return a `tibble` for further analysis.  For example, we can easily plot the weights of both experts for selected quantiles over time with just a few lines of code using `{dplyr}` and `{ggplot2}`:
+
+```{r, echo = TRUE, out.width='100%', fig.width=7, fig.height = 4, dpi = 300}
+library(dplyr)
+library(ggplot2)
+
+tidy(combination$weights) |>
+  filter(p %in% c(0.05, 0.5, 0.95)) |>
+  ggplot(aes(x = t, y = w, col = k)) +
+  geom_line(linewidth = 1) +
+  facet_wrap(~p, ncol = 1)
+```
+
+Finally, we can inspect and visualize the predictions:
+
+```{r, echo = TRUE, out.width='100%', fig.width=7, fig.height = 4, dpi = 300}
+tidy(combination$predictions)
+
+tidy(combination$predictions) |>
+  ggplot(aes(x = t, y = prediction, group = p, colour = p)) +
+  geom_line() +
+  scale_color_continuous(low = "#FFDD00", high = "#0057B7") +
+  # A little hacky way to add the realized values
+  geom_line(aes(x = t, y = rep(y, each = 99)),
+    linetype = "dashed", col = "black", linewidth = 1
+  )
+```
+
+Vignettes on advanced topics will be added in the future. For now, we refer to the function references. 
+
+# References {-}
+
+
+

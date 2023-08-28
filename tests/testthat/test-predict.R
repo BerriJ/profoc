@@ -76,6 +76,6 @@ model_partial_3_copy <- model_partial_3
 preds <- predict.online(model_partial_3, experts[11:20, , , drop = FALSE], update_model = FALSE)
 expect_true(identical(model_partial_3, model_partial_3_copy))
 
-expect_true(identical(preds[1:10, , ], model_partial_1_preds))
+expect_true(all(preds[1:10, , ] == model_partial_1_preds))
 
 # %%

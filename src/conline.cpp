@@ -48,6 +48,8 @@ void conline::set_defaults()
     w0 /= K;
 
     R0.zeros(D, P, K);
+
+    predictions_got_sorted.zeros(T + T_E_Y, D);
 }
 
 void conline::set_grid_objects()
@@ -214,6 +216,10 @@ void conline::learn()
                 // Sort predictions if quantile_crossing is prohibited
                 if (!allow_quantile_crossing)
                 {
+                    if ((x == opt_index(t)) && (!tmp_preds_vec.is_sorted()))
+                    {
+                        predictions_got_sorted(t, d) = 1;
+                    }
                     tmp_preds_vec = arma::sort(tmp_preds_vec, "ascend", 0);
                 }
                 tmp_preds_cube(span(d), span::all, span(x)) = tmp_preds_vec;
@@ -499,6 +505,10 @@ void conline::learn()
             // Sort predictions if quantile_crossing is prohibited
             if (!allow_quantile_crossing)
             {
+                if (!tmp_preds_vec.is_sorted())
+                {
+                    predictions_got_sorted(t, d) = 1;
+                }
                 tmp_preds_vec = arma::sort(tmp_preds_vec, "ascend", 0);
             }
             predictions.tube(t, d) = tmp_preds_vec;
@@ -586,6 +596,7 @@ Rcpp::List conline::output()
 
     Rcpp::List out = Rcpp::List::create(
         Rcpp::Named("predictions") = predictions,
+        Rcpp::Named("predictions_got_sorted") = predictions_got_sorted,
         Rcpp::Named("weights") = weights,
         Rcpp::Named("forecaster_loss") = loss_for,
         Rcpp::Named("experts_loss") = loss_exp,
@@ -658,6 +669,8 @@ void conline::init_update(
     // // Output Objects
     predictions = Rcpp::as<arma::cube>(object["predictions"]);
     predictions.resize(T + T_E_Y, D, P);
+    predictions_got_sorted = Rcpp::as<arma::mat>(object["predictions_got_sorted"]);
+    predictions_got_sorted.resize(T + T_E_Y, D);
     weights.set_size(T + 1);
     weights.rows(0, start) = Rcpp::as<arma::field<cube>>(object["weights"]);
 

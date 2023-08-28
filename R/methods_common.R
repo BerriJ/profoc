@@ -1,18 +1,3 @@
-#' Create a complete ggplot appropriate to a particular data type
-#'
-#' `autoplot()` uses ggplot2 to draw a particular plot for an object of a
-#' particular class in a single command. This defines the S3 generic that
-#' other classes and packages can extend.
-#'
-#' @param object an object, whose class will determine the behavior of autoplot
-#' @param ... other arguments passed to specific methods
-#' @return a ggplot object
-#' @seealso [ggplot2::autolayer()], [ggplot2::ggplot()] and [ggplot2::fortify()]
-#' @export
-autoplot <- function(object, ...) {
-    UseMethod("autoplot")
-}
-
 print_common <- function(x) {
     expert_names <- dimnames(x$specification$data$experts)[[3]]
 
@@ -54,20 +39,16 @@ plot_common <- function(x) {
 }
 
 autoplot_common <- function(object) {
-    if (requireNamespace("ggplot2", quietly = TRUE)) {
-        weights <- object$weights[nrow(object$weights), , ]
-        p <- object$specification$data$tau
-        weight <- matrix(weights)
-        expert_names <- dimnames(object$specification$data$experts)[[3]]
-        Expert <- as.character(rep(expert_names,
-            each = nrow(weights)
-        ))
-        df <- data.frame(weight, Expert, p)
-        ggplot2::ggplot(df, ggplot2::aes(x = p, y = weight, fill = Expert)) +
-            ggplot2::theme_minimal() +
-            ggplot2::geom_area() +
-            ggplot2::ggtitle("Most Recent Combination Weights")
-    } else {
-        cat("Package ggplo2 needs to be installed to use autoplot.")
-    }
+    weights <- object$weights[nrow(object$weights), , ]
+    p <- object$specification$data$tau
+    weight <- matrix(weights)
+    expert_names <- dimnames(object$specification$data$experts)[[3]]
+    Expert <- as.character(rep(expert_names,
+        each = nrow(weights)
+    ))
+    df <- data.frame(weight, Expert, p)
+    ggplot2::ggplot(df, ggplot2::aes(x = p, y = weight, fill = Expert)) +
+        ggplot2::theme_minimal() +
+        ggplot2::geom_area() +
+        ggplot2::ggtitle("Most Recent Combination Weights")
 }

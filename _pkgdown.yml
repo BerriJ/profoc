@@ -1,0 +1,13 @@
+url: https://profoc.berrisch.biz
+
+development:
+  mode: auto
+
+template:
+  bootstrap: 5
+  bootswatch: yeti
+  bslib:
+    pkgdown-nav-height: 100px
+
+navbar:
+  bg: dark

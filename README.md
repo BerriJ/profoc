@@ -5,8 +5,8 @@ An R package for probabilistic forecast combination
 ------------
 
 <!-- badges: start -->
-[![R-CMD-check](https://img.shields.io/github/actions/workflow/status/berrij/profoc/R-CMD-check.yaml?branch=main&style=for-the-badge)](https://github.com/BerriJ/profoc/actions/workflows/R-CMD-check.yaml)
-[![GitHub Workflow Status (branch)](https://img.shields.io/github/actions/workflow/status/berrij/profoc/pkgdown.yaml?branch=main&label=Documentation&style=for-the-badge)](https://profoc.berrisch.biz/)
+[![R-CMD-check](https://img.shields.io/github/actions/workflow/status/berrij/profoc/R-CMD-check.yaml?&style=for-the-badge)](https://github.com/BerriJ/profoc/actions/workflows/R-CMD-check.yaml)
+[![GitHub Workflow Status (branch)](https://img.shields.io/github/actions/workflow/status/berrij/profoc/pkgdown.yaml?label=Documentation&style=for-the-badge)](https://profoc.berrisch.biz/)
 [![Lifecycle: stable](https://img.shields.io/badge/Lifecycle-stable-brightgreen?style=for-the-badge)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 <!-- badges: end -->
 
@@ -33,7 +33,7 @@ You can install the latest stable release from GitHub using:
 remotes::install_github("BerriJ/profoc")
 ```
 
-You can install the latest development release from GitHub using:
+You can install the latest development version from GitHub using:
 
 ``` r
 # install.packages("remotes")

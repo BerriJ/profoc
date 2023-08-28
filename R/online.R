@@ -244,6 +244,7 @@ online <- function(y, experts, tau,
         model_instance$experts <- experts
     }
     names$experts[[2]] <- dnames
+    names$experts[[3]] <- tau
     names$experts[[4]] <- enames
 
     # Define dimensions for convenience

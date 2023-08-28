@@ -68,6 +68,7 @@ public:
     // Predictions
     arma::field<arma::cube> predictions_grid;
     arma::cube predictions;
+    arma::mat predictions_got_sorted;
 
     // Performance related
     arma::vec opt_index;

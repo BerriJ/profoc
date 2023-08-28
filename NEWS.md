@@ -1,3 +1,17 @@
+profoc 1.2.1
+==============
+
+## Improvements
+
+* `online()` outputs now include `predictions_got_sorted`. A matrix which indicates whether quantile crossing occured and predictions have been sorted.
+* `tidy()` methods were added to convert `weights`, `predictions` and loss objects of `online()` output to a tibble (for further analysis, plotting etc.)
+* A [Get started](https://profoc.berrisch.biz/articles/profoc.html) article was added to the docs.
+* Docs of the development version were added to the [website](https://profoc.berrisch.biz/dev/)
+
+## Fixes
+
+* This release fixes import / export of of the `autoplot()` method. In consequence, ggplot2 became a new dependency of this package.
+
 profoc 1.2.0
 ==============
 
