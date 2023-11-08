@@ -197,7 +197,7 @@ tidy(combination$predictions) |>
   )
 ```
 
-Vignettes on advanced topics will be added in the future. For now, we refer to the function references. 
+If you want to learn more on using `online()` in production for predicting and updating, refer to `vignette("production")`. 
 
 # References {-}
 
