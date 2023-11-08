@@ -94,13 +94,20 @@ Berrisch</h4>
 <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code>. These are the two most important functions when
 using <code>profoc</code> in production. The <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>
 method is used to combine new expert forecasts using the most recent
-combination weights. This is useful if we want to combine new expert
-forecasts with the most recent combination weights, but no new
-observations have been realized yet. At a later point in time,
-<code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code> can be used to update the combination weights by
-evaluating the realized observations. We assume that you followed the
-<code>vignette("Introduction")</code> already, we will reuse the data
-and the model from there.</p>
+combination weights. This is useful if we combine new expert forecasts
+with the most recent combination weights, but new observations have yet
+to be realized. At a later point, <code><a href="https://rdrr.io/r/stats/update.html" class="external-link">update()</a></code> can be used to
+update the combination weights by evaluating the realized observations.
+We assume that you followed the <code><a href="../articles/profoc.html">vignette("profoc")</a></code> already.
+We will reuse the data and the model from there.</p>
+<div class="section level3">
+<h3 id="combining-new-expert-predictions">Combining new expert predictions<a class="anchor" aria-label="anchor" href="#combining-new-expert-predictions"></a>
+</h3>
+</div>
+<div class="section level3">
+<h3 id="updating-the-model-weights">Updating the model weights<a class="anchor" aria-label="anchor" href="#updating-the-model-weights"></a>
+</h3>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
