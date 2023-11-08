@@ -2,9 +2,9 @@ pandoc: 2.19.2
 pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
-  methods: methods.html
+  production: production.html
   profoc: profoc.html
-last_built: 2023-11-08T09:51Z
+last_built: 2023-11-08T15:09Z
 urls:
   reference: https://profoc.berrisch.biz/reference
   article: https://profoc.berrisch.biz/articles
