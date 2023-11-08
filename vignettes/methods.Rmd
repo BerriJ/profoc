@@ -16,4 +16,9 @@ vignette: >
 
 # Methods of the `profoc` package
 
-This vignette explains the use of `predict()` and `update()`. These are the two most important functions when using `profoc` in production. The `predict()` method is used to combine new expert forecasts using the most recent combination weights. This is useful if we want to combine new expert forecasts with the most recent combination weights, but no new observations have been realized yet. At a later point in time, `update()` can be used to update the combination weights by evaluating the realized observations. We assume that you followed the `vignette("Introduction")` already, we will reuse the data and the model from there.
+This vignette explains the use of `predict()` and `update()`. These are the two most important functions when using `profoc` in production. The `predict()` method is used to combine new expert forecasts using the most recent combination weights. This is useful if we combine new expert forecasts with the most recent combination weights, but new observations have yet to be realized. At a later point, `update()` can be used to update the combination weights by evaluating the realized observations. We assume that you followed the `vignette("profoc")` already. We will reuse the data and the model from there.
+
+## Combining new expert predictions
+
+
+## Updating the model weights
