@@ -121,7 +121,8 @@ list of arrays. Thereby, the list itself must have dimension
 <code><a href="../reference/init_experts_list.html">init_experts_list()</a></code> to create such a list from our experts
 array.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">model</span><span class="op">$</span><span class="va">experts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/init_experts_list.html">init_experts_list</a></span><span class="op">(</span><span class="va">experts</span>, <span class="va">y</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">experts_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/init_experts_list.html">init_experts_list</a></span><span class="op">(</span><span class="va">experts</span>, <span class="va">y</span><span class="op">)</span></span>
+<span><span class="va">model</span><span class="op">$</span><span class="va">experts</span> <span class="op">&lt;-</span> <span class="va">experts_list</span></span></code></pre></div>
 <p>Now suppose we want to alter the smoothing behavior across quantiles.
 We start by creating a new hat matrix.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
