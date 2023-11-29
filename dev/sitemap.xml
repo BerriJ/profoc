@@ -4,6 +4,9 @@
     <loc>https://profoc.berrisch.biz/dev/LICENSE.html</loc>
   </url>
   <url>
+    <loc>https://profoc.berrisch.biz/dev/articles/class.html</loc>
+  </url>
+  <url>
     <loc>https://profoc.berrisch.biz/dev/articles/index.html</loc>
   </url>
   <url>
@@ -35,6 +38,15 @@
   </url>
   <url>
     <loc>https://profoc.berrisch.biz/dev/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>https://profoc.berrisch.biz/dev/reference/init_experts_list.html</loc>
+  </url>
+  <url>
+    <loc>https://profoc.berrisch.biz/dev/reference/make_basis_mats.html</loc>
+  </url>
+  <url>
+    <loc>https://profoc.berrisch.biz/dev/reference/make_hat_mats.html</loc>
   </url>
   <url>
     <loc>https://profoc.berrisch.biz/dev/reference/make_knots.html</loc>
