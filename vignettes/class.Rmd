@@ -27,7 +27,6 @@ directly from R. This vignette shows how to do this.
 Note that we will reuse the data from `vignette("profoc")`.
 
 ```{r, include = FALSE}
-rm(list = ls())
 knitr::opts_chunk$set(
     collapse = TRUE,
     # dev = "svg",
@@ -79,7 +78,8 @@ model$tau <- tau
 The experts array is a bit more complicated. C++ expects us to pass a list of arrays. Thereby, the list itself must have dimension `Tx1` and the elements of the list (the arrays) `D x P x K`. For convenience we can use `init_experts_list()` to create such a list from our experts array.
 
 ```{r}
-model$experts <- init_experts_list(experts, y)
+experts_list <- init_experts_list(experts, y)
+model$experts <- experts_list
 ```
 
 Now suppose we want to alter the smoothing behavior across quantiles. We start by creating a new hat matrix. 
