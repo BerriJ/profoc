@@ -48,6 +48,7 @@ Let's simulate this setting in R before we apply the combination algorithm.
 ```{r}
 set.seed(1)
 T <- 2^5 # Observations
+D <- 1 # Numer of variables
 N <- 2 # Experts
 P <- 99 # Size of probability grid
 probs <- 1:P / (P + 1)

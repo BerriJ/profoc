@@ -2,6 +2,76 @@ get_seed <- function() {
     sample.int(.Machine$integer.max, 1)
 }
 
+#' Create experts list to be used in conline class
+#'
+#' This function works in conjunction with the conline class.
+#' It takes a matrix of experts and a matrix of outcomes and
+#' returns a list of experts which fulfills all properties
+#' that are needed for passing it to the an instance of conline.
+#' @param experts array of predictions with dimension T x D x P x K
+#' (Observations x Variables x Quantiles x Experts) or T x D x K or T x P x K.
+#' @param y  A matrix of outcomes with dimension T x D.
+#' @param output_with_names Defaults to FALSE. If TRUE, the function
+#' returns a list with
+#' the experts list, the names of the variables (dnames) and the
+#' names of the experts (enames).
+#' @importFrom abind asub adrop
+#' @export
+init_experts_list <- function(experts, y, output_with_names = FALSE) {
+    edim <- dim(experts)
+    if (length(edim) == 3) {
+        enames <- dimnames(experts)[[3]]
+        if (is.null(enames)) {
+            enames <- paste0("E", 1:edim[3])
+        }
+        if (ncol(y) > 1) { # multivariate point
+            if (is.null(dimnames(experts)[[2]])) {
+                dnames <- paste0("D", 1:edim[2])
+            } else {
+                dnames <- dimnames(experts)[[2]]
+            }
+            experts <- array(
+                unlist(experts),
+                dim = c(edim[1], edim[2], 1, edim[3])
+            )
+            experts <- lapply(seq_len(edim[1]),
+                asub,
+                x = experts,
+                dims = 1,
+                drop = FALSE
+            )
+            experts <- lapply(experts, adrop, drop = 1)
+            dim(experts) <- c(edim[1], 1)
+        } else if (ncol(y) == 1) { # univariate probabilistic
+            dnames <- "D1"
+            experts <- lapply(seq_len(edim[1]),
+                asub,
+                x = experts,
+                dims = 1,
+                drop = FALSE
+            )
+            dim(experts) <- c(edim[1], 1)
+        }
+    } else if (length(edim) == 4) { # multivariate probabilistic
+        if (is.null(dimnames(experts)[[2]])) {
+            dnames <- paste0("D", 1:edim[2])
+        } else {
+            dnames <- dimnames(experts)[[2]]
+        }
+        enames <- dimnames(experts)[[4]]
+        if (is.null(enames)) {
+            enames <- paste0("E", 1:edim[4])
+        }
+        experts <- array_to_list(experts)
+    }
+
+    if (output_with_names) {
+        return(list(experts = experts, dnames = dnames, enames = enames))
+    } else {
+        return(experts)
+    }
+}
+
 #' @importFrom abind asub adrop
 array_to_list <- function(x) {
     x <- lapply(seq_len(dim(x)[1]),

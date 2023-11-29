@@ -1,3 +1,16 @@
+profoc 1.3.0
+==============
+
+## Improvements
+
+* New articles explain how to use method on `online()` objects to deploy online learning algorithms in production.
+* The `conline` c++ class now exoses `weights` to R.
+* A new article on how to interact with the `conline` c++ class was added.
+* Various functions are now exported to R to allow for easier interaction with the `conline` c++ class. These functions are: `init_experts_list()`, `make_basis_mats` and `make_hat_mats`
+* The code of `online()` was simplified a bit by utilizing the new `init_experts_list()` function.
+
+## Improvements
+
 profoc 1.2.1
 ==============
 

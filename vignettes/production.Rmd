@@ -1,5 +1,5 @@
 ---
-title: "Production "
+title: "Production"
 author: Jonathan Berrisch
 date: "`r Sys.Date()`"
 bibliography:
