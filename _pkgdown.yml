@@ -11,3 +11,10 @@ template:
 
 navbar:
   bg: dark
+
+articles:
+  contents:
+  - profoc
+  - production
+  - class
+
