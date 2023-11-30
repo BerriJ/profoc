@@ -13,8 +13,10 @@ navbar:
   bg: dark
 
 articles:
+- title: Introduction
   contents:
   - profoc
   - production
+- title: Advanced Topics
+  contents:
   - class
-
