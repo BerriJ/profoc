@@ -590,7 +590,7 @@ Rcpp::List conline::output()
         Rcpp::Named("beta0field") = beta0field);
 
     Rcpp::List model_spec = Rcpp::List::create(
-        Rcpp::Named("data") = model_data,
+        // Rcpp::Named("data") = model_data,
         Rcpp::Named("parameters") = model_parameters,
         Rcpp::Named("objects") = model_objects);
 

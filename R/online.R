@@ -204,7 +204,7 @@ online <- function(y, experts, tau,
     names$experts[[4]] <- e_list$enames
 
     model_instance$tau <- tau
-        
+
     # Define dimensions for convenience
     T <- dim(e_list$experts)[1]
     D <- dim(e_list$experts[[1]])[1]
@@ -457,6 +457,13 @@ online <- function(y, experts, tau,
 
     # Generate output
     model <- model_instance$output()
+
+    model$specification[["data"]] <-
+        list(
+            y = model_instance$y,
+            experts = model_instance$experts,
+            tau = model_instance$tau
+        )
 
     model_instance$teardown()
     rm(model_instance)

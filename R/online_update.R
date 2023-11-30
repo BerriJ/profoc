@@ -72,6 +72,14 @@ update.online <- function(object,
     )
     model_instance$learn()
     object <- model_instance$output()
+
+    object$specification[["data"]] <-
+        list(
+            y = model_instance$y,
+            experts = model_instance$experts,
+            tau = model_instance$tau
+        )
+
     model_instance$teardown()
     rm(model_instance)
     object <- post_process_model(model = object, names = names)

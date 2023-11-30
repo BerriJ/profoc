@@ -99,12 +99,12 @@ We need a list of sparse matrices which `make_hat_mats()` returns. So we can pas
 model$hat_pr <- hat$hat
 ```
 
-The other smoothing matrices have to be filled with defaults. Usually `online()` takes care of this. But we can do it manually as well.
+The other smoothing matrices have to be filled with defaults (lists of sparse identity matrices). Usually `online()` takes care of this. But we can do it manually as well.
 
 ```{r}
-model$basis_mv <- make_basis_mats(x = 1:D / (D + 1))$basis
-model$basis_pr <- make_basis_mats(x = 1:P / (P + 1))$basis
-model$hat_mv <- make_hat_mats(x = 1:D / (D + 1))$hat
+model$basis_mv <- list(Matrix::sparseMatrix(i = 1:D, j = 1:D, x = 1))
+model$basis_pr <- list(Matrix::sparseMatrix(i = 1:P, j = 1:P, x = 1))
+model$hat_mv <- list(Matrix::sparseMatrix(i = 1:D, j = 1:D, x = 1))
 ```
 
 Now we can specify the parameter grid. We will stick to the defaults here:
@@ -149,8 +149,11 @@ model$learn()
 
 ## Accessing the results
 
-The learning process fills the class objects. Now we can inspect them using the `$` operator, like we would with any other R object. For example, we can access the weights:
+The learning process fills the class objects. So we can inspect them using the `$` operator, like we would with any other R object. For example, we can access the weights:
 
 ```{r}
-print(model$weights[T, , ])
+head(model$weights[[T]][, , 1])
 ```
+
+However, we can also use the post processing functions from `online()` to access the results. This will create output that is identical to the output of `online()`.
+
