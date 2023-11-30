@@ -71,14 +71,61 @@ update.online <- function(object,
         new_experts
     )
     model_instance$learn()
-    object <- model_instance$output()
 
-    object$specification[["data"]] <-
+    object <- list(
+        predictions = model_instance$predictions,
+        predictions_got_sorted = model_instance$predictions_got_sorted,
+        weights = model_instance$weights,
+        forecaster_loss = model_instance$loss_for,
+        experts_loss = model_instance$loss_exp,
+        past_performance = model_instance$past_performance,
+        opt_index = model_instance$opt_index + 1, # Respect one-based indexing
+        parametergrid = model_instance$params,
+        params_basis_pr = model_instance$params_basis_pr,
+        params_basis_mv = model_instance$params_basis_mv,
+        params_hat_pr = model_instance$params_hat_pr,
+        params_hat_mv = model_instance$params_hat_mv
+    )
+
+    object[["specification"]] <-
         list(
-            y = model_instance$y,
-            experts = model_instance$experts,
-            tau = model_instance$tau
+            data =
+                list(
+                    y = model_instance$y,
+                    experts = model_instance$experts,
+                    tau = model_instance$tau
+                ),
+            objects =
+                list(
+                    weights_tmp = model_instance$weights_tmp,
+                    predictions_grid = model_instance$predictions_grid,
+                    cum_performance = model_instance$cum_performance,
+                    hat_pr = model_instance$hat_pr,
+                    hat_mv = model_instance$hat_mv,
+                    basis_pr = model_instance$basis_pr,
+                    basis_mv = model_instance$basis_mv,
+                    V = model_instance$V,
+                    E = model_instance$E,
+                    eta = model_instance$eta,
+                    R = model_instance$R,
+                    beta = model_instance$beta,
+                    beta0field = model_instance$beta0field
+                ),
+            parameters =
+                list(
+                    lead_time = model_instance$lead_time,
+                    loss_function = model_instance$loss_function,
+                    loss_parameter = model_instance$loss_parameter,
+                    loss_gradient = model_instance$loss_gradient,
+                    method = model_instance$method,
+                    forget_past_performance = model_instance$forget_past_performance,
+                    allow_quantile_crossing = model_instance$allow_quantile_crossing,
+                    save_past_performance = model_instance$save_past_performance,
+                    save_predictions_grid = model_instance$save_predictions_grid
+                )
         )
+
+    attr(object, "class") <- c("online", "list")
 
     model_instance$teardown()
     rm(model_instance)
