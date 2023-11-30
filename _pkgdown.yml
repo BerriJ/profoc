@@ -14,9 +14,11 @@ navbar:
 
 articles:
 - title: Introduction
+  navbar: ~
   contents:
   - profoc
   - production
 - title: Advanced Topics
+  navbar: ~
   contents:
   - class

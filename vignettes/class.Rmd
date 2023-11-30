@@ -1,5 +1,5 @@
 ---
-title: "Accessing the C++ Interface"
+title: "Using the C++ Interface"
 author: Jonathan Berrisch
 date: "`r Sys.Date()`"
 bibliography:
@@ -9,7 +9,7 @@ output:
     number_sections: no
     toc: no
 vignette: >
-  %\VignetteIndexEntry{Accessing the C++ Interface}
+  %\VignetteIndexEntry{Using the C++ Interface}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
