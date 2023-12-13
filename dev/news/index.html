@@ -64,6 +64,7 @@
 <li>Various functions are now exported to R to allow easier interaction with the <code>conline</code> C++ class. These functions are: <code><a href="../reference/init_experts_list.html">init_experts_list()</a></code>, <code>make_basis_mats</code> and <code>make_hat_mats</code>
 </li>
 <li>The code of <code><a href="../reference/online.html">online()</a></code> was simplified a bit by utilizing the new <code><a href="../reference/init_experts_list.html">init_experts_list()</a></code> function.</li>
+<li>Move aggregation of timings from cppclock.R to clock.h. This make it faster, easier to maintain and simplifies the code (which will be used in python in the future as well).</li>
 </ul></div>
 </div>
     <div class="section level2">
