@@ -155,5 +155,31 @@ The learning process fills the class objects. So we can inspect them using the `
 head(model$weights[[T]][, , 1])
 ```
 
-However, we can also use the post processing functions from `online()` to access the results. This will create output that is identical to the output of `online()`.
+However, we can also use the post processing function of `online()` to access the results. This will create output that is identical to the output of `online()`:
 
+```{r}
+names <- list(y = dimnames(y))
+names$experts <- list(
+  1:T,
+  paste("Marginal", 1:D),
+  tau,
+  paste("Expert", 1:N)
+)
+
+output <- post_process_model(model, names)
+```
+
+We can now use `output` in `update()`, `plot()` and others. 
+
+At this point, we do not need to keep the model in memory anymore. So we can delete it:
+
+```{r}
+rm(model)
+```
+
+## Summary
+
+The C++ class `conline` allows you to gain fine grained control over the learning process. However, it is not as convenient as the `online()` wrapper. So you should only use it if you need to alter the default behavior. However, mixing up helper
+functions from `online()` and the C++ class is possible. So you can compute your 
+combinations using the class interface while still being able to use `update()`, 
+`plot()` and others afterward.

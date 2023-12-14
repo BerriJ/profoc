@@ -105,6 +105,17 @@ val_or_def <- function(val, def) {
     }
 }
 
+
+#' Post Process Data from conline Class
+#'
+#' This function works in conjunction with the conline class.
+#' After the main learning task, it takes the output of the
+#' conline class and returns an object suitable for, visualization,
+#' further, and deployment.
+#' analysis.
+#' @param model_instance  An instance of conline.
+#' @param names A named list with dimnames of `y` and `experts`.
+#' @export
 post_process_model <- function(model_instance, names) {
     # Generate output
     model <- list(

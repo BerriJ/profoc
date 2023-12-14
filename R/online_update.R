@@ -74,7 +74,7 @@ update.online <- function(object,
 
     object <- post_process_model(model_instance, names = names)
 
-    model_instance$teardown()
+    model_instance$get_times()
     rm(model_instance)
 
     return(object)

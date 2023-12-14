@@ -60,5 +60,5 @@ RCPP_MODULE(conlineEx)
       .method("getP", &conline::getP)
       .method("getK", &conline::getK)
       .method("getX", &conline::getX)
-      .method("teardown", &conline::teardown);
+      .method("get_times", &conline::get_times);
 }
