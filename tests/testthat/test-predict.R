@@ -50,7 +50,10 @@ model_partial_2 <- online(
     experts = experts[1:10, , , drop = FALSE],
     trace = FALSE
 )
-model_partial_2 <- predict(model_partial_2, new_experts = experts[11:20, , , drop = FALSE])
+model_partial_2 <- predict(
+    model_partial_2,
+    new_experts = experts[11:20, , , drop = FALSE]
+)
 
 expect_true(all(model_partial_1$predictions == model_partial_2$predictions))
 identical(model_partial_2, model_full)
