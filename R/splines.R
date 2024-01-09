@@ -137,7 +137,7 @@ make_basis_mats <- function(x, # Splines basis
 #' @param nonc Beta distribution noncentrality parameter
 #' @param tailw Tailweight
 #' @param deg Degree of splines
-#' @param ndiff Sets the degree of the differencing matrix for creaing
+#' @param ndiff Sets the degree of the differencing matrix for creating
 #' the penalty
 #' @param lambda Penalty parameter (higher values lead to higher penalty)
 #' @param periodic Create periodic penalty

@@ -34,7 +34,7 @@ make_hat_mats(
 
 \item{deg}{Degree of splines}
 
-\item{ndiff}{Sets the degree of the differencing matrix for creaing
+\item{ndiff}{Sets the degree of the differencing matrix for creating
 the penalty}
 
 \item{lambda}{Penalty parameter (higher values lead to higher penalty)}
