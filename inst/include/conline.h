@@ -25,10 +25,15 @@ public:
     std::string method = "bewa";
 
     std::map<std::string, arma::colvec> params;
-    std::map<std::string, arma::colvec> params_basis_pr;
-    std::map<std::string, arma::colvec> params_basis_mv;
-    std::map<std::string, arma::colvec> params_hat_pr;
-    std::map<std::string, arma::colvec> params_hat_mv;
+    std::map<std::string, arma::colvec> params_basis_pr = {{"",
+                                                            arma::ones(0)}};
+    std::map<std::string, arma::colvec> params_basis_mv = {{"",
+                                                            arma::ones(0)}};
+    std::map<std::string, arma::colvec> params_hat_pr = {{"",
+                                                          arma::ones(0)}};
+    std::map<std::string, arma::colvec> params_hat_mv = {{"",
+                                                          arma::ones(0)}};
+
     double forget_past_performance = 0.0;
     bool allow_quantile_crossing = false;
     bool trace = true;
@@ -104,8 +109,7 @@ public:
         Rcpp::List &object,
         arma::mat &new_y,
         arma::field<arma::cube> &new_experts);
-    Rcpp::List output();
-    void teardown()
+    void get_times()
     {
         clock.stop();
     };

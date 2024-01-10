@@ -37,6 +37,25 @@ make_knots <- function(n, mu = .5, sig = 1, nonc = 0, tailw = 1, deg = 1) {
     return(knots)
 }
 
+#' Create a List of Basis Matrices
+#'
+#' This function creates a list of basis matrices and the corresponding
+#' parameters. It is used in `online()` to create the basis matrices
+#' for basis smoothing.
+#' @param x The predictor variable
+#' @param n Number of knots
+#' @param mu Beta distribution location parameter
+#' @param sigma Beta distribution scale parameter
+#' @param nonc Beta distribution noncentrality parameter
+#' @param tailw Tailweight
+#' @param deg Degree of splines
+#' @param periodic Create periodic basis
+#' @param idx `make_basis_mats()` will create a grid containing all
+#' combinations of the parameters. If idx is set, this grid will
+#' be subsetted to the rows specified by idx.
+#' @param params Instead of the arguments above, a grid (data.frame
+#' or named matrix) of parameters can be passed directly.
+#' @export
 make_basis_mats <- function(x, # Splines basis
                             n = length(x), # (vec of) Number of knots
                             mu = 0.5, # (vec of) Beta dist. mu
@@ -106,6 +125,28 @@ make_basis_mats <- function(x, # Splines basis
     return(out)
 }
 
+#' Create a List of Hat Matrices
+#'
+#' This function creates a list of hat matrices and the corresponding
+#' parameters. It is used in `online()` to create the hat matrices
+#' for penalized smoothing.
+#' @param x The predictor variable
+#' @param n Number of knots
+#' @param mu Beta distribution location parameter
+#' @param sigma Beta distribution scale parameter
+#' @param nonc Beta distribution noncentrality parameter
+#' @param tailw Tailweight
+#' @param deg Degree of splines
+#' @param ndiff Sets the degree of the differencing matrix for creating
+#' the penalty
+#' @param lambda Penalty parameter (higher values lead to higher penalty)
+#' @param periodic Create periodic penalty
+#' @param idx `make_hat_mats()` will create a grid containing all
+#' combinations of the parameters. If idx is set, this grid will
+#' be subsetted to the rows specified by idx.
+#' @param params Instead of the arguments above, a grid (data.frame
+#' or named matrix) of parameters can be passed directly.
+#' @export
 make_hat_mats <- function(x,
                           n = length(x),
                           mu = 0.5,

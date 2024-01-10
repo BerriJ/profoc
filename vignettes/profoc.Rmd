@@ -48,6 +48,7 @@ Let's simulate this setting in R before we apply the combination algorithm.
 ```{r}
 set.seed(1)
 T <- 2^5 # Observations
+D <- 1 # Numer of variables
 N <- 2 # Experts
 P <- 99 # Size of probability grid
 probs <- 1:P / (P + 1)
@@ -197,7 +198,7 @@ tidy(combination$predictions) |>
   )
 ```
 
-Vignettes on advanced topics will be added in the future. For now, we refer to the function references. 
+If you want to learn more on using `online()` in production for predicting and updating, refer to `vignette("production")`. 
 
 # References {-}
 

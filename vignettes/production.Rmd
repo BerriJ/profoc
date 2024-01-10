@@ -1,0 +1,118 @@
+---
+title: "Production"
+author: Jonathan Berrisch
+date: "`r Sys.Date()`"
+bibliography:
+  - ../inst/bib/profoc.bib
+output:
+  rmarkdown::html_vignette:
+    number_sections: no
+    toc: no
+vignette: >
+  %\VignetteIndexEntry{Production}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Using `online` in Production
+
+This vignette explains the use of `predict()` and `update()`. These are the two most important functions when using `profoc` in production. The `predict()` method is used to combine new expert forecasts using the most recent combination weights. This is useful if we combine new expert forecasts with the most recent combination weights, but new observations have yet to be realized. At a later point, `update()` can be used to update the combination weights by evaluating the realized observations. We assume that you followed the `vignette("profoc")` already. We will reuse the data and the model from there.
+
+## Combining new expert predictions
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  # dev = "svg",
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>"
+)
+Sys.setenv("OMP_THREAD_LIMIT" = 2)
+
+set.seed(1)
+T <- 2^5 # Observations
+N <- 2 # Experts
+P <- 99 # Size of probability grid
+probs <- 1:P / (P + 1)
+
+y <- matrix(rnorm(T)) # Realized observations
+
+# Experts deviate in mean and standard deviation from true process
+experts_mu <- c(-1, 3)
+experts_sd <- c(1, 2)
+
+experts <- array(dim = c(T, P, N)) # Expert predictions
+
+for (t in 1:T) {
+  experts[t, , 1] <- qnorm(probs, mean = experts_mu[1], sd = experts_sd[1])
+  experts[t, , 2] <- qnorm(probs, mean = experts_mu[2], sd = experts_sd[2])
+}
+
+library(profoc)
+
+combination <- online(
+  y = y,
+  experts = experts,
+  tau = probs
+)
+```
+
+
+First, we create new expert predictions:
+
+```{r}
+new_experts <- experts[T, , , drop = FALSE]
+```
+
+The default behavior of `predict()` updates the `combination` object. So, it can later be used to update the combination weights as realized values emerge. That is, `predict()` expands `combination$predictions` and returns the updated `combination`. 
+
+
+```{r}
+dim(combination$predictions)
+
+# Predict will expand combination$predictions
+combination <- predict(combination,
+  new_experts = new_experts
+)
+
+dim(combination$predictions)
+```
+
+If you are only interested in the predictions, you can set `update_model = FALSE`. In this case, `predict()` solely returns the predictions:
+```{r}
+predictions <- predict(combination,
+  new_experts = new_experts,
+  update_model = FALSE
+)
+
+dim(predictions)
+```
+
+
+## Updating the model weights
+
+As new realizations emerge, we can update the combination weights. This is done by `update()`. That is, `update()` expands `combination$weights` and returns the updated `combination`. 
+
+```{r}
+# New observation
+new_y <- matrix(rnorm(1))
+```
+
+```{r}
+dim(combination$weights)
+
+# Model Update
+combination <-
+  update(combination,
+    new_y = new_y
+  )
+
+dim(combination$weights)
+```
+
+## Summary on `predict()` and `update()`
+
+As seen above, `predict()` and `update()` are closely related and usually called sequentially. In an only setting, we want to calculate the forecast (the combination) as soon as new expert predictions emerge. For that, we can use `predict()`. Later, as new observations are realized, we can `update()` the combination weights. 
+
+We designed to also work in non-standard scenarios. So if, for example, experts provide multi-step-ahead predictions, we can use `predict()` to combine all of them using the most recent combination weights. Afterward, one or multiple `update()` calls can be used to update the combination weights as new observations are realized. If we want to `predict()` and `update()` simultaneously, we can do this. We can pass the new expert predictions and observations to `predict()`. This will update the combination weights and predictions with only one call to `predict()`.

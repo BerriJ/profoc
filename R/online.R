@@ -176,13 +176,9 @@ online <- function(y, experts, tau,
                    trace = TRUE) {
     model_instance <- new(conline)
     model_instance$trace <- trace
-    model_instance$tau <- tau
     model_instance$forget_past_performance <- forget_past_performance
     model_instance$save_past_performance <- save_past_performance
     model_instance$save_predictions_grid <- save_predictions_grid
-
-
-    edim <- dim(experts)
 
     if (is.vector(y)) {
         y <- matrix(y)
@@ -192,68 +188,30 @@ online <- function(y, experts, tau,
 
     # preserve names
     names <- list(y = dimnames(y))
-    names$experts <- list(NULL)
 
     # Prepare experts
-    if (length(edim) == 3) {
-        enames <- dimnames(experts)[[3]]
-        if (is.null(enames)) {
-            enames <- paste0("E", 1:edim[3])
-        }
-        if (ncol(y) > 1) { # multivariate point
-            if (is.null(dimnames(experts)[[2]])) {
-                dnames <- paste0("D", 1:edim[2])
-            } else {
-                dnames <- dimnames(experts)[[2]]
-            }
-            experts <- array(
-                unlist(experts),
-                dim = c(edim[1], edim[2], 1, edim[3])
-            )
-            experts <- lapply(seq_len(edim[1]),
-                asub,
-                x = experts,
-                dims = 1,
-                drop = FALSE
-            )
-            experts <- lapply(experts, adrop, drop = 1)
-            dim(experts) <- c(edim[1], 1)
-            model_instance$experts <- experts
-        } else if (ncol(y) == 1) { # univariate probabilistic
-            dnames <- "D1"
-            experts <- lapply(seq_len(edim[1]),
-                asub,
-                x = experts,
-                dims = 1,
-                drop = FALSE
-            )
-            dim(experts) <- c(edim[1], 1)
-            model_instance$experts <- experts
-        }
-    } else if (length(edim) == 4) { # multivariate probabilistic
-        if (is.null(dimnames(experts)[[2]])) {
-            dnames <- paste0("D", 1:edim[2])
-        } else {
-            dnames <- dimnames(experts)[[2]]
-        }
-        enames <- dimnames(experts)[[4]]
-        if (is.null(enames)) {
-            enames <- paste0("E", 1:edim[4])
-        }
-        experts <- array_to_list(experts)
-        model_instance$experts <- experts
-    }
-    names$experts[[2]] <- dnames
+
+    e_list <- init_experts_list(
+        experts = experts,
+        y = y,
+        output_with_names = TRUE
+    )
+    model_instance$experts <- e_list$experts
+
+    names$experts <- list(NULL)
+    names$experts[[2]] <- e_list$dnames
     names$experts[[3]] <- tau
-    names$experts[[4]] <- enames
+    names$experts[[4]] <- e_list$enames
+
+    model_instance$tau <- tau
 
     # Define dimensions for convenience
-    T <- dim(experts)[1]
-    D <- dim(experts[[1]])[1]
-    P <- dim(experts[[1]])[2]
-    K <- dim(experts[[1]])[3]
+    T <- dim(e_list$experts)[1]
+    D <- dim(e_list$experts[[1]])[1]
+    P <- dim(e_list$experts[[1]])[2]
+    K <- dim(e_list$experts[[1]])[3]
 
-    if (nrow(experts) - nrow(y) < 0) {
+    if (nrow(e_list$experts) - nrow(y) < 0) {
         stop("Number of provided expert predictions has to match or exceed observations.")
     }
 
@@ -497,12 +455,10 @@ online <- function(y, experts, tau,
     # Execute online learning
     model_instance$learn()
 
-    # Generate output
-    model <- model_instance$output()
+    model <- post_process_model(model_instance, names)
 
-    model_instance$teardown()
+    model_instance$get_times()
     rm(model_instance)
-    model <- post_process_model(model, names)
 
     return(model)
 }

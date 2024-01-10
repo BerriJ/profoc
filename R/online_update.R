@@ -71,10 +71,11 @@ update.online <- function(object,
         new_experts
     )
     model_instance$learn()
-    object <- model_instance$output()
-    model_instance$teardown()
+
+    object <- post_process_model(model_instance, names = names)
+
+    model_instance$get_times()
     rm(model_instance)
-    object <- post_process_model(model = object, names = names)
 
     return(object)
 }

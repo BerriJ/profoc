@@ -1,0 +1,185 @@
+---
+title: "Using the C++ Interface"
+author: Jonathan Berrisch
+date: "`r Sys.Date()`"
+bibliography:
+  - ../inst/bib/profoc.bib
+output:
+  rmarkdown::html_vignette:
+    number_sections: no
+    toc: no
+vignette: >
+  %\VignetteIndexEntry{Using the C++ Interface}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Introduction
+
+All major parts of `online()` are implemented in C++ for speed. Usually, this
+comes at the cost of flexibility. However, the profoc package exposes a C++ 
+class `conline` that allows you to gain fine grained control over objects.  
+`online()` wraps this class and provides a convenient interface for the most 
+common use cases. However, if you need to alter object initialization (i.e.
+provide custom basis / hat matrices for smoothing) you can use the C++ class
+directly from R. This vignette shows how to do this.
+
+Note that we will reuse the data from `vignette("profoc")`.
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  # dev = "svg",
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>"
+)
+Sys.setenv("OMP_THREAD_LIMIT" = 2)
+
+set.seed(1)
+T <- 2^5 # Observations
+D <- 1 # Numer of variables
+N <- 2 # Experts
+P <- 99 # Size of probability grid
+probs <- 1:P / (P + 1)
+
+y <- matrix(rnorm(T)) # Realized observations
+
+# Experts deviate in mean and standard deviation from true process
+experts_mu <- c(-1, 3)
+experts_sd <- c(1, 2)
+
+experts <- array(dim = c(T, P, N)) # Expert predictions
+
+for (t in 1:T) {
+  experts[t, , 1] <- qnorm(probs, mean = experts_mu[1], sd = experts_sd[1])
+  experts[t, , 2] <- qnorm(probs, mean = experts_mu[2], sd = experts_sd[2])
+}
+```
+
+## Online learning with `conline`
+
+First, we need to create a new instance of the c++ class. This can be done by 
+calling `new(conline)`. 
+
+```{r}
+library(profoc)
+model <- new(conline)
+```
+
+Now we need to pass the data to the class instance. The whole list of accessible field can be printed with `names(model)`. Most of them have defaults.
+
+```{r}
+model$y <- y
+tau <- 1:P / (P + 1)
+model$tau <- tau
+```
+
+The experts array is a bit more complicated. C++ expects us to pass a list of arrays. Thereby, the list itself must have dimension `Tx1` and the elements of the list (the arrays) `D x P x K`. For convenience we can use `init_experts_list()` to create such a list from our experts array. Note that we must pass the true observations as well. They are used to detect whether the data is univariate (`T x 1` matrix) or multivariate (`T x D` matrix).
+
+```{r}
+experts_list <- init_experts_list(experts, y)
+model$experts <- experts_list
+```
+
+Now suppose we want to alter the smoothing behavior across quantiles. We start by creating a new hat matrix. 
+
+```{r}
+hat <- make_hat_mats(
+  x = tau,
+  mu = 0.2, # Put more knots in the lower tail
+  periodic = TRUE
+)
+str(hat)
+```
+
+We need a list of sparse matrices which `make_hat_mats()` returns. So we can pass that directly to our class.
+
+```{r}
+model$hat_pr <- hat$hat
+```
+
+The other smoothing matrices have to be filled with defaults (lists of sparse identity matrices). Usually `online()` takes care of this. But we can do it manually as well.
+
+```{r}
+model$basis_mv <- list(Matrix::sparseMatrix(i = 1:D, j = 1:D, x = 1))
+model$basis_pr <- list(Matrix::sparseMatrix(i = 1:P, j = 1:P, x = 1))
+model$hat_mv <- list(Matrix::sparseMatrix(i = 1:D, j = 1:D, x = 1))
+```
+
+Now we can specify the parameter grid. We will stick to the defaults here:
+
+```{r}
+parametergrid <- as.matrix(
+  expand.grid(
+    forget_regret = 0,
+    soft_threshold = -Inf,
+    hard_threshold = -Inf,
+    fixed_share = 0,
+    basis_pr_idx = 1,
+    basis_mv_idx = 1,
+    hat_pr_idx = 1,
+    hat_mv_idx = 1,
+    gamma = 1,
+    loss_share = 0,
+    regret_share = 0
+  )
+)
+
+model$params <- parametergrid
+```
+
+Finally, we can run `model$set_defaults()`. This populates initial states (w0 for weights and R0 for regret). 
+
+```{r}
+model$set_defaults()
+```
+
+Now `model$set_grid_objects()` will create the grid objects (performance, weights, regret etc.) 
+
+```{r}
+model$set_grid_objects()
+```
+
+Finally, we can run `model$learn()` to start the learning process.
+
+```{r}
+model$learn()
+```
+
+## Accessing the results
+
+The learning process fills the class objects. So we can inspect them using the `$` operator, like we would with any other R object. For example, we can access the weights:
+
+```{r}
+head(model$weights[[T]][, , 1])
+```
+
+However, we can also use the post processing function of `online()` to access the results. This will create output that is identical to the output of `online()`:
+
+```{r}
+names <- list(y = dimnames(y))
+names$experts <- list(
+  1:T,
+  paste("Marginal", 1:D),
+  tau,
+  paste("Expert", 1:N)
+)
+
+output <- post_process_model(model, names)
+```
+
+We can now use `output` in `update()`, `plot()` and others. 
+
+At this point, we do not need to keep the model in memory anymore. So we can delete it:
+
+```{r}
+rm(model)
+```
+
+## Summary
+
+The C++ class `conline` allows you to gain fine grained control over the learning process. However, it is not as convenient as the `online()` wrapper. So you should only use it if you need to alter the default behavior. However, mixing up helper
+functions from `online()` and the C++ class is possible. So you can compute your 
+combinations using the class interface while still being able to use `update()`, 
+`plot()` and others afterward.
