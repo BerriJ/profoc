@@ -106,12 +106,12 @@ namespace Rcpp
         {
             aggregate();
 
-            // DataFrame df = DataFrame::create(
-            //     Named("Name") = unique_names,
-            //     Named("Milliseconds") = averages,
-            //     Named("Count") = counts);
-            // Environment env = Environment::global_env();
-            // env[name] = df;
+            DataFrame df = DataFrame::create(
+                Named("Name") = unique_names,
+                Named("Milliseconds") = averages,
+                Named("Count") = counts);
+            Environment env = Environment::global_env();
+            env[name] = df;
         }
 
         // Destructor
