@@ -30,6 +30,9 @@ namespace Rcpp
 
     private:
         timesmap tickmap;
+        std::vector<double> averages;
+        std::vector<unsigned int> counts;
+        std::vector<std::string> unique_names;
 
     public:
         std::string name;
@@ -70,11 +73,8 @@ namespace Rcpp
         void aggregate()
         {
             // Create copy of names called unique_names
-            std::vector<std::string> unique_names = names;
+            unique_names = names;
             remove_duplicates(unique_names);
-
-            std::vector<double> averages(unique_names.size());
-            std::vector<unsigned long int> counts(unique_names.size());
 
             // Loop over unique names
             for (unsigned int i = 0; i < unique_names.size(); i++)
@@ -95,9 +95,16 @@ namespace Rcpp
 
                 // Calculate average, round to 3 decimal places,
                 // and convert from microseconds to milliseconds
-                averages[i] = std::round(sum / double(count)) / 1e+3;
-                counts[i] = count;
+                averages.push_back(std::round(sum / double(count)) / 1e+3);
+
+                counts.push_back(count);
             }
+        }
+
+        // Pass data to R / Python
+        void stop()
+        {
+            aggregate();
 
             DataFrame df = DataFrame::create(
                 Named("Name") = unique_names,
@@ -105,11 +112,6 @@ namespace Rcpp
                 Named("Count") = counts);
             Environment env = Environment::global_env();
             env[name] = df;
-        }
-
-        void stop()
-        {
-            aggregate();
         }
 
         // Destructor
