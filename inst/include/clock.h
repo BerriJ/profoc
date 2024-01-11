@@ -25,7 +25,7 @@ namespace Rcpp
     class Clock
     {
         using tp = sc::high_resolution_clock::time_point;
-        using keypair = std::pair<std::string, int>;
+        using keypair = std::pair<std::string, unsigned int>;
         using timesmap = std::map<keypair, tp>;
 
     private:
@@ -33,7 +33,7 @@ namespace Rcpp
 
     public:
         std::string name;
-        std::vector<double> timers;
+        std::vector<unsigned long long int> timers;
         std::vector<std::string> names;
 
         // Init - Set name of R object
@@ -58,7 +58,7 @@ namespace Rcpp
 #pragma omp critical
             {
                 timers.push_back(
-                    sc::duration_cast<sc::nanoseconds>(
+                    sc::duration_cast<sc::microseconds>(
                         sc::high_resolution_clock::now() -
                         tickmap[key])
                         .count());
@@ -73,30 +73,29 @@ namespace Rcpp
             std::vector<std::string> unique_names = names;
             remove_duplicates(unique_names);
 
-            std::vector<std::tuple<std::string, double, int>>
-                table(unique_names.size());
-
             std::vector<double> averages(unique_names.size());
-            std::vector<int> counts(unique_names.size());
+            std::vector<unsigned long int> counts(unique_names.size());
 
             // Loop over unique names
             for (unsigned int i = 0; i < unique_names.size(); i++)
             {
-                int sum = 0;
-                int count = 0;
+                unsigned long long int sum = 0;
+                unsigned long int count = 0;
 
                 // Loop over all names
-                for (unsigned int j = 0; j < names.size(); j++)
+                for (unsigned long int j = 0; j < names.size(); j++)
                 {
                     if (names[j] == unique_names[i])
                     {
+                        // Sum up all timers with the same name
                         sum += timers[j];
                         count++;
                     }
                 }
 
-                // Calculate average, convert to milliseconds, round to 3 dec
-                averages[i] = (std::round((sum * 1e-3) / double(count)) / 1e+3);
+                // Calculate average, round to 3 decimal places,
+                // and convert from microseconds to milliseconds
+                averages[i] = std::round(sum / double(count)) / 1e+3;
                 counts[i] = count;
             }
 
