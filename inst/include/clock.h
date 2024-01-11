@@ -31,7 +31,7 @@ namespace Rcpp
     private:
         timesmap tickmap;
         std::vector<double> averages;
-        std::vector<unsigned int> counts;
+        std::vector<unsigned long int> counts;
         std::vector<std::string> unique_names;
 
     public:
