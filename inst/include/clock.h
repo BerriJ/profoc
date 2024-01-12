@@ -1,7 +1,7 @@
 #ifndef clock_h
 #define clock_h
 
-#include <RcppArmadillo.h>
+#include <Rcpp.h>
 #include <chrono>
 #include <string>
 #include <vector>
@@ -29,19 +29,19 @@ namespace Rcpp
         using timesmap = std::map<keypair, tp>;
 
     private:
-        timesmap tickmap;
-        std::vector<double> averages;
-        std::vector<unsigned long int> counts;
-        std::vector<std::string> unique_names;
+        std::string name;                      // Name of R object to return
+        timesmap tickmap;                      // Map of start times
+        std::vector<std::string> names,        // Vector of identifiers
+            unique_names;                      // Vector of unique identifiers
+        std::vector<unsigned long int> counts; // Count occurence of identifiers
+        std::vector<double> means, sds;        // Output vecs of mean and sd
+        std::vector<unsigned long long int>    // Observed durations
+            timers;
 
     public:
-        std::string name;
-        std::vector<unsigned long long int> timers;
-        std::vector<std::string> names;
-
         // Init - Set name of R object
         Clock() : name("times") {}
-        Clock(std::string name_) : name(name_) {}
+        Clock(std::string name) : name(name) {}
 
         // start a timer - save time
         void tick(std::string &&name)
@@ -76,28 +76,34 @@ namespace Rcpp
             unique_names = names;
             remove_duplicates(unique_names);
 
-            // Loop over unique names
             for (unsigned int i = 0; i < unique_names.size(); i++)
             {
-                unsigned long long int sum = 0;
                 unsigned long int count = 0;
+                double mean = 0, M2 = 0, variance = 0;
 
-                // Loop over all names
                 for (unsigned long int j = 0; j < names.size(); j++)
                 {
                     if (names[j] == unique_names[i])
                     {
-                        // Sum up all timers with the same name
-                        sum += timers[j];
+                        // Welford's online algorithm for mean and variance
+                        double delta = timers[j] - mean;
                         count++;
+                        mean += delta / count;
+                        M2 += delta * (timers[j] - mean) * 1e-3;
                     }
                 }
 
-                // Calculate average, round to 3 decimal places,
-                // and convert from microseconds to milliseconds
-                averages.push_back(std::round(sum / double(count)) / 1e+3);
-
+                // Save count
                 counts.push_back(count);
+
+                // Save average, round to 3 decimal places
+                means.push_back(std::round(mean) * 1e-3);
+
+                // Calculate sample variance
+                variance = M2 / (count);
+                // Save standard deviation, round to 3 decimal places
+                sds.push_back(
+                    std::round(std::sqrt(variance * 1e-3) * 1e+3) * 1e-3);
             }
         }
 
@@ -108,7 +114,8 @@ namespace Rcpp
 
             DataFrame df = DataFrame::create(
                 Named("Name") = unique_names,
-                Named("Milliseconds") = averages,
+                Named("Milliseconds") = means,
+                Named("SD") = sds,
                 Named("Count") = counts);
             Environment env = Environment::global_env();
             env[name] = df;
