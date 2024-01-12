@@ -380,12 +380,13 @@ void conline::learn()
                     {
                         V(x).tube(dr, pr) = vectorise(V(x).tube(dr, pr)).t() * (1 - params["forget_regret"](x)) + square(r.t());
 
-                        E(x).tube(dr, pr) = max(vectorise(E(x).tube(dr, pr)).t() * (1 - params["forget_regret"](x)), abs(r.t()));
+                        E(x).tube(dr, pr) = pmax_arma(max(vectorise(E(x).tube(dr, pr)).t() * (1 - params["forget_regret"](x)), abs(r.t())), exp(-350));
 
-                        eta(x).tube(dr, pr) =
+                        eta(x)
+                            .tube(dr, pr) =
                             pmin_arma(
                                 min(1 / (2 * vectorise(E(x).tube(dr, pr))),
-                                    sqrt(-log(vectorise(beta0field(x).tube(dr, pr))) / vectorise(V(x).tube(dr, pr)))),
+                                    sqrt(-log(vectorise(beta0field(x).tube(dr, pr))) / pmax_arma(vectorise(V(x).tube(dr, pr)), exp(-350)))),
                                 exp(350));
 
                         vec r_reg = r - vectorise(eta(x).tube(dr, pr)) % square(r);
