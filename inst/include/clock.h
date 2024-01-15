@@ -1,7 +1,7 @@
 #ifndef clock_h
 #define clock_h
 
-#include <RcppArmadillo.h>
+#include <Rcpp.h>
 #include <chrono>
 #include <string>
 #include <vector>
@@ -25,20 +25,23 @@ namespace Rcpp
     class Clock
     {
         using tp = sc::high_resolution_clock::time_point;
-        using keypair = std::pair<std::string, int>;
+        using keypair = std::pair<std::string, unsigned int>;
         using timesmap = std::map<keypair, tp>;
 
     private:
-        timesmap tickmap;
+        std::string name;                      // Name of R object to return
+        timesmap tickmap;                      // Map of start times
+        std::vector<std::string> names,        // Vector of identifiers
+            unique_names;                      // Vector of unique identifiers
+        std::vector<unsigned long int> counts; // Count occurence of identifiers
+        std::vector<double> means, sds;        // Output vecs of mean and sd
+        std::vector<unsigned long long int>    // Observed durations
+            timers;
 
     public:
-        std::string name;
-        std::vector<double> timers;
-        std::vector<std::string> names;
-
         // Init - Set name of R object
         Clock() : name("times") {}
-        Clock(std::string name_) : name(name_) {}
+        Clock(std::string name) : name(name) {}
 
         // start a timer - save time
         void tick(std::string &&name)
@@ -58,7 +61,7 @@ namespace Rcpp
 #pragma omp critical
             {
                 timers.push_back(
-                    sc::duration_cast<sc::nanoseconds>(
+                    sc::duration_cast<sc::microseconds>(
                         sc::high_resolution_clock::now() -
                         tickmap[key])
                         .count());
@@ -70,47 +73,52 @@ namespace Rcpp
         void aggregate()
         {
             // Create copy of names called unique_names
-            std::vector<std::string> unique_names = names;
+            unique_names = names;
             remove_duplicates(unique_names);
 
-            std::vector<std::tuple<std::string, double, int>>
-                table(unique_names.size());
-
-            std::vector<double> averages(unique_names.size());
-            std::vector<int> counts(unique_names.size());
-
-            // Loop over unique names
             for (unsigned int i = 0; i < unique_names.size(); i++)
             {
-                int sum = 0;
-                int count = 0;
+                unsigned long int count = 0;
+                double mean = 0, M2 = 0, variance = 0;
 
-                // Loop over all names
-                for (unsigned int j = 0; j < names.size(); j++)
+                for (unsigned long int j = 0; j < names.size(); j++)
                 {
                     if (names[j] == unique_names[i])
                     {
-                        sum += timers[j];
+                        // Welford's online algorithm for mean and variance
+                        double delta = timers[j] - mean;
                         count++;
+                        mean += delta / count;
+                        M2 += delta * (timers[j] - mean) * 1e-3;
                     }
                 }
 
-                // Calculate average, convert to milliseconds, round to 3 dec
-                averages[i] = (std::round((sum * 1e-3) / double(count)) / 1e+3);
-                counts[i] = count;
-            }
+                // Save count
+                counts.push_back(count);
 
-            DataFrame df = DataFrame::create(
-                Named("Name") = unique_names,
-                Named("Milliseconds") = averages,
-                Named("Count") = counts);
-            Environment env = Environment::global_env();
-            env[name] = df;
+                // Save average, round to 3 decimal places
+                means.push_back(std::round(mean) * 1e-3);
+
+                // Calculate sample variance
+                variance = M2 / (count);
+                // Save standard deviation, round to 3 decimal places
+                sds.push_back(
+                    std::round(std::sqrt(variance * 1e-3) * 1e+3) * 1e-3);
+            }
         }
 
+        // Pass data to R / Python
         void stop()
         {
             aggregate();
+
+            DataFrame df = DataFrame::create(
+                Named("Name") = unique_names,
+                Named("Milliseconds") = means,
+                Named("SD") = sds,
+                Named("Count") = counts);
+            Environment env = Environment::global_env();
+            env[name] = df;
         }
 
         // Destructor

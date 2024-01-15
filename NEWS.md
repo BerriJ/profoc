@@ -1,3 +1,16 @@
+profoc 1.3.1
+==============
+
+## Improvements
+* Adjusted the clock.h code so that a larger share of code can be shared between the R and Python versions of that file.
+* clock.h now uses welfords online algorithm to calculate the mean and variance of the timings. SD is reported in the times table.
+
+## Fixes
+* Fixed an integer overflow in the clock.h code which caused the package to fail on some systems.
+* Fixed online() function for cases where the regret is exactly zero. This can happen if:
+* * Only a single expert is used
+* * Only two experts are provided and they both have the same predictions (in the beginning).
+
 profoc 1.3.0
 ==============
 
