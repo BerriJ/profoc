@@ -27,7 +27,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">profoc</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.2.2.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.3.2.9000</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -80,7 +80,7 @@
                         <h4 data-toc-skip class="author">Jonathan
 Berrisch</h4>
             
-            <h4 data-toc-skip class="date">2024-01-09</h4>
+            <h4 data-toc-skip class="date">2024-03-25</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/BerriJ/profoc/blob/HEAD/vignettes/class.Rmd" class="external-link"><code>vignettes/class.Rmd</code></a></small>
       <div class="d-none name"><code>class.Rmd</code></div>
@@ -94,7 +94,7 @@ Berrisch</h4>
 <p>All major parts of <code><a href="../reference/online.html">online()</a></code> are implemented in C++ for
 speed. Usually, this comes at the cost of flexibility. However, the
 profoc package exposes a C++ class <code>conline</code> that allows you
-to gain fine grained control over objects.<br><code><a href="../reference/online.html">online()</a></code> wrapps this class and provides a convenient
+to gain fine grained control over objects.<br><code><a href="../reference/online.html">online()</a></code> wraps this class and provides a convenient
 interface for the most common use cases. However, if you need to alter
 object initialization (i.e. provide custom basis / hat matrices for
 smoothing) you can use the C++ class directly from R. This vignette
@@ -123,8 +123,8 @@ list of arrays. Thereby, the list itself must have dimension
 <code>D x P x K</code>. For convenience we can use
 <code><a href="../reference/init_experts_list.html">init_experts_list()</a></code> to create such a list from our experts
 array. Note that we must pass the true observations as well. They are
-used to detect wether the data is univariate (<code>T x 1</code> matrix)
-or multivariate (<code>T x D</code> matrix).</p>
+used to detect whether the data is univariate (<code>T x 1</code>
+matrix) or multivariate (<code>T x D</code> matrix).</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">experts_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/init_experts_list.html">init_experts_list</a></span><span class="op">(</span><span class="va">experts</span>, <span class="va">y</span><span class="op">)</span></span>
 <span><span class="va">model</span><span class="op">$</span><span class="va">experts</span> <span class="op">&lt;-</span> <span class="va">experts_list</span></span></code></pre></div>
