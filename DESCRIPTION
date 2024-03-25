@@ -27,10 +27,10 @@ Imports:
     generics,
     tibble,
     ggplot2
-LinkingTo: Rcpp, RcppArmadillo (>= 0.10.7.5.0), RcppProgress, splines2 (>= 0.4.4)
+LinkingTo: Rcpp, RcppArmadillo (>= 0.10.7.5.0), RcppProgress, splines2 (>= 0.4.4), rcpptimer (>= 1.1.0)
 URL: https://profoc.berrisch.biz, https://github.com/BerriJ/profoc
 BugReports: https://github.com/BerriJ/profoc/issues
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Language: en-US
 Suggests: 
     testthat (>= 3.0.0),
