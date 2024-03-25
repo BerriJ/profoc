@@ -91,6 +91,7 @@ public:
     arma::field<arma::cube> beta0field;
 
     // For benchmarking
+    bool get_timings = false;
     Rcpp::Timer timer;
 
     conline() = default; // Default constructor

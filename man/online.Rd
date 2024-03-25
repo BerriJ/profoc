@@ -36,7 +36,8 @@ online(
   init = NULL,
   loss = NULL,
   regret = NULL,
-  trace = TRUE
+  trace = TRUE,
+  get_timings = FALSE
 )
 }
 \arguments{
@@ -159,6 +160,9 @@ profoc. 1 means, only the provided regret will be used. share can also be
 vector of shares to consider.}
 
 \item{trace}{Print a progress bar to the console? Defaults to TRUE.}
+
+\item{get_timings}{Whether or not to return timings. Defaults to \code{FALSE}. If
+set to true a dataframe \code{times} will be written to your global environment.}
 }
 \value{
 Returns weights and corresponding predictions.

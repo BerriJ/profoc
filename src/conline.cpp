@@ -54,7 +54,9 @@ void conline::set_defaults()
 
 void conline::set_grid_objects()
 {
-    timer.tic("init");
+
+    if (get_timings)
+        timer.tic("init");
 
     opt_index.zeros(T + 1);
     if (save_past_performance)
@@ -173,13 +175,15 @@ void conline::set_grid_objects()
     }
 
     start = lead_time;
-    timer.toc("init");
+    if (get_timings)
+        timer.toc("init");
 }
 
 void conline::learn()
 {
     Progress prog(T, trace);
-    timer.tic("core");
+    if (get_timings)
+        timer.tic("core");
 
     for (unsigned int tp = 0; tp < predictions_grid.n_rows; tp++)
     {
@@ -194,7 +198,8 @@ void conline::learn()
         if (save_past_performance)
             past_performance(t).set_size(D, P, X);
 
-        timer.tic("loss");
+        if (get_timings)
+            timer.tic("loss");
 
         // Store predictions w.r.t. grid for time t
         cube tmp_preds_cube(D, P, X);
@@ -251,10 +256,12 @@ void conline::learn()
         // Final prediction
         predictions.row(t) = tmp_preds_cube.slice(opt_index(t));
 
-        timer.toc("loss");
+        if (get_timings)
+            timer.toc("loss");
         for (unsigned int x = 0; x < X; x++)
         {
-            timer.tic("regret");
+            if (get_timings)
+                timer.tic("regret");
             mat lexp_int(P, K); // Experts loss
             mat lexp_ext(P, K); // Experts loss
             mat lexp(P, K);     // Experts loss
@@ -348,8 +355,10 @@ void conline::learn()
                 regret.slice(k) *= double(basis_mv(params["basis_mv_idx"](x) - 1).n_cols) / double(D);
             }
 
-            timer.toc("regret");
-            timer.tic("learning");
+            if (get_timings)
+                timer.toc("regret");
+            if (get_timings)
+                timer.tic("learning");
 #pragma omp parallel for collapse(2)
             for (unsigned int dr = 0; dr < regret.n_rows; dr++)
             {
@@ -446,19 +455,22 @@ void conline::learn()
                         (params["fixed_share"](x) / K);
                 } // pr
             }     // dr
-            timer.toc("learning");
+            if (get_timings)
+                timer.toc("learning");
 
 #pragma omp parallel for
             // Smoothing
             for (unsigned int k = 0; k < K; k++)
             {
-                timer.tic("smoothing");
+                if (get_timings)
+                    timer.tic("smoothing");
                 weights_tmp(x).slice(k) = hat_mv(params["hat_mv_idx"](x) - 1) *
                                           basis_mv(params["basis_mv_idx"](x) - 1) *
                                           beta(x).slice(k) *
                                           basis_pr(params["basis_pr_idx"](x) - 1).t() *
                                           hat_pr(params["hat_pr_idx"](x) - 1);
-                timer.toc("smoothing");
+                if (get_timings)
+                    timer.toc("smoothing");
             }
 
 #pragma omp parallel for
@@ -518,7 +530,8 @@ void conline::learn()
     }
 
     // Save losses suffered by forecaster and experts
-    timer.tic("loss_for_exp");
+    if (get_timings)
+        timer.tic("loss_for_exp");
 #pragma omp parallel for
     for (unsigned int t = 0; t < T; t++)
     {
@@ -549,8 +562,10 @@ void conline::learn()
             }
         }
     }
-    timer.toc("loss_for_exp");
-    timer.toc("core");
+    if (get_timings)
+        timer.toc("loss_for_exp");
+    if (get_timings)
+        timer.toc("core");
 }
 
 void conline::init_update(
@@ -558,7 +573,8 @@ void conline::init_update(
     arma::mat &new_y,
     arma::field<arma::cube> &new_experts)
 {
-    // timer.tic("init update");
+    if (get_timings)
+        timer.tic("init update");
 
     // This creates a references not copies
     Rcpp::List specification = object["specification"];
@@ -666,5 +682,6 @@ void conline::init_update(
     loss_exp.rows(0, start - 1) =
         Rcpp::as<arma::field<cube>>(object["experts_loss"]);
 
-    // timer.toc("init update");
+    if (get_timings)
+        timer.toc("init update");
 }
