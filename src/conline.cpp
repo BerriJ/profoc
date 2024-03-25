@@ -54,7 +54,7 @@ void conline::set_defaults()
 
 void conline::set_grid_objects()
 {
-    // timer.tic("init");
+    timer.tic("init");
 
     opt_index.zeros(T + 1);
     if (save_past_performance)
@@ -173,13 +173,13 @@ void conline::set_grid_objects()
     }
 
     start = lead_time;
-    // timer.toc("init");
+    timer.toc("init");
 }
 
 void conline::learn()
 {
     Progress prog(T, trace);
-    // timer.tic("core");
+    timer.tic("core");
 
     for (unsigned int tp = 0; tp < predictions_grid.n_rows; tp++)
     {
@@ -518,7 +518,7 @@ void conline::learn()
     }
 
     // Save losses suffered by forecaster and experts
-    // timer.tic("loss_for_exp");
+    timer.tic("loss_for_exp");
 #pragma omp parallel for
     for (unsigned int t = 0; t < T; t++)
     {
@@ -549,8 +549,8 @@ void conline::learn()
             }
         }
     }
-    // timer.toc("loss_for_exp");
-    // timer.toc("core");
+    timer.toc("loss_for_exp");
+    timer.toc("core");
 }
 
 void conline::init_update(
@@ -558,7 +558,7 @@ void conline::init_update(
     arma::mat &new_y,
     arma::field<arma::cube> &new_experts)
 {
-    // timer.tic("init");
+    // timer.tic("init update");
 
     // This creates a references not copies
     Rcpp::List specification = object["specification"];
@@ -666,5 +666,5 @@ void conline::init_update(
     loss_exp.rows(0, start - 1) =
         Rcpp::as<arma::field<cube>>(object["experts_loss"]);
 
-    // timer.toc("init");
+    // timer.toc("init update");
 }
