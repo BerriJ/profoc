@@ -1,0 +1,3 @@
+[submodule "inst/include/cpptimer"]
+	path = inst/include/cpptimer
+	url = git@github.com:BerriJ/cpptimer.git

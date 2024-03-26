@@ -69,7 +69,8 @@
 #' profoc. 1 means, only the provided regret will be used. share can also be
 #' vector of shares to consider.
 #' @template param_trace
-#'
+#' @param get_timings Whether or not to return timings. Defaults to `FALSE`. If
+#' set to true a dataframe `times` will be written to your global environment.
 #' @examples
 #' \dontrun{
 #' T <- 50 # Observations
@@ -173,9 +174,11 @@ online <- function(y, experts, tau,
                    init = NULL,
                    loss = NULL,
                    regret = NULL,
-                   trace = TRUE) {
+                   trace = TRUE,
+                   get_timings = FALSE) {
     model_instance <- new(conline)
     model_instance$trace <- trace
+    model_instance$get_timings <- get_timings
     model_instance$forget_past_performance <- forget_past_performance
     model_instance$save_past_performance <- save_past_performance
     model_instance$save_predictions_grid <- save_predictions_grid

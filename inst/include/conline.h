@@ -2,7 +2,7 @@
 #define conline_h
 
 #include <RcppArmadillo.h>
-#include "clock.h"
+#include <rcpptimer.h>
 
 class conline
 {
@@ -91,7 +91,8 @@ public:
     arma::field<arma::cube> beta0field;
 
     // For benchmarking
-    Rcpp::Clock clock;
+    bool get_timings = false;
+    Rcpp::Timer timer;
 
     conline() = default; // Default constructor
 
@@ -111,7 +112,7 @@ public:
         arma::field<arma::cube> &new_experts);
     void get_times()
     {
-        clock.stop();
+        timer.stop();
     };
     ~conline() = default; // Default destructor
 };

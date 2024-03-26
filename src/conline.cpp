@@ -4,7 +4,7 @@
 
 #include "misc.h"
 #include "loss.h"
-#include "clock.h"
+#include "rcpptimer.h"
 #include "conline.h"
 #include "profoc_types.h"
 
@@ -54,6 +54,10 @@ void conline::set_defaults()
 
 void conline::set_grid_objects()
 {
+
+    if (get_timings)
+        timer.tic("init");
+
     opt_index.zeros(T + 1);
     if (save_past_performance)
     {
@@ -90,7 +94,6 @@ void conline::set_grid_objects()
 
     for (unsigned int x = 0; x < X; x++)
     {
-        clock.tick("init");
         unsigned int Pr = basis_pr(params["basis_pr_idx"](x) - 1).n_cols;
         unsigned int Dr = basis_mv(params["basis_mv_idx"](x) - 1).n_cols;
 
@@ -172,13 +175,15 @@ void conline::set_grid_objects()
     }
 
     start = lead_time;
-    clock.tock("init");
+    if (get_timings)
+        timer.toc("init");
 }
 
 void conline::learn()
 {
     Progress prog(T, trace);
-    clock.tick("core");
+    if (get_timings)
+        timer.tic("core");
 
     for (unsigned int tp = 0; tp < predictions_grid.n_rows; tp++)
     {
@@ -193,7 +198,8 @@ void conline::learn()
         if (save_past_performance)
             past_performance(t).set_size(D, P, X);
 
-        clock.tick("loss");
+        if (get_timings)
+            timer.tic("loss");
 
         // Store predictions w.r.t. grid for time t
         cube tmp_preds_cube(D, P, X);
@@ -250,10 +256,12 @@ void conline::learn()
         // Final prediction
         predictions.row(t) = tmp_preds_cube.slice(opt_index(t));
 
-        clock.tock("loss");
+        if (get_timings)
+            timer.toc("loss");
         for (unsigned int x = 0; x < X; x++)
         {
-            clock.tick("regret");
+            if (get_timings)
+                timer.tic("regret");
             mat lexp_int(P, K); // Experts loss
             mat lexp_ext(P, K); // Experts loss
             mat lexp(P, K);     // Experts loss
@@ -347,8 +355,10 @@ void conline::learn()
                 regret.slice(k) *= double(basis_mv(params["basis_mv_idx"](x) - 1).n_cols) / double(D);
             }
 
-            clock.tock("regret");
-            clock.tick("learning");
+            if (get_timings)
+                timer.toc("regret");
+            if (get_timings)
+                timer.tic("learning");
 #pragma omp parallel for collapse(2)
             for (unsigned int dr = 0; dr < regret.n_rows; dr++)
             {
@@ -445,19 +455,22 @@ void conline::learn()
                         (params["fixed_share"](x) / K);
                 } // pr
             }     // dr
-            clock.tock("learning");
+            if (get_timings)
+                timer.toc("learning");
 
 #pragma omp parallel for
             // Smoothing
             for (unsigned int k = 0; k < K; k++)
             {
-                clock.tick("smoothing");
+                if (get_timings)
+                    timer.tic("smoothing");
                 weights_tmp(x).slice(k) = hat_mv(params["hat_mv_idx"](x) - 1) *
                                           basis_mv(params["basis_mv_idx"](x) - 1) *
                                           beta(x).slice(k) *
                                           basis_pr(params["basis_pr_idx"](x) - 1).t() *
                                           hat_pr(params["hat_pr_idx"](x) - 1);
-                clock.tock("smoothing");
+                if (get_timings)
+                    timer.toc("smoothing");
             }
 
 #pragma omp parallel for
@@ -517,7 +530,8 @@ void conline::learn()
     }
 
     // Save losses suffered by forecaster and experts
-    clock.tick("loss_for_exp");
+    if (get_timings)
+        timer.tic("loss_for_exp");
 #pragma omp parallel for
     for (unsigned int t = 0; t < T; t++)
     {
@@ -548,8 +562,10 @@ void conline::learn()
             }
         }
     }
-    clock.tock("loss_for_exp");
-    clock.tock("core");
+    if (get_timings)
+        timer.toc("loss_for_exp");
+    if (get_timings)
+        timer.toc("core");
 }
 
 void conline::init_update(
@@ -557,7 +573,8 @@ void conline::init_update(
     arma::mat &new_y,
     arma::field<arma::cube> &new_experts)
 {
-    clock.tick("init");
+    if (get_timings)
+        timer.tic("init update");
 
     // This creates a references not copies
     Rcpp::List specification = object["specification"];
@@ -665,5 +682,6 @@ void conline::init_update(
     loss_exp.rows(0, start - 1) =
         Rcpp::as<arma::field<cube>>(object["experts_loss"]);
 
-    clock.tock("init");
+    if (get_timings)
+        timer.toc("init update");
 }

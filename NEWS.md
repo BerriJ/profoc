@@ -1,3 +1,10 @@
+profoc 1.3.2
+==============
+
+## Improvements
+
+* The timer functionality of online was moved to a seperate package [rcpptimer](https://github.com/BerriJ/rcpptimer). This is now added to profoc as a dependency. The timer-related code was removed. This makes the code more modular and easier to maintain. The timer functionality is now also available for other 'R' packages and even other languages (i.e. Python, via [cpptimer](https://github.com/BerriJ/cpptimer) and [cppytimer](https://github.com/BerriJ/cppytimer)).
+
 profoc 1.3.1
 ==============
 
