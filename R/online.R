@@ -462,6 +462,6 @@ online <- function(y, experts, tau,
 
     model_instance$get_times()
     rm(model_instance)
-
+    gc()
     return(model)
 }
