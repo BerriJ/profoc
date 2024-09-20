@@ -1,3 +1,10 @@
+profoc 1.3.3
+==============
+
+## Improvements
+
+* We adjusted the integration of `rcpptimer`. This simplifies the code and makes use of the API of `rcpptimer` 1.2.0 which is expected to be stable. 
+
 profoc 1.3.2
 ==============
 
