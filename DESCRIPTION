@@ -1,8 +1,8 @@
 Package: profoc
 Type: Package
 Title: Probabilistic Forecast Combination Using CRPS Learning
-Version: 1.3.2
-Date: 2024-03-25
+Version: 1.3.3
+Date: 2024-09-20
 Authors@R: c(
     person(given = "Jonathan",
              family = "Berrisch",
@@ -27,7 +27,7 @@ Imports:
     generics,
     tibble,
     ggplot2
-LinkingTo: Rcpp, RcppArmadillo (>= 0.10.7.5.0), RcppProgress, splines2 (>= 0.4.4), rcpptimer (>= 1.1.0)
+LinkingTo: Rcpp, RcppArmadillo (>= 0.10.7.5.0), RcppProgress, splines2 (>= 0.4.4), rcpptimer (>= 1.2.0)
 URL: https://profoc.berrisch.biz, https://github.com/BerriJ/profoc
 BugReports: https://github.com/BerriJ/profoc/issues
 RoxygenNote: 7.3.2
@@ -37,7 +37,8 @@ Suggests:
     gamlss.dist,
     knitr,
     rmarkdown,
-    dplyr
+    dplyr,
+    rcpptimer (>= 1.2.0),
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr

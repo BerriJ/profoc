@@ -214,15 +214,15 @@ prob_grid <- 1:P / (P + 1)
 y <- rnorm(n = T) # Realized
 experts <- array(dim = c(T, P, N)) # Predictions
 for (t in 1:T) {
-    experts[t, , 1] <- qnorm(prob_grid, mean = -1, sd = 1)
-    experts[t, , 2] <- qnorm(prob_grid, mean = 3, sd = sqrt(4))
+  experts[t, , 1] <- qnorm(prob_grid, mean = -1, sd = 1)
+  experts[t, , 2] <- qnorm(prob_grid, mean = 3, sd = sqrt(4))
 }
 
 model <- online(
-    y = matrix(y),
-    experts = experts,
-    tau = prob_grid,
-    p_smooth_pr = list(lambda = 10)
+  y = matrix(y),
+  experts = experts,
+  tau = prob_grid,
+  p_smooth_pr = list(lambda = 10)
 )
 
 print(model)
