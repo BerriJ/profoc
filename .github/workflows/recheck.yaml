@@ -4,7 +4,6 @@ on:
       - main
     paths:
       - 'DESCRIPTION'
-  workflow_dispatch:
 
 name: Reverse dependency check
 
