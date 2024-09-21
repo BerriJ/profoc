@@ -3,7 +3,7 @@ on:
     branches:
       - main
     paths:
-      - 'DESCRIPTION'
+      - 'NEWS.md'
 
 name: Reverse dependency check
 
