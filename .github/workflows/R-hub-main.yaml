@@ -9,6 +9,8 @@ on:
   push:
     branches:
       - main
+  schedule:
+  - cron: '32 4 1 * *'
 
 name: R-hub-main
 
