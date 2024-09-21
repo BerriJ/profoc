@@ -1,12 +1,10 @@
 on:
-  workflow_dispatch:
-    inputs:
-      which:
-        type: choice
-        description: Which dependents to check
-        options:
-          - strong
-          - most
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'DESCRIPTION'
+  workflow_dispatch
 
 name: Reverse dependency check
 
@@ -14,7 +12,6 @@ env:
   R_LIBS_USER: ${{github.workspace}}/pkglib
   _R_CHECK_FORCE_SUGGESTS_: 'FALSE'
   _R_CHECK_CRAN_INCOMING_: 'FALSE'
-  _R_CHECK_VIGNETTES_SKIP_RUN_MAYBE_: 'TRUE' #remove for R-4.4
   _R_CHECK_ELAPSED_TIMEOUT_: 3600
   GITHUB_ACTIONS: ''
   CI: ''
@@ -48,7 +45,7 @@ jobs:
           fi
 
       - name: download dependencies
-        run: rechecktools::install_recheck_deps('${{env.PKG_SOURCE_DIR}}', '${{inputs.which}}')
+        run: rechecktools::install_recheck_deps('${{env.PKG_SOURCE_DIR}}', 'strong')
         shell: Rscript {0}
 
       - name: build source package
@@ -105,7 +102,7 @@ jobs:
         run: |
           checkdir <- "${{matrix.check}}"
           options(repos = c(CRAN = 'https://cloud.r-project.org'))
-          reverse <- list(repos = 'https://cloud.r-project.org', which = "${{ inputs.which }}")
+          reverse <- list(repos = 'https://cloud.r-project.org', which = "strong")
           Sys.setenv(R_PROFILE="nothing") # do not set binary p3m mirror in child proc
           tools::check_packages_in_dir(checkdir, reverse = reverse, Ncpus = parallel::detectCores())
           details <- tools::check_packages_in_dir_details(checkdir)

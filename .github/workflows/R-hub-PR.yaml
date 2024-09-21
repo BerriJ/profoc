@@ -6,13 +6,9 @@
 #
 # It is unlikely that you need to modify this file manually.
 on:
-  push
+  pull_request
 
-name: R-hub
-
-env:
-  config: 'linux, macos, windows, macos-arm64, clang-asan'
-  name: 'R-hub'
+name: R-hub-PR
 
 jobs:
 
