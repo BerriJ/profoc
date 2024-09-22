@@ -1,108 +1,38 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/articles/class.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/articles/production.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/articles/profoc.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/authors.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/index.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/news/index.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/autoplot.batch.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/autoplot.online.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/batch.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/conline.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/init_experts_list.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/make_basis_mats.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/make_hat_mats.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/make_knots.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/online.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/oracle.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/penalty.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/plot.batch.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/plot.online.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/post_process_model.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/predict.online.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/print.batch.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/print.online.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/profoc-package.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/reexports.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/splines2_basis.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/summary.online.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/tidy.online.experts_loss.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/tidy.online.forecaster_loss.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/tidy.online.predictions.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/tidy.online.weights.html</loc>
-  </url>
-  <url>
-    <loc>https://profoc.berrisch.biz/dev/reference/update.online.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://profoc.berrisch.biz/dev/LICENSE.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/articles/class.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/articles/index.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/articles/production.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/articles/profoc.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/authors.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/index.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/news/index.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/autoplot.batch.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/autoplot.online.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/batch.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/conline.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/index.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/init_experts_list.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/make_basis_mats.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/make_hat_mats.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/make_knots.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/online.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/oracle.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/penalty.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/plot.batch.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/plot.online.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/post_process_model.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/predict.online.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/print.batch.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/print.online.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/profoc-package.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/reexports.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/splines2_basis.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/summary.online.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/tidy.online.experts_loss.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/tidy.online.forecaster_loss.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/tidy.online.predictions.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/tidy.online.weights.html</loc></url>
+<url><loc>https://profoc.berrisch.biz/dev/reference/update.online.html</loc></url>
 </urlset>
+
