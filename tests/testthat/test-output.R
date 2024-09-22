@@ -16,15 +16,16 @@ y <- rnorm(n = T)
 # Expert predictions
 experts <- array(dim = c(T, P, N))
 for (t in 1:T) {
-    experts[t, , 1] <- qnorm(prob_grid, mean = -5, sd = 2)
-    experts[t, , 2] <- qnorm(prob_grid, mean = 5, sd = 2)
+  experts[t, , 1] <- qnorm(prob_grid, mean = -5, sd = 2)
+  experts[t, , 2] <- qnorm(prob_grid, mean = 5, sd = 2)
 }
 
 model <- online(
-    y = matrix(y),
-    experts = experts,
-    tau = prob_grid,
-    trace = FALSE
+  y = matrix(y),
+  experts = experts,
+  tau = prob_grid,
+  trace = FALSE,
+  get_timings = TRUE
 )
 
 # Return Type
