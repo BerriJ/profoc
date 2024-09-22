@@ -15,8 +15,9 @@ devtools::spell_check()
 devtools::check_rhub()
 devtools::release()
 
-# Merge submitted_to_cran into main, without squashing commits, wihtout extra merge commit
+# Merge submitted_to_cran into main, with rebase -> wihtout extra merge commit
 # Create a tag on main
+# Set the version number to the next development version on develop branch
 
 # Potential library unload problems can be solved by specifying
 # CXXFLAGS=-fno-gnu-unique in ~/.R/Makevars
