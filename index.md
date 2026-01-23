@@ -1,0 +1,55 @@
+# The profoc Package
+
+## An R package for probabilistic forecast combination
+
+The primary function `online` can be used to combine probabilistic
+forecasts using the CRPS learning algorithm introduced in Berrisch, Ziel
+(2021): [Pre-Print](https://arxiv.org/pdf/2102.00968),
+[Publication](https://doi.org/10.1016/j.jeconom.2021.11.008). The
+function `batch` can be used in a similar way for batch optimization.
+Common methods like `summary`, `print`, `plot`, `update`, and `predict`
+are available.
+
+## Installation
+
+### Install from CRAN
+
+You can install the latest stable release from CRAN using:
+
+``` r
+install.packages("profoc")
+```
+
+### Install from GitHub
+
+You can install the latest stable release from GitHub using:
+
+``` r
+# install.packages("remotes")
+remotes::install_github("BerriJ/profoc")
+```
+
+You can install the latest development version from GitHub using:
+
+``` r
+# install.packages("remotes")
+remotes::install_github("BerriJ/profoc@develop")
+```
+
+## Documentation
+
+You can find the documentation at
+[profoc.berrisch.biz](https://profoc.berrisch.biz/).
+
+## Contributions and Issues
+
+Feel free to [raise an
+issue](https://github.com/BerriJ/profoc/issues/new) if you find
+something not working properly.
+
+You are very welcome to contribute to profoc. Please base your pull
+requests on the develop branch.
+
+## License
+
+[GNU General Public License](https://www.gnu.org/licenses/) (≥ 3)

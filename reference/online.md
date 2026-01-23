@@ -1,0 +1,298 @@
+# Probabilistic Forecast Combination - Online
+
+Returns predictions and weights calculated by online-learning algorithms
+using CRPS Learning.
+
+**\[stable\]**
+
+## Usage
+
+``` r
+online(
+  y,
+  experts,
+  tau,
+  lead_time = 0,
+  loss_function = "quantile",
+  loss_parameter = 1,
+  loss_gradient = TRUE,
+  method = "bewa",
+  b_smooth_pr = list(knots = P, mu = 0.5, sigma = 1, nonc = 0, tailweight = 1, deg = 1,
+    periodic = FALSE),
+  p_smooth_pr = list(knots = P, mu = 0.5, sigma = 1, nonc = 0, tailweight = 1, deg = 1,
+    ndiff = 1.5, lambda = -Inf, periodic = FALSE),
+  b_smooth_mv = list(knots = D, mu = 0.5, sigma = 1, nonc = 0, tailweight = 1, deg = 1,
+    periodic = FALSE),
+  p_smooth_mv = list(knots = D, mu = 0.5, sigma = 1, nonc = 0, tailweight = 1, deg = 1,
+    ndiff = 1.5, lambda = -Inf, periodic = FALSE),
+  forget_regret = 0,
+  soft_threshold = -Inf,
+  hard_threshold = -Inf,
+  fixed_share = 0,
+  gamma = 1,
+  parametergrid_max_combinations = 100,
+  parametergrids = list(general = NULL, b_smooth_pr = NULL, p_smooth_pr = NULL,
+    b_smooth_mv = NULL, p_smooth_mv = NULL),
+  forget_past_performance = 0,
+  save_past_performance = FALSE,
+  save_predictions_grid = FALSE,
+  allow_quantile_crossing = FALSE,
+  init = NULL,
+  loss = NULL,
+  regret = NULL,
+  trace = TRUE,
+  get_timings = FALSE
+)
+```
+
+## Arguments
+
+- y:
+
+  A numeric matrix of realizations. In probabilistic settings a matrix
+  of dimension Tx1, in multivariate settings a TxD matrix. In the latter
+  case, each slice of the expert's array gets evaluated using the
+  corresponding column of the y matrix.
+
+- experts:
+
+  An array of predictions with dimension T x D x P x K (Observations x
+  Variables x Quantiles x Experts) or T x D x K or T x P x K.
+
+- tau:
+
+  A numeric vector of probabilities.
+
+- lead_time:
+
+  offset for expert forecasts. Defaults to 0, which means that experts
+  forecast t+1 at t. Setting this to h means experts predictions refer
+  to t+1+h at time t. The weight updates delay accordingly.
+
+- loss_function:
+
+  Either "quantile", "expectile" or "percentage".
+
+- loss_parameter:
+
+  Optional parameter scaling the power of the loss function.
+
+- loss_gradient:
+
+  Determines if a linearized version of the loss is used.
+
+- method:
+
+  One of "boa", "bewa", "ml_poly" or "ewa". Where "bewa" refers to a
+  mixture of boa and ewa, including the second order refinement of boa,
+  but updating weights with the simple exponential weighting.
+
+- b_smooth_pr:
+
+  A named list determining how the B-Spline matrices for probabilistic
+  smoothing are created. Default corresponds to no probabilistic
+  smoothing. See details.
+
+- p_smooth_pr:
+
+  A named list determining how the hat matrices for probabilistic
+  P-Spline smoothing are created. Default corresponds to no smoothing.
+  See details.
+
+- b_smooth_mv:
+
+  A named list determining how the B-Spline matrices for multivariate
+  smoothing are created. Default corresponds to no probabilistic
+  smoothing. See details.
+
+- p_smooth_mv:
+
+  A named list determining how the hat matrices for probabilistic
+  P-Spline smoothing are created. Default corresponds to no smoothing.
+  See details.
+
+- forget_regret:
+
+  Share of past regret not to be considered, resp. to be forgotten in
+  every iteration of the algorithm. Defaults to 0.
+
+- soft_threshold:
+
+  If specified, the following soft threshold will be applied to the
+  weights: w = sgn(w)\*max(abs(w)-t,0) where t is the soft_threshold
+  parameter. Defaults to -inf, which means that no threshold will be
+  applied. If all expert weights are thresholded to 0, a weight of 1
+  will be assigned to the expert with the highest weights prior to
+  thresholding. Thus soft_threshold = 1 leads to the 'follow the leader'
+  strategy if method is set to "ewa".
+
+- hard_threshold:
+
+  If specified, the following hard thresholding will be applied to the
+  weights: w = w\*(abs(w)\>t) where t is the threshold_hard parameter.
+  Defaults to -inf, which means that no threshold will be applied. If
+  all expert weights are thresholded to 0, a weight of 1 will be
+  assigned to the expert with the highest weight prior to thresholding.
+  Thus hard_threshold = 1 leads to the 'follow the leader' strategy if
+  method is set to "ewa".
+
+- fixed_share:
+
+  Amount of fixed share to be added to the weights. Defaults to 0. 1
+  leads to uniform weights.
+
+- gamma:
+
+  Scaling parameter for the learning rate.
+
+- parametergrid_max_combinations:
+
+  Integer specifying the maximum number of parameter combinations that
+  should be considered. If the number of possible combinations exceeds
+  this threshold, the maximum allowed number is randomly sampled.
+  Defaults to 100.
+
+- parametergrids:
+
+  User supplied grids of parameters. Can be used if not all combinations
+  of the input vectors should be considered. Must be a named list of
+  five matrices. The matrices in list must be named as: "general",
+  "b_smooth_pr", "b_smooth_mv", "p_smooth_pr", "p_smooth_mv". The
+  "general" matrix must contain 11 named columns: "forget_regret",
+  "soft_threshold", "hard_threshold", "fixed_share", "basis_pr_idx",
+  "basis_mv_idx", "hat_pr_idx", "hat_mv_idx", "gamma", "loss_share",
+  "regret_share". The matrices determining the basis smoothing
+  (b_smooth_pr, b_smooth_mv) must contain the following named columns:
+  n, mu, sigma, nonc, tailw, deg, periodic. In addition to the columns
+  of the basis smoothing matrices, the matrices determining the
+  penalized smoothing (p_smooth_pr, p_smooth_mv) must contain the
+  following columns: diff, lambda. The \*\_idx columns in the general
+  matrix determine which row of the corresponding smoothing matrix is
+  used.
+
+- forget_past_performance:
+
+  Share of past performance not to be considered, resp. to be forgotten
+  in every iteration of the algorithm when selecting the best parameter
+  combination. Defaults to 0.
+
+- save_past_performance:
+
+  Whether or not the past performance w.r.t to the considered parameter
+  grid should be reported or not. Defaults to `FALSE` to save memory.
+  Setting it to `TRUE` can be memory intensive depending on the data and
+  the considered grid.
+
+- save_predictions_grid:
+
+  Whether or not all predictions w.r.t to the considered parameter grid
+  should be reported or not. Defaults to `FALSE`. Setting it to `TRUE`
+  can be memory intensive depending on the data and the considered grid.
+
+- allow_quantile_crossing:
+
+  Shall quantile crossing be allowed? Defaults to false, which means
+  that predictions are sorted in ascending order.
+
+- init:
+
+  A named list containing "init_weights": Array of dimension DxPxK used
+  as starting weights. "R0" a matrix of dimension PxK or 1xK used as
+  starting regret.
+
+- loss:
+
+  User specified loss array. Can also be a list with elements
+  "loss_array" and "share", share mixes the provided loss with the loss
+  calculated by profoc. 1 means, only the provided loss will be used.
+  share can also be vector of shares to consider.
+
+- regret:
+
+  User specified regret array. If specific, the regret will not be
+  calculated by profoc. Can also be a list with elements "regret_array"
+  and "share", share mixes the provided regret with the regret
+  calculated by profoc. 1 means, only the provided regret will be used.
+  share can also be vector of shares to consider.
+
+- trace:
+
+  Print a progress bar to the console? Defaults to TRUE.
+
+- get_timings:
+
+  Whether or not to return timings. Defaults to `FALSE`. If set to true
+  a dataframe `times` will be written to your global environment.
+
+## Value
+
+Returns weights and corresponding predictions.
+
+## Details
+
+online selects various parameters automatically based on the past loss.
+For this, lambda, forget, fixed_share, gamma, and the smoothing
+parameters (see below) can be specified as numeric vectors containing
+values to consider.
+
+This package offers two options for smoothing (Basis Smoothing and
+P-Splines). Both options can be used to smooth the weights over
+dimension D (covariates) or P (quantiles) or both. Parameters
+`b_smooth_pr` and `b_smooth_mv` take named lists to create the
+corresponding basis matrices. The arguments are: `knots` which
+determines the number of knots to be created, `mu`, `sigma`, `sigma`,
+`nonc`, `tailweight` correspond to to parameters of the beta
+distribution, which defines how the knots are \#distributed (see
+[`?make_knots`](https://profoc.berrisch.biz/reference/make_knots.md) for
+details) the defaults will create an equidistant knot sequence, `deg`
+sets the degree of the spline function and also influences how many
+outer knots will be used and `periodic` which determines whether the
+spline basis will be periodic. It's possible to provide vectors of
+values for each of these parameters. In that case, all parameter
+combinations will be used to create the respective matrices and all
+candidates will be considered during online-learning. Parameters
+`p_smooth_pr` and `p_smooth_mv` determine the hat-matrix creation for
+P-Spline smoothing. In addition to the inputs mentioned before, they
+require to provide `ndiff` which determines the degree of
+differentiation applied to the basis-matrix (can take any value between
+and including 1 and 2), `lambda` which determines the degree of
+penalization applied to the smoothing, higher values will give smoother
+weight functions. As for the other parameters, it is possible to provide
+multiple values.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+T <- 50 # Observations
+N <- 2 # Experts
+P <- 9 # Quantiles
+prob_grid <- 1:P / (P + 1)
+
+y <- rnorm(n = T) # Realized
+experts <- array(dim = c(T, P, N)) # Predictions
+for (t in 1:T) {
+  experts[t, , 1] <- qnorm(prob_grid, mean = -1, sd = 1)
+  experts[t, , 2] <- qnorm(prob_grid, mean = 3, sd = sqrt(4))
+}
+
+model <- online(
+  y = matrix(y),
+  experts = experts,
+  tau = prob_grid,
+  p_smooth_pr = list(lambda = 10)
+)
+
+print(model)
+plot(model)
+
+new_y <- matrix(rnorm(1)) # Realized
+new_experts <- experts[T, , , drop = FALSE]
+
+# Update will update the models weights etc if you provide new realizations
+model <- update(model, new_y = new_y, new_experts = new_experts)
+
+# Predict will expand `model$predictions` by default
+model <- predict(model, new_experts = new_experts, update_model = TRUE)
+} # }
+```
