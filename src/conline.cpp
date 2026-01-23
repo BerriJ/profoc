@@ -8,8 +8,6 @@
 #include "conline.h"
 #include "profoc_types.h"
 
-using namespace arma;
-
 // conline class was exposed via "profoc_types.h"
 // So we can use it here as input and output if necessary
 
@@ -101,11 +99,11 @@ void conline::set_grid_objects()
     V(x).zeros(Dr, Pr, K);
     E(x).zeros(Dr, Pr, K);
 
-    arma::cube eta_(Dr, Pr, K, fill::zeros);
+    arma::cube eta_(Dr, Pr, K, arma::fill::zeros);
     eta(x) = eta_;
     if (method == "ml_poly")
     {
-      eta_.fill(exp(350));
+      eta_.fill(std::exp(350));
       eta(x) = eta_;
     }
 
@@ -126,10 +124,10 @@ void conline::set_grid_objects()
       R(x).slice(k) = basis_mv(params["basis_mv_idx"](x) - 1).t() *
                       R0.slice(k) *
                       basis_pr(params["basis_pr_idx"](x) - 1);
-      beta(x).slice(k) = pinv(
-                             mat(basis_mv(params["basis_mv_idx"](x) - 1))) *
+      beta(x).slice(k) = arma::pinv(
+                             arma::mat(basis_mv(params["basis_mv_idx"](x) - 1))) *
                          w0.slice(k) *
-                         pinv(mat(basis_pr(params["basis_pr_idx"](x) - 1))).t();
+                         arma::pinv(arma::mat(basis_pr(params["basis_pr_idx"](x) - 1))).t();
     }
     beta0field(x) = beta(x);
   }
@@ -143,12 +141,12 @@ void conline::set_grid_objects()
     if (save_past_performance)
     {
       past_performance(t).set_size(D, P, X);
-      past_performance(t).fill(datum::nan);
+      past_performance(t).fill(arma::datum::nan);
     }
     predictions_grid(t).set_size(D, P, X);
 
     // Store predictions w.r.t. grid for time t
-    cube tmp_preds_cube(D, P, X);
+    arma::cube tmp_preds_cube(D, P, X);
 
     for (unsigned int d = 0; d < D; d++)
     {
@@ -156,17 +154,17 @@ void conline::set_grid_objects()
       weights(t).row(d) = weights_tmp(opt_index(t)).row(d);
 
       // Store expert predictions temporarily
-      mat experts_mat = experts(t).row(d);
+      arma::mat experts_mat = experts(t).row(d);
 
       for (unsigned int x = 0; x < X; x++)
       {
 
-        mat weights_temp = weights_tmp(x).row(d);
+        arma::mat weights_temp = weights_tmp(x).row(d);
 
         // Forecasters prediction
-        vec tmp_preds_vec = sum(weights_temp % experts_mat, 1);
+        arma::vec tmp_preds_vec = arma::sum(weights_temp % experts_mat, 1);
 
-        tmp_preds_cube(span(d), span::all, span(x)) = tmp_preds_vec;
+        tmp_preds_cube(arma::span(d), arma::span::all, arma::span(x)) = tmp_preds_vec;
       }
     }
     predictions_grid(t) = tmp_preds_cube;
@@ -201,7 +199,7 @@ void conline::learn()
     timer.tic("loss");
 
     // Store predictions w.r.t. grid for time t
-    cube tmp_preds_cube(D, P, X);
+    arma::cube tmp_preds_cube(D, P, X);
 
     for (unsigned int d = 0; d < D; d++)
     {
@@ -209,14 +207,14 @@ void conline::learn()
       weights(t).row(d) = weights_tmp(opt_index(t)).row(d);
 
       // Store expert predictions temporarily
-      mat experts_mat = experts(t).row(d);
+      arma::mat experts_mat = experts(t).row(d);
 
       // Predictions using different parameter values
       for (unsigned int x = 0; x < X; x++)
       {
 
-        mat weights_temp = weights_tmp(x).row(d);
-        vec tmp_preds_vec = sum(weights_temp % experts_mat, 1);
+        arma::mat weights_temp = weights_tmp(x).row(d);
+        arma::vec tmp_preds_vec = arma::sum(weights_temp % experts_mat, 1);
 
         // Sort predictions if quantile_crossing is prohibited
         if (!allow_quantile_crossing)
@@ -227,7 +225,7 @@ void conline::learn()
           }
           tmp_preds_vec = arma::sort(tmp_preds_vec, "ascend", 0);
         }
-        tmp_preds_cube(span(d), span::all, span(x)) = tmp_preds_vec;
+        tmp_preds_cube(arma::span(d), arma::span::all, arma::span(x)) = tmp_preds_vec;
       }
     }
 
@@ -260,14 +258,14 @@ void conline::learn()
     {
 
       timer.tic("regret");
-      mat lexp_int(P, K); // Experts loss
-      mat lexp_ext(P, K); // Experts loss
-      mat lexp(P, K);     // Experts loss
-      vec lfor(P);        // Forecasters loss
-      cube regret_tmp(D, P, K);
-      cube regret(basis_mv(params["basis_mv_idx"](x) - 1).n_cols,
-                  basis_pr(params["basis_pr_idx"](x) - 1).n_cols,
-                  K); // Dr x Pr x K
+      arma::mat lexp_int(P, K); // Experts loss
+      arma::mat lexp_ext(P, K); // Experts loss
+      arma::mat lexp(P, K);     // Experts loss
+      arma::vec lfor(P);        // Forecasters loss
+      arma::cube regret_tmp(D, P, K);
+      arma::cube regret(basis_mv(params["basis_mv_idx"](x) - 1).n_cols,
+                        basis_pr(params["basis_pr_idx"](x) - 1).n_cols,
+                        K); // Dr x Pr x K
 
       for (unsigned int d = 0; d < D; d++)
       {
@@ -319,8 +317,8 @@ void conline::learn()
                          loss_gradient);
         }
 
-        mat regret_int(P, K);
-        mat regret_ext(P, K);
+        arma::mat regret_int(P, K);
+        arma::mat regret_ext(P, K);
 
         if (params["regret_share"](x) != 1)
         {
@@ -362,55 +360,55 @@ void conline::learn()
         for (unsigned int pr = 0; pr < regret.n_cols; pr++)
         {
 
-          vec r = regret.tube(dr, pr);
+          arma::vec r = regret.tube(dr, pr);
 
           if (method == "ewa")
           {
             // Update the cumulative regret used by eta
-            R(x).tube(dr, pr) = vectorise(R(x).tube(dr, pr) * (1 - params["forget_regret"](x))) + r;
+            R(x).tube(dr, pr) = arma::vectorise(R(x).tube(dr, pr) * (1 - params["forget_regret"](x))) + r;
             eta(x).tube(dr, pr).fill(params["gamma"](x));
-            beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(params["gamma"](x) * vectorise(R(x).tube(dr, pr)).t());
+            beta(x).tube(dr, pr) = arma::vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(params["gamma"](x) * arma::vectorise(R(x).tube(dr, pr)).t());
           }
           else if (method == "ml_poly")
           {
             // Update the cumulative regret used by ML_Poly
             R(x)
-                .tube(dr, pr) = vectorise(R(x).tube(dr, pr) * (1 - params["forget_regret"](x))) + r;
+                .tube(dr, pr) = arma::vectorise(R(x).tube(dr, pr) * (1 - params["forget_regret"](x))) + r;
 
             // Update the learning rate
-            eta(x).tube(dr, pr) = 1 / (1 / vectorise(eta(x).tube(dr, pr)).t() + square(r.t()));
+            eta(x).tube(dr, pr) = 1 / (1 / arma::vectorise(eta(x).tube(dr, pr)).t() + arma::square(r.t()));
 
-            beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K * params["gamma"](x) % vectorise(eta(x).tube(dr, pr)).t() % pmax_arma(vectorise(R(x).tube(dr, pr)).t(), exp(-700));
-            beta(x).tube(dr, pr) /= accu(beta(x).tube(dr, pr));
+            beta(x).tube(dr, pr) = arma::vectorise(beta0field(x).tube(dr, pr)).t() * K * params["gamma"](x) % arma::vectorise(eta(x).tube(dr, pr)).t() % pmax_arma(arma::vectorise(R(x).tube(dr, pr)).t(), std::exp(-700));
+            beta(x).tube(dr, pr) /= arma::accu(beta(x).tube(dr, pr));
           }
           else if (method == "boa" || method == "bewa")
           {
-            V(x).tube(dr, pr) = vectorise(V(x).tube(dr, pr)).t() * (1 - params["forget_regret"](x)) + square(r.t());
+            V(x).tube(dr, pr) = arma::vectorise(V(x).tube(dr, pr)).t() * (1 - params["forget_regret"](x)) + arma::square(r.t());
 
-            E(x).tube(dr, pr) = pmax_arma(max(vectorise(E(x).tube(dr, pr)).t() * (1 - params["forget_regret"](x)), abs(r.t())), exp(-350));
+            E(x).tube(dr, pr) = pmax_arma(arma::max(arma::vectorise(E(x).tube(dr, pr)).t() * (1 - params["forget_regret"](x)), arma::abs(r.t())), std::exp(-350));
 
             eta(x)
                 .tube(dr, pr) =
                 pmin_arma(
-                    min(1 / (2 * vectorise(E(x).tube(dr, pr))),
-                        sqrt(-log(vectorise(beta0field(x).tube(dr, pr))) / pmax_arma(vectorise(V(x).tube(dr, pr)), exp(-350)))),
-                    exp(350));
+                    arma::min(1 / (2 * arma::vectorise(E(x).tube(dr, pr))),
+                              arma::sqrt(-arma::log(arma::vectorise(beta0field(x).tube(dr, pr))) / pmax_arma(arma::vectorise(V(x).tube(dr, pr)), std::exp(-350)))),
+                    std::exp(350));
 
-            vec r_reg = r - vectorise(eta(x).tube(dr, pr)) % square(r);
+            arma::vec r_reg = r - arma::vectorise(eta(x).tube(dr, pr)) % arma::square(r);
 
             R(x).tube(dr, pr) *= (1 - params["forget_regret"](x)); // forget
             R(x).tube(dr, pr) +=
-                0.5 * (r_reg + conv_to<colvec>::from(vectorise(eta(x).tube(dr, pr)) % r > 0.5) % (2 * vectorise(E(x).tube(dr, pr))));
+                0.5 * (r_reg + arma::conv_to<arma::colvec>::from(arma::vectorise(eta(x).tube(dr, pr)) % r > 0.5) % (2 * arma::vectorise(E(x).tube(dr, pr))));
 
             if (method == "boa")
             {
               // Wintenberger
-              beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(log(params["gamma"](x) * vectorise(eta(x).tube(dr, pr)).t()) + params["gamma"](x) * vectorise(eta(x).tube(dr, pr)).t() % vectorise(R(x).tube(dr, pr)).t());
+              beta(x).tube(dr, pr) = arma::vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(arma::log(params["gamma"](x) * arma::vectorise(eta(x).tube(dr, pr)).t()) + params["gamma"](x) * arma::vectorise(eta(x).tube(dr, pr)).t() % arma::vectorise(R(x).tube(dr, pr)).t());
             }
             else
             {
               // Gaillard
-              beta(x).tube(dr, pr) = vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(params["gamma"](x) * vectorise(eta(x).tube(dr, pr)).t() % vectorise(R(x).tube(dr, pr)).t());
+              beta(x).tube(dr, pr) = arma::vectorise(beta0field(x).tube(dr, pr)).t() * K % softmax_r(params["gamma"](x) * arma::vectorise(eta(x).tube(dr, pr)).t() % arma::vectorise(R(x).tube(dr, pr)).t());
             }
           }
           else
@@ -427,7 +425,7 @@ void conline::learn()
             {
               threshold_soft(e, params["soft_threshold"](x));
             }
-            if (accu(beta(x).tube(dr, pr)) == 0)
+            if (arma::accu(beta(x).tube(dr, pr)) == 0)
             {
               beta(x)(dr, pr, best_k) = 1;
             }
@@ -440,7 +438,7 @@ void conline::learn()
             {
               threshold_hard(e, params["hard_threshold"](x));
             }
-            if (accu(beta(x).tube(dr, pr)) == 0)
+            if (arma::accu(beta(x).tube(dr, pr)) == 0)
             {
               beta(x)(dr, pr, best_k) = 1;
             }
@@ -448,7 +446,7 @@ void conline::learn()
 
           // Add fixed_share
           beta(x).tube(dr, pr) =
-              (1 - params["fixed_share"](x)) * vectorise(beta(x).tube(dr, pr)) +
+              (1 - params["fixed_share"](x)) * arma::vectorise(beta(x).tube(dr, pr)) +
               (params["fixed_share"](x) / K);
         } // pr
       } // dr
@@ -477,12 +475,12 @@ void conline::learn()
         for (unsigned int d = 0; d < D; d++)
         {
           // Positivity
-          weights_tmp(x)(span(d), span(p), span::all) =
-              pmax_arma(weights_tmp(x)(span(d), span(p), span::all), exp(-700));
+          weights_tmp(x)(arma::span(d), arma::span(p), arma::span::all) =
+              pmax_arma(weights_tmp(x)(arma::span(d), arma::span(p), arma::span::all), std::exp(-700));
 
           // // Affinity
-          weights_tmp(x)(span(d), span(p), span::all) /=
-              accu(weights_tmp(x)(span(d), span(p), span::all));
+          weights_tmp(x)(arma::span(d), arma::span(p), arma::span::all) /=
+              arma::accu(weights_tmp(x)(arma::span(d), arma::span(p), arma::span::all));
         }
       }
       if (save_past_performance)
@@ -492,7 +490,7 @@ void conline::learn()
       // Apply forget
       cum_performance(x) *= (1 - forget_past_performance);
       // Add new loss
-      cum_performance(x) += accu(tmp_performance) / double(D * P);
+      cum_performance(x) += arma::accu(tmp_performance) / double(D * P);
 
     } // x
 
@@ -509,9 +507,9 @@ void conline::learn()
   {
     for (unsigned int d = 0; d < D; d++)
     {
-      mat experts_mat = experts(t).row(d);
-      mat weights_temp = weights(T).row(d);
-      vec tmp_preds_vec = sum(weights_temp % experts_mat, 1);
+      arma::mat experts_mat = experts(t).row(d);
+      arma::mat weights_temp = weights(T).row(d);
+      arma::vec tmp_preds_vec = arma::sum(weights_temp % experts_mat, 1);
 
       // Sort predictions if quantile_crossing is prohibited
       if (!allow_quantile_crossing)
@@ -582,7 +580,7 @@ void conline::init_update(
   // Data
 
   // Join old and new expert_predictions
-  arma::field<cube> old_experts = model_data["experts"];
+  arma::field<arma::cube> old_experts = model_data["experts"];
   experts.set_size(old_experts.n_rows + new_experts.n_rows);
   experts.rows(0, old_experts.n_rows - 1) = old_experts;
   if (new_experts.n_rows > 0)
@@ -595,7 +593,10 @@ void conline::init_update(
   start = T - new_y.n_rows;
 
   if (T_E_Y < 0)
+  {
+    timer.toc("init update");
     Rcpp::stop("Number of provided expert predictions has to match or exceed observations.");
+  }
 
   tau = Rcpp::as<arma::vec>(model_data["tau"]);
 
@@ -614,7 +615,7 @@ void conline::init_update(
   cum_performance = Rcpp::as<arma::vec>(model_objects["cum_performance"]);
 
   weights_tmp =
-      Rcpp::as<arma::field<cube>>(model_objects["weights_tmp"]);
+      Rcpp::as<arma::field<arma::cube>>(model_objects["weights_tmp"]);
 
   // // Output Objects
   predictions = Rcpp::as<arma::cube>(object["predictions"]);
@@ -622,19 +623,19 @@ void conline::init_update(
   predictions_got_sorted = Rcpp::as<arma::mat>(object["predictions_got_sorted"]);
   predictions_got_sorted.resize(T + T_E_Y, D);
   weights.set_size(T + 1);
-  weights.rows(0, start) = Rcpp::as<arma::field<cube>>(object["weights"]);
+  weights.rows(0, start) = Rcpp::as<arma::field<arma::cube>>(object["weights"]);
 
   basis_pr = Rcpp::as<arma::field<arma::sp_mat>>(model_objects["basis_pr"]);
   basis_mv = Rcpp::as<arma::field<arma::sp_mat>>(model_objects["basis_mv"]);
   hat_pr = Rcpp::as<arma::field<arma::sp_mat>>(model_objects["hat_pr"]);
   hat_mv = Rcpp::as<arma::field<arma::sp_mat>>(model_objects["hat_mv"]);
 
-  V = Rcpp::as<arma::field<cube>>(model_objects["V"]);
-  E = Rcpp::as<arma::field<cube>>(model_objects["E"]);
-  eta = Rcpp::as<arma::field<cube>>(model_objects["eta"]);
-  R = Rcpp::as<arma::field<cube>>(model_objects["R"]);
-  beta = Rcpp::as<arma::field<cube>>(model_objects["beta"]);
-  beta0field = Rcpp::as<arma::field<cube>>(model_objects["beta0field"]);
+  V = Rcpp::as<arma::field<arma::cube>>(model_objects["V"]);
+  E = Rcpp::as<arma::field<arma::cube>>(model_objects["E"]);
+  eta = Rcpp::as<arma::field<arma::cube>>(model_objects["eta"]);
+  R = Rcpp::as<arma::field<arma::cube>>(model_objects["R"]);
+  beta = Rcpp::as<arma::field<arma::cube>>(model_objects["beta"]);
+  beta0field = Rcpp::as<arma::field<arma::cube>>(model_objects["beta0field"]);
 
   // //   // Misc parameters
   lead_time = model_parameters["lead_time"];
@@ -653,7 +654,7 @@ void conline::init_update(
   {
     past_performance.set_size(T);
     past_performance.rows(0, start - 1) =
-        Rcpp::as<arma::field<cube>>(object["past_performance"]);
+        Rcpp::as<arma::field<arma::cube>>(object["past_performance"]);
   }
   else
   {
@@ -663,12 +664,12 @@ void conline::init_update(
   if (save_predictions_grid)
   {
     predictions_grid.set_size(T + T_E_Y);
-    predictions_grid.rows(0, old_experts.n_rows - 1) = Rcpp::as<arma::field<cube>>(model_objects["predictions_grid"]);
+    predictions_grid.rows(0, old_experts.n_rows - 1) = Rcpp::as<arma::field<arma::cube>>(model_objects["predictions_grid"]);
   }
   else
   {
     predictions_grid.set_size(1 + lead_time);
-    predictions_grid = Rcpp::as<arma::field<cube>>(model_objects["predictions_grid"]);
+    predictions_grid = Rcpp::as<arma::field<arma::cube>>(model_objects["predictions_grid"]);
   }
 
   loss_for.zeros(T, D, P);
@@ -677,7 +678,7 @@ void conline::init_update(
 
   loss_exp.set_size(T);
   loss_exp.rows(0, start - 1) =
-      Rcpp::as<arma::field<cube>>(object["experts_loss"]);
+      Rcpp::as<arma::field<arma::cube>>(object["experts_loss"]);
 
   timer.toc("init update");
 }
