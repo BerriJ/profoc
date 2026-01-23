@@ -2,6 +2,8 @@
 
 ## profoc 1.3.4
 
+CRAN release: 2026-01-23
+
 ### Improvements
 
 - We removed the usage of `using namespace arma;` to stay compliant with

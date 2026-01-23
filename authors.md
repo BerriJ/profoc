@@ -10,7 +10,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/BerriJ/profoc/blob/main/inst/CITATION)
+[`inst/CITATION`](https://github.com/BerriJ/profoc/blob/1.3.4/inst/CITATION)
 
 Berrisch, J., & Ziel, F. (2026). The profoc Package: An R package for
 probabilistic forecast combination using CRPS Learning. R package
