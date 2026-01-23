@@ -1,0 +1,246 @@
+# Probabilistic Forecast Combination - Batch
+
+Returns predictions and weights calculated by sequential numeric
+optimization. The optimization is done stepwise, always calculating a
+one-step-ahead forecast.
+
+**\[experimental\]**
+
+## Usage
+
+``` r
+batch(
+  y,
+  experts,
+  tau = 1:dim(experts)[2]/(dim(experts)[2] + 1),
+  affine = FALSE,
+  positive = FALSE,
+  intercept = FALSE,
+  debias = TRUE,
+  lead_time = 0,
+  initial_window = 30,
+  rolling_window = initial_window,
+  loss_function = "quantile",
+  loss_parameter = 1,
+  qw_crps = FALSE,
+  b_smooth = list(knots = length(tau), mu = 0.5, sigma = 1, nonc = 0, tailweight = 1, deg
+    = 1, periodic = FALSE),
+  p_smooth = list(knots = length(tau), mu = 0.5, sigma = 1, nonc = 0, tailweight = 1, deg
+    = 1, ndiff = 1.5, lambda = -Inf, periodic = FALSE),
+  forget = 0,
+  soft_threshold = -Inf,
+  hard_threshold = -Inf,
+  fixed_share = 0,
+  parametergrid_max_combinations = 100,
+  parametergrid = NULL,
+  forget_past_performance = 0,
+  allow_quantile_crossing = FALSE,
+  trace = TRUE
+)
+```
+
+## Arguments
+
+- y:
+
+  A numeric matrix of realizations. In probabilistic settings a matrix
+  of dimension Tx1, in multivariate settings a TxD matrix. In the latter
+  case, each slice of the expert's array gets evaluated using the
+  corresponding column of the y matrix.
+
+- experts:
+
+  An array of predictions with dimension (Observations, Quantiles,
+  Experts).
+
+- tau:
+
+  A numeric vector of probabilities.
+
+- affine:
+
+  Defines whether weights are summing to 1 or not. Defaults to FALSE.
+
+- positive:
+
+  Defines if a positivity constraint is applied to the weights. Defaults
+  to FALSE.
+
+- intercept:
+
+  Determines if an intercept is added, defaults to FALSE. If true, a new
+  first expert is added, always predicting 1.
+
+- debias:
+
+  Defines whether the intercepts weight is constrained or not. If TRUE
+  (the default), the intercept weight is unconstrained. Only affects the
+  results if affine and or positive is set to TRUE. If FALSE, the
+  intercept is treated as an expert.
+
+- lead_time:
+
+  offset for expert forecasts. Defaults to 0, which means that experts
+  forecast t+1 at t. Setting this to h means experts predictions refer
+  to t+1+h at time t. The weight updates delay accordingly.
+
+- initial_window:
+
+  Defines the size of the initial estimation window.
+
+- rolling_window:
+
+  Defines the size of the rolling window. Defaults to the value of
+  initial_window. Set it to the number of observations to receive an
+  expanding window.
+
+- loss_function:
+
+  Either "quantile", "expectile" or "percentage".
+
+- loss_parameter:
+
+  Optional parameter scaling the power of the loss function.
+
+- qw_crps:
+
+  Decides whether the sum of quantile scores (FALSE) or the quantile
+  weighted CRPS (TRUE) should be minimized. Defaults to FALSE. Which
+  corresponds to Berrisch & Ziel (2021)
+
+- b_smooth:
+
+  A named list determining how the B-Spline matrices for probabilistic
+  smoothing are created. Default corresponds to no probabilistic
+  smoothing. See details.
+
+- p_smooth:
+
+  A named list determining how the hat matrices for probabilistic
+  P-Spline smoothing are created. Default corresponds to no smoothing.
+  See details.
+
+- forget:
+
+  Adds an exponential forgetting to the optimization. Past observations
+  will get less influence on the optimization. Defaults to 0, which
+  corresponds to no forgetting.
+
+- soft_threshold:
+
+  If specified, the following soft threshold will be applied to the
+  weights: w = sgn(w)\*max(abs(w)-t,0) where t is the soft_threshold
+  parameter. Defaults to -inf, which means that no threshold will be
+  applied. If all expert weights are thresholded to 0, a weight of 1
+  will be assigned to the expert with the highest weights prior to
+  thresholding. Thus soft_threshold = 1 leads to the 'follow the leader'
+  strategy if method is set to "ewa".
+
+- hard_threshold:
+
+  If specified, the following hard thresholding will be applied to the
+  weights: w = w\*(abs(w)\>t) where t is the threshold_hard parameter.
+  Defaults to -inf, which means that no threshold will be applied. If
+  all expert weights are thresholded to 0, a weight of 1 will be
+  assigned to the expert with the highest weight prior to thresholding.
+  Thus hard_threshold = 1 leads to the 'follow the leader' strategy if
+  method is set to "ewa".
+
+- fixed_share:
+
+  Amount of fixed share to be added to the weights. Defaults to 0. 1
+  leads to uniform weights.
+
+- parametergrid_max_combinations:
+
+  Integer specifying the maximum number of parameter combinations that
+  should be considered. If the number of possible combinations exceeds
+  this threshold, the maximum allowed number is randomly sampled.
+  Defaults to 100.
+
+- parametergrid:
+
+  User supplied grid of parameters. Can be used if not all combinations
+  of the input vectors should be considered. Must be a matrix with 13
+  columns (online) or 12 columns batch with the following order:
+  basis_knot_distance, basis_knot_distance_power, basis_deg,
+  forget_regret, soft_threshold, hard_threshold, fixed_share,
+  p_smooth_lambda, p_smooth_knot_distance, p_smooth_knot_distance_power,
+  p_smooth_deg, p_smooth_ndiff, gamma.
+
+- forget_past_performance:
+
+  Share of past performance not to be considered, resp. to be forgotten
+  in every iteration of the algorithm when selecting the best parameter
+  combination. Defaults to 0.
+
+- allow_quantile_crossing:
+
+  Shall quantile crossing be allowed? Defaults to false, which means
+  that predictions are sorted in ascending order.
+
+- trace:
+
+  Print a progress bar to the console? Defaults to TRUE.
+
+## Value
+
+Returns weights and corresponding predictions. It is possible to impose
+a convexity constraint to the weights by setting affine and positive to
+TRUE.
+
+## Details
+
+batch selects various parameters automatically based on the past loss.
+For this, the parameters smoothing parameters (see below) can be
+specified as numeric vectors containing values to consider.
+
+This package offers two options for smoothing (Basis Smoothing and
+P-Splines). Parameters `b_smooth` and `p_smooth` take named lists to
+create the corresponding basis and hat matrices. The arguments are:
+`knots` which determines the number of knots to be created, `mu`,
+`sigma`, `sigma`, `nonc`, `tailweight` correspond to to parameters of
+the beta distribution, which defines how the knots are \#distributed
+(see
+[`?make_knots`](https://profoc.berrisch.biz/dev/reference/make_knots.md)
+for details) the defaults will create an equidistant knot sequence,
+`deg` sets the degree of the spline function and also influences how
+many outer knots will be used and `periodic` which determines whether
+the spline basis will be periodic. It's possible to provide vectors of
+values for each of these parameters. In that case, all parameter
+combinations will be used to create the respective matrices and all
+candidates will be considered during online-learning. In addition to the
+inputs mentioned before `p_smooth` requires `ndiff` which determines the
+degree of differentiation applied to the basis-matrix (can take any
+value between and including 1 and 2), `lambda` which determines the
+degree of penalization applied to the smoothing, higher values will give
+smoother weight functions. As for the other parameters, it is possible
+to provide multiple values.
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+T <- 50 # Observations
+N <- 2 # Experts
+P <- 9 # Quantiles
+prob_grid <- 1:P / (P + 1)
+
+y <- rnorm(n = T) # Realized
+experts <- array(dim = c(T, P, N)) # Predictions
+for (t in 1:T) {
+    experts[t, , 1] <- qnorm(prob_grid, mean = -1, sd = 1)
+    experts[t, , 2] <- qnorm(prob_grid, mean = 3, sd = sqrt(4))
+}
+
+model <- batch(
+    y = matrix(y),
+    experts = experts,
+    p_smooth = list(lambda = 10)
+)
+
+print(model)
+plot(model)
+autoplot(model)
+} # }
+```
