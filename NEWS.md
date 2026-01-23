@@ -1,3 +1,13 @@
+profoc 1.3.4
+==============
+
+## Improvements
+
+* We removed the usage of `using namespace arma;` to stay compliant with CRAN.
+
+## Fixes
+* In edge-cases the timer for init_update was not stopped.
+
 profoc 1.3.3
 ==============
 
