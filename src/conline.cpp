@@ -593,7 +593,10 @@ void conline::init_update(
   start = T - new_y.n_rows;
 
   if (T_E_Y < 0)
+  {
+    timer.toc("init update");
     Rcpp::stop("Number of provided expert predictions has to match or exceed observations.");
+  }
 
   tau = Rcpp::as<arma::vec>(model_data["tau"]);
 
