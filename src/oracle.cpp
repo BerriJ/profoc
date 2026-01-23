@@ -10,204 +10,202 @@
 
 #include <RcppArmadillo.h>
 
-using namespace arma;
-
 using optim::Mat_t;
 using optim::Vec_t;
 
 // additional data for objective function
 struct objective_data
 {
-    unsigned int K;
-    vec truth;
-    mat truth_mat;
-    mat experts;
-    double tau;
-    std::string loss_function;
-    double loss_scaling;
-    double forget;
-    double penalty_parameter = 0;
-    bool intercept;
-    bool debias;
-    sp_mat basis;
-    cube experts_cube;
-    vec tau_vec;
-    bool qw_crps;
+  unsigned int K;
+  arma::vec truth;
+  arma::mat truth_mat;
+  arma::mat experts;
+  double tau;
+  std::string loss_function;
+  double loss_scaling;
+  double forget;
+  double penalty_parameter = 0;
+  bool intercept;
+  bool debias;
+  arma::sp_mat basis;
+  arma::cube experts_cube;
+  arma::vec tau_vec;
+  bool qw_crps;
 };
 
 // Global decleration of objective val
 double obj_val;
 
-static double objective(const vec &vals_inp, vec *grad_out, void *opt_data)
+static double objective(const arma::vec &vals_inp, arma::vec *grad_out, void *opt_data)
 {
-    objective_data *objfn_data = reinterpret_cast<objective_data *>(opt_data);
+  objective_data *objfn_data = reinterpret_cast<objective_data *>(opt_data);
 
-    int K = objfn_data->K;
-    vec truth = objfn_data->truth;
-    mat experts = objfn_data->experts;
-    std::string loss_function = objfn_data->loss_function;
-    double tau = objfn_data->tau;
-    double loss_scaling = objfn_data->loss_scaling;
-    double forget = objfn_data->forget;
-    double penalty_parameter = objfn_data->penalty_parameter;
-    bool intercept = objfn_data->intercept;
-    bool debias = objfn_data->debias;
+  int K = objfn_data->K;
+  arma::vec truth = objfn_data->truth;
+  arma::mat experts = objfn_data->experts;
+  std::string loss_function = objfn_data->loss_function;
+  double tau = objfn_data->tau;
+  double loss_scaling = objfn_data->loss_scaling;
+  double forget = objfn_data->forget;
+  double penalty_parameter = objfn_data->penalty_parameter;
+  bool intercept = objfn_data->intercept;
+  bool debias = objfn_data->debias;
 
-    vec pred = experts * vals_inp;
-    vec loss_vec(experts.n_rows);
+  arma::vec pred = experts * vals_inp;
+  arma::vec loss_vec(experts.n_rows);
 
-    for (unsigned int i = 0; i < experts.n_rows; i++)
+  for (unsigned int i = 0; i < experts.n_rows; i++)
+  {
+    loss_vec(i) = loss(truth(i),
+                       pred(i),
+                       0, // Only used when gradient = TRUE
+                       loss_function,
+                       tau,
+                       loss_scaling, // Scaling parameter
+                       false);
+    loss_vec(i) *= std::pow(1 - forget, experts.n_rows - (i + 1));
+  }
+
+  obj_val = arma::sum(loss_vec);
+
+  double constraint_penalty;
+
+  constraint_penalty = penalty_parameter * std::fabs(arma::sum(vals_inp.subvec(debias * intercept, vals_inp.n_elem - 1)) - 1);
+
+  arma::vec loss_grad(experts.n_rows);
+
+  if (grad_out)
+  {
+    for (int k = 0; k < K; k++)
     {
-        loss_vec(i) = loss(truth(i),
-                           pred(i),
-                           0, // Only used when gradient = TRUE
-                           loss_function,
-                           tau,
-                           loss_scaling, // Scaling parameter
-                           false);
-        loss_vec(i) *= std::pow(1 - forget, experts.n_rows - (i + 1));
+      for (unsigned int i = 0; i < experts.n_rows; i++)
+      {
+        loss_grad(i) = loss_grad_wrt_w(experts(i, k),
+                                       pred(i),
+                                       truth(i),
+                                       tau,
+                                       loss_function,
+                                       loss_scaling,
+                                       vals_inp(k));
+        loss_grad(i) *= std::pow(1 - forget, experts.n_rows - (i + 1));
+      }
+
+      (*grad_out)(k) = arma::sum(loss_grad);
     }
+  }
 
-    obj_val = sum(loss_vec);
+  obj_val += constraint_penalty;
 
-    double constraint_penalty;
-
-    constraint_penalty = penalty_parameter * fabs(sum(vals_inp.subvec(debias * intercept, vals_inp.n_elem - 1)) - 1);
-
-    vec loss_grad(experts.n_rows);
-
-    if (grad_out)
-    {
-        for (int k = 0; k < K; k++)
-        {
-            for (unsigned int i = 0; i < experts.n_rows; i++)
-            {
-                loss_grad(i) = loss_grad_wrt_w(experts(i, k),
-                                               pred(i),
-                                               truth(i),
-                                               tau,
-                                               loss_function,
-                                               loss_scaling,
-                                               vals_inp(k));
-                loss_grad(i) *= std::pow(1 - forget, experts.n_rows - (i + 1));
-            }
-
-            (*grad_out)(k) = sum(loss_grad);
-        }
-    }
-
-    obj_val += constraint_penalty;
-
-    return obj_val;
+  return obj_val;
 }
 
-static double objective2(const vec &vals_inp, vec *grad_out, void *opt_data)
+static double objective2(const arma::vec &vals_inp, arma::vec *grad_out, void *opt_data)
 {
-    objective_data *objfn_data = reinterpret_cast<objective_data *>(opt_data);
+  objective_data *objfn_data = reinterpret_cast<objective_data *>(opt_data);
 
-    mat truth_mat = objfn_data->truth_mat;
-    std::string loss_function = objfn_data->loss_function;
-    vec tau_vec = objfn_data->tau_vec;
-    double loss_scaling = objfn_data->loss_scaling;
-    double forget = objfn_data->forget;
-    double penalty_parameter = objfn_data->penalty_parameter;
-    bool intercept = objfn_data->intercept;
-    bool debias = objfn_data->debias;
-    bool qw_crps = objfn_data->qw_crps;
-    sp_mat basis = objfn_data->basis;
-    cube experts_cube = objfn_data->experts_cube;
+  arma::mat truth_mat = objfn_data->truth_mat;
+  std::string loss_function = objfn_data->loss_function;
+  arma::vec tau_vec = objfn_data->tau_vec;
+  double loss_scaling = objfn_data->loss_scaling;
+  double forget = objfn_data->forget;
+  double penalty_parameter = objfn_data->penalty_parameter;
+  bool intercept = objfn_data->intercept;
+  bool debias = objfn_data->debias;
+  bool qw_crps = objfn_data->qw_crps;
+  arma::sp_mat basis = objfn_data->basis;
+  arma::cube experts_cube = objfn_data->experts_cube;
 
-    mat beta = vec2mat(vals_inp, basis.n_cols, experts_cube.n_slices);
+  arma::mat beta = vec2mat(vals_inp, basis.n_cols, experts_cube.n_slices);
 
-    mat weights = basis * beta;
+  arma::mat weights = basis * beta;
 
-    mat experts;
+  arma::mat experts;
 
-    vec loss_vec(experts_cube.n_rows);
+  arma::vec loss_vec(experts_cube.n_rows);
 
-    for (unsigned int t = 0; t < experts_cube.n_rows; t++)
+  for (unsigned int t = 0; t < experts_cube.n_rows; t++)
+  {
+
+    if (qw_crps == false)
     {
+      arma::vec tmp_loss(experts_cube.n_cols);
 
-        if (qw_crps == false)
-        {
-            vec tmp_loss(experts_cube.n_cols);
+      // Predict
+      experts = experts_cube.row(t);
+      arma::vec pred = arma::sum(weights % experts, 1);
 
-            // Predict
-            experts = experts_cube.row(t);
-            vec pred = sum(weights % experts, 1);
-
-            for (unsigned int p = 0; p < experts_cube.n_cols; p++)
-            {
-                tmp_loss(p) = loss(truth_mat(t, p),
-                                   pred(p),
-                                   0, // Only used when gradient = TRUE
-                                   loss_function,
-                                   tau_vec(p),
-                                   loss_scaling, // Scaling parameter
-                                   false);
-                tmp_loss(p) *= std::pow(1 - forget, experts_cube.n_rows - (t + 1));
-            }
-            loss_vec(t) = arma::accu(tmp_loss);
-        }
-        else
-        {
-            // Predict
-            experts = experts_cube.row(t);
-            mat loss_mat = beta * experts.t();
-
-            for (unsigned int p = 0; p < loss_mat.n_cols; p++)
-            {
-                for (double &z : loss_mat.col(p))
-                {
-                    z = truth_mat(t, 0) - z;
-                    double cndtn = double(z < 0);
-                    z *= (tau_vec(p) - cndtn);
-                }
-            }
-
-            loss_vec(t) = accu(basis.t() % loss_mat);
-        }
+      for (unsigned int p = 0; p < experts_cube.n_cols; p++)
+      {
+        tmp_loss(p) = loss(truth_mat(t, p),
+                           pred(p),
+                           0, // Only used when gradient = TRUE
+                           loss_function,
+                           tau_vec(p),
+                           loss_scaling, // Scaling parameter
+                           false);
+        tmp_loss(p) *= std::pow(1 - forget, experts_cube.n_rows - (t + 1));
+      }
+      loss_vec(t) = arma::accu(tmp_loss);
     }
-
-    vec constraint_penalty_vec(beta.n_rows);
-    for (unsigned int b = 0; b < beta.n_rows; b++)
+    else
     {
-        vec betavec = beta.row(b).t();
-        constraint_penalty_vec(b) = penalty_parameter * fabs(sum(betavec.subvec(debias * intercept, betavec.n_elem - 1)) - 1);
+      // Predict
+      experts = experts_cube.row(t);
+      arma::mat loss_mat = beta * experts.t();
+
+      for (unsigned int p = 0; p < loss_mat.n_cols; p++)
+      {
+        for (double &z : loss_mat.col(p))
+        {
+          z = truth_mat(t, 0) - z;
+          double cndtn = double(z < 0);
+          z *= (tau_vec(p) - cndtn);
+        }
+      }
+
+      loss_vec(t) = arma::accu(basis.t() % loss_mat);
     }
+  }
 
-    obj_val = accu(loss_vec);
+  arma::vec constraint_penalty_vec(beta.n_rows);
+  for (unsigned int b = 0; b < beta.n_rows; b++)
+  {
+    arma::vec betavec = beta.row(b).t();
+    constraint_penalty_vec(b) = penalty_parameter * std::fabs(arma::sum(betavec.subvec(debias * intercept, betavec.n_elem - 1)) - 1);
+  }
 
-    obj_val += sum(constraint_penalty_vec);
+  obj_val = arma::accu(loss_vec);
 
-    return obj_val;
+  obj_val += arma::sum(constraint_penalty_vec);
+
+  return obj_val;
 }
 
 // additional data for constraint function
 struct constraint_data
 {
-    Mat_t constr_mat;
-    Vec_t constr_rhs;
+  Mat_t constr_mat;
+  Vec_t constr_rhs;
 };
 
 Vec_t constraint_function(const Vec_t &vals_inp, Mat_t *jacob_out, void *opt_data)
 {
 
-    constraint_data *cnstrn_data = reinterpret_cast<constraint_data *>(opt_data);
+  constraint_data *cnstrn_data = reinterpret_cast<constraint_data *>(opt_data);
 
-    Mat_t constr_mat = cnstrn_data->constr_mat;
-    Vec_t constr_rhs = cnstrn_data->constr_rhs;
+  Mat_t constr_mat = cnstrn_data->constr_mat;
+  Vec_t constr_rhs = cnstrn_data->constr_rhs;
 
-    Vec_t constr_vals = constr_mat * vals_inp - constr_rhs;
+  Vec_t constr_vals = constr_mat * vals_inp - constr_rhs;
 
-    if (jacob_out)
-    {
-        OPTIM_MATOPS_SET_SIZE_POINTER(jacob_out, constr_mat.n_rows, constr_mat.n_cols);
+  if (jacob_out)
+  {
+    OPTIM_MATOPS_SET_SIZE_POINTER(jacob_out, constr_mat.n_rows, constr_mat.n_cols);
 
-        (*jacob_out) = constr_mat;
-    }
+    (*jacob_out) = constr_mat;
+  }
 
-    return constr_vals;
+  return constr_vals;
 }
 
 // [[Rcpp::export]]
@@ -223,95 +221,95 @@ arma::vec optimize_weights(const arma::vec &truth,
                            const double &loss_scaling = 1)
 {
 
-    const int K = experts.n_cols;
+  const int K = experts.n_cols;
 
-    // Prepare additional data for objective
-    objective_data opt_obj_data;
-    opt_obj_data.K = K;
-    opt_obj_data.truth = std::move(truth);
-    opt_obj_data.experts = std::move(experts);
-    opt_obj_data.loss_function = std::move(loss_function);
-    opt_obj_data.tau = std::move(tau);
-    opt_obj_data.loss_scaling = std::move(loss_scaling);
-    opt_obj_data.forget = std::move(forget);
-    opt_obj_data.intercept = intercept;
-    opt_obj_data.debias = debias;
+  // Prepare additional data for objective
+  objective_data opt_obj_data;
+  opt_obj_data.K = K;
+  opt_obj_data.truth = std::move(truth);
+  opt_obj_data.experts = std::move(experts);
+  opt_obj_data.loss_function = std::move(loss_function);
+  opt_obj_data.tau = std::move(tau);
+  opt_obj_data.loss_scaling = std::move(loss_scaling);
+  opt_obj_data.forget = std::move(forget);
+  opt_obj_data.intercept = intercept;
+  opt_obj_data.debias = debias;
 
-    // Iinit weights
-    vec initvals(K, fill::ones);
-    initvals.subvec(debias * intercept, initvals.n_elem - 1) /= (K - debias * intercept);
+  // Iinit weights
+  arma::vec initvals(K, arma::fill::ones);
+  initvals.subvec(debias * intercept, initvals.n_elem - 1) /= (K - debias * intercept);
 
-    bool success;
-    optim::algo_settings_t settings;
-    settings.rel_objfn_change_tol = 1E-07;
-    constraint_data opt_constr_data;
+  bool success;
+  optim::algo_settings_t settings;
+  settings.rel_objfn_change_tol = 1E-07;
+  constraint_data opt_constr_data;
 
-    if (affine && positive)
+  if (affine && positive)
+  {
+    opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
+    settings.vals_bound = true;
+    settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
+    settings.lower_bounds.fill(0);
+    if (debias && intercept)
     {
-        opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
-        settings.vals_bound = true;
-        settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
-        settings.lower_bounds.fill(0);
-        if (debias && intercept)
-        {
-            settings.lower_bounds(0) = -1E+06;
-        }
-        settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
-        settings.upper_bounds.fill(1E+06);
-
-        // Just a hack so that the while condition is not fulfilled directly
-        initvals += 1E-04;
-        while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-06)
-        {
-            opt_obj_data.penalty_parameter *= 10;
-            success = optim::nm(initvals, objective, &opt_obj_data, settings);
-            if (opt_obj_data.penalty_parameter > 1E+10)
-            {
-                break;
-            }
-        }
+      settings.lower_bounds(0) = -1E+06;
     }
-    else if (affine)
+    settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
+    settings.upper_bounds.fill(1E+06);
+
+    // Just a hack so that the while condition is not fulfilled directly
+    initvals += 1E-04;
+    while (std::fabs(arma::sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-06)
     {
-        opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
-
-        // Just a hack so that the while condition is not fulfilled directly
-        initvals += 1E-04;
-        while (fabs(sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-06)
-        {
-            opt_obj_data.penalty_parameter *= 10;
-            success = optim::nm(initvals, objective, &opt_obj_data, settings);
-            if (opt_obj_data.penalty_parameter > 1E+10)
-            {
-                break;
-            }
-        }
+      opt_obj_data.penalty_parameter *= 10;
+      success = optim::nm(initvals, objective, &opt_obj_data, settings);
+      if (opt_obj_data.penalty_parameter > 1E+10)
+      {
+        break;
+      }
     }
-    else if (positive)
+  }
+  else if (affine)
+  {
+    opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
+
+    // Just a hack so that the while condition is not fulfilled directly
+    initvals += 1E-04;
+    while (std::fabs(arma::sum(initvals.subvec(debias * intercept, initvals.n_elem - 1)) - 1) >= 1E-06)
     {
-        settings.vals_bound = true;
-        settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
-        settings.lower_bounds.fill(0);
-        if (debias && intercept)
-        {
-            settings.lower_bounds(0) = -1E+06;
-        }
-        settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
-        settings.upper_bounds.fill(1E+06);
-
-        success = optim::nm(initvals, objective, &opt_obj_data, settings);
+      opt_obj_data.penalty_parameter *= 10;
+      success = optim::nm(initvals, objective, &opt_obj_data, settings);
+      if (opt_obj_data.penalty_parameter > 1E+10)
+      {
+        break;
+      }
     }
-    else
+  }
+  else if (positive)
+  {
+    settings.vals_bound = true;
+    settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K);
+    settings.lower_bounds.fill(0);
+    if (debias && intercept)
     {
-        success = optim::nm(initvals, objective, &opt_obj_data, settings);
+      settings.lower_bounds(0) = -1E+06;
     }
+    settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K);
+    settings.upper_bounds.fill(1E+06);
 
-    if (!success)
-    {
-        Rcpp::warning("Warning: Convergence was not succesfull.");
-    }
+    success = optim::nm(initvals, objective, &opt_obj_data, settings);
+  }
+  else
+  {
+    success = optim::nm(initvals, objective, &opt_obj_data, settings);
+  }
 
-    return initvals;
+  if (!success)
+  {
+    Rcpp::warning("Warning: Convergence was not succesfull.");
+  }
+
+  return initvals;
 }
 
 // [[Rcpp::export]]
@@ -330,121 +328,121 @@ arma::mat optimize_betas(const arma::mat &truth,
                          const bool &qw_crps)
 {
 
-    const int K = experts.n_slices;
+  const int K = experts.n_slices;
 
-    // Prepare additional data for objective
-    objective_data opt_obj_data;
-    opt_obj_data.K = K;
-    opt_obj_data.truth_mat = std::move(truth);
-    opt_obj_data.loss_function = std::move(loss_function);
-    opt_obj_data.tau_vec = std::move(tau_vec);
-    opt_obj_data.loss_scaling = std::move(loss_scaling);
-    opt_obj_data.forget = std::move(forget);
-    opt_obj_data.intercept = intercept;
-    opt_obj_data.debias = debias;
-    opt_obj_data.basis = basis;
-    opt_obj_data.experts_cube = std::move(experts);
-    opt_obj_data.qw_crps = qw_crps;
+  // Prepare additional data for objective
+  objective_data opt_obj_data;
+  opt_obj_data.K = K;
+  opt_obj_data.truth_mat = std::move(truth);
+  opt_obj_data.loss_function = std::move(loss_function);
+  opt_obj_data.tau_vec = std::move(tau_vec);
+  opt_obj_data.loss_scaling = std::move(loss_scaling);
+  opt_obj_data.forget = std::move(forget);
+  opt_obj_data.intercept = intercept;
+  opt_obj_data.debias = debias;
+  opt_obj_data.basis = basis;
+  opt_obj_data.experts_cube = std::move(experts);
+  opt_obj_data.qw_crps = qw_crps;
 
-    // Iinit weights
-    // vec initvals(K, fill::ones);
-    // initvals.subvec(debias * intercept, initvals.n_elem - 1) /= (K - debias * intercept);
+  // Iinit weights
+  // arma::vec initvals(K, arma::fill::ones);
+  // initvals.subvec(debias * intercept, initvals.n_elem - 1) /= (K - debias * intercept);
 
-    vec initvals = mat2vec(beta);
+  arma::vec initvals = mat2vec(beta);
 
-    bool success;
-    mat weights;
-    mat beta_new;
-    optim::algo_settings_t settings;
-    settings.rel_objfn_change_tol = 1E-07;
-    constraint_data opt_constr_data;
+  bool success;
+  arma::mat weights;
+  arma::mat beta_new;
+  optim::algo_settings_t settings;
+  settings.rel_objfn_change_tol = 1E-07;
+  constraint_data opt_constr_data;
 
-    if (affine && positive)
+  if (affine && positive)
+  {
+    // Positive
+    arma::mat lower_mat(beta.n_rows, beta.n_cols, arma::fill::zeros);
+    if (debias && intercept)
+      lower_mat.col(0) = -1E+06;
+    settings.vals_bound = true;
+    settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K * beta.n_rows);
+    settings.lower_bounds = mat2vec(lower_mat);
+    settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K * beta.n_rows);
+    settings.upper_bounds.fill(1E+06);
+
+    // Affine
+    opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
+    double betasum = K - debias * intercept;
+    betasum += 1E-04;
+
+    while (betasum - (K - debias * intercept) >= 1E-06)
     {
-        // Positive
-        mat lower_mat(beta.n_rows, beta.n_cols, fill::zeros);
-        if (debias && intercept)
-            lower_mat.col(0) = -1E+06;
-        settings.vals_bound = true;
-        settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K * beta.n_rows);
-        settings.lower_bounds = mat2vec(lower_mat);
-        settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K * beta.n_rows);
-        settings.upper_bounds.fill(1E+06);
+      opt_obj_data.penalty_parameter *= 10;
 
-        // Affine
-        opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
-        double betasum = K - debias * intercept;
-        betasum += 1E-04;
+      success = optim::nm(initvals, objective2, &opt_obj_data, settings);
+      beta_new = vec2mat(initvals, basis.n_cols, K);
 
-        while (betasum - (K - debias * intercept) >= 1E-06)
-        {
-            opt_obj_data.penalty_parameter *= 10;
+      betasum = arma::accu(beta_new.cols(debias * intercept, beta_new.n_cols - 1));
 
-            success = optim::nm(initvals, objective2, &opt_obj_data, settings);
-            beta_new = vec2mat(initvals, basis.n_cols, K);
-
-            betasum = accu(beta_new.cols(debias * intercept, beta_new.n_cols - 1));
-
-            if (opt_obj_data.penalty_parameter > 1E+10)
-            {
-                break;
-            }
-        }
+      if (opt_obj_data.penalty_parameter > 1E+10)
+      {
+        break;
+      }
     }
-    else if (affine)
+  }
+  else if (affine)
+  {
+    opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
+
+    double betasum = K - debias * intercept;
+    betasum += 1E-04;
+
+    while (betasum - (K - debias * intercept) >= 1E-06)
     {
-        opt_obj_data.penalty_parameter = 0.01 * experts.n_rows;
+      opt_obj_data.penalty_parameter *= 10;
+      success = optim::nm(initvals, objective2, &opt_obj_data, settings);
 
-        double betasum = K - debias * intercept;
-        betasum += 1E-04;
+      beta_new = vec2mat(initvals, basis.n_cols, K);
 
-        while (betasum - (K - debias * intercept) >= 1E-06)
-        {
-            opt_obj_data.penalty_parameter *= 10;
-            success = optim::nm(initvals, objective2, &opt_obj_data, settings);
+      betasum = arma::accu(beta_new.cols(debias * intercept, beta_new.n_cols - 1));
 
-            beta_new = vec2mat(initvals, basis.n_cols, K);
-
-            betasum = accu(beta_new.cols(debias * intercept, beta_new.n_cols - 1));
-
-            if (opt_obj_data.penalty_parameter > 1E+10)
-            {
-                break;
-            }
-        }
+      if (opt_obj_data.penalty_parameter > 1E+10)
+      {
+        break;
+      }
     }
-    else if (positive)
-    {
+  }
+  else if (positive)
+  {
 
-        mat lower_mat(beta.n_rows, beta.n_cols, fill::zeros);
-        if (debias && intercept)
-            lower_mat.col(0) = -1E+06;
+    arma::mat lower_mat(beta.n_rows, beta.n_cols, arma::fill::zeros);
+    if (debias && intercept)
+      lower_mat.col(0) = -1E+06;
 
-        settings.vals_bound = true;
-        settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K * beta.n_rows);
-        settings.lower_bounds = mat2vec(lower_mat);
+    settings.vals_bound = true;
+    settings.lower_bounds = OPTIM_MATOPS_ZERO_VEC(K * beta.n_rows);
+    settings.lower_bounds = mat2vec(lower_mat);
 
-        settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K * beta.n_rows);
-        settings.upper_bounds.fill(1E+06);
+    settings.upper_bounds = OPTIM_MATOPS_ZERO_VEC(K * beta.n_rows);
+    settings.upper_bounds.fill(1E+06);
 
-        success = optim::nm(initvals, objective2, &opt_obj_data, settings);
+    success = optim::nm(initvals, objective2, &opt_obj_data, settings);
 
-        beta_new = vec2mat(initvals, basis.n_cols, K);
-    }
-    else
-    {
-        success = optim::nm(initvals, objective2, &opt_obj_data, settings);
-        beta_new = vec2mat(initvals, basis.n_cols, K);
+    beta_new = vec2mat(initvals, basis.n_cols, K);
+  }
+  else
+  {
+    success = optim::nm(initvals, objective2, &opt_obj_data, settings);
+    beta_new = vec2mat(initvals, basis.n_cols, K);
 
-        // weights = basis * beta;
-    }
+    // weights = basis * beta;
+  }
 
-    if (!success)
-    {
-        Rcpp::warning("Warning: Convergence was not succesfull.");
-    }
+  if (!success)
+  {
+    Rcpp::warning("Warning: Convergence was not succesfull.");
+  }
 
-    return beta_new;
+  return beta_new;
 }
 
 //' @template function_oracle
@@ -496,87 +494,87 @@ Rcpp::List oracle(arma::mat &y,
                   const double &forget = 0)
 {
 
-    if (intercept)
-    {
-        mat intercept_mat(experts.n_rows, experts.n_cols, fill::ones);
-        experts = join_slices(intercept_mat, experts);
-    }
+  if (intercept)
+  {
+    arma::mat intercept_mat(experts.n_rows, experts.n_cols, arma::fill::ones);
+    experts = arma::join_slices(intercept_mat, experts);
+  }
 
-    // Object Dimensions
-    const int T = y.n_rows;
-    const int P = experts.n_cols;
-    const int K = experts.n_slices;
+  // Object Dimensions
+  const int T = y.n_rows;
+  const int P = experts.n_cols;
+  const int K = experts.n_slices;
 
-    // Preprocessing of inputs
-    if (y.n_cols == 1)
-    {
-        y = arma::repmat(y, 1, P);
-    }
+  // Preprocessing of inputs
+  if (y.n_cols == 1)
+  {
+    y = arma::repmat(y, 1, P);
+  }
 
-    vec tau_vec(tau);
-    if (tau_vec.size() == 0)
-    {
-        tau_vec.resize(P);
-        tau_vec = regspace(1, P) / (P + 1);
-    }
-    else if (tau_vec.size() == 1)
-    {
-        tau_vec.resize(P);
-        tau_vec.fill(tau_vec(0));
-    }
+  arma::vec tau_vec(tau);
+  if (tau_vec.size() == 0)
+  {
+    tau_vec.resize(P);
+    tau_vec = arma::regspace(1, P) / (P + 1);
+  }
+  else if (tau_vec.size() == 1)
+  {
+    tau_vec.resize(P);
+    tau_vec.fill(tau_vec(0));
+  }
 
-    // Matrix to store oracle weights
-    mat weights(P, K);
-    vec oracles_loss(P);
+  // Matrix to store oracle weights
+  arma::mat weights(P, K);
+  arma::vec oracles_loss(P);
 
-    mat predictions(T, P);
+  arma::mat predictions(T, P);
 
+  for (int p = 0; p < P; p++)
+  {
+    weights.row(p) = optimize_weights(y.col(p),
+                                      experts.col(p),
+                                      affine,
+                                      positive,
+                                      intercept,
+                                      debias,
+                                      loss_function,
+                                      tau_vec(p),
+                                      forget,
+                                      loss_parameter)
+                         .t();
+
+    arma::mat exp_tmp = experts.col(p);
+    predictions.col(p) = exp_tmp * weights.row(p).t();
+    oracles_loss(p) = obj_val / experts.n_rows;
+    R_CheckUserInterrupt();
+  }
+
+  arma::cube loss_exp(T, P, K, arma::fill::zeros);
+
+  for (int t = 0; t < T; t++)
+  {
     for (int p = 0; p < P; p++)
     {
-        weights.row(p) = optimize_weights(y.col(p),
-                                          experts.col(p),
-                                          affine,
-                                          positive,
-                                          intercept,
-                                          debias,
-                                          loss_function,
-                                          tau_vec(p),
-                                          forget,
-                                          loss_parameter)
-                             .t();
-
-        mat exp_tmp = experts.col(p);
-        predictions.col(p) = exp_tmp * weights.row(p).t();
-        oracles_loss(p) = obj_val / experts.n_rows;
-        R_CheckUserInterrupt();
+      for (int k = 0; k < K; k++)
+      {
+        loss_exp(t, p, k) =
+            loss(y(t, p),
+                 experts(t, p, k),
+                 0,              // where to evaluate the gradient
+                 loss_function,  // method
+                 tau_vec(p),     // tau_vec
+                 loss_parameter, // alpha
+                 false);         // gradient
+      }
     }
+  }
+  Rcpp::List out = Rcpp::List::create(
+      Rcpp::Named("predictions") = predictions,
+      Rcpp::Named("weights") = weights,
+      Rcpp::Named("oracles_loss") = oracles_loss,
+      Rcpp::Named("experts_loss") = loss_exp);
 
-    cube loss_exp(T, P, K, fill::zeros);
+  out.attr("class") = "profoc_oracle";
 
-    for (int t = 0; t < T; t++)
-    {
-        for (int p = 0; p < P; p++)
-        {
-            for (int k = 0; k < K; k++)
-            {
-                loss_exp(t, p, k) =
-                    loss(y(t, p),
-                         experts(t, p, k),
-                         0,              // where to evaluate the gradient
-                         loss_function,  // method
-                         tau_vec(p),     // tau_vec
-                         loss_parameter, // alpha
-                         false);         // gradient
-            }
-        }
-    }
-    Rcpp::List out = Rcpp::List::create(
-        Rcpp::Named("predictions") = predictions,
-        Rcpp::Named("weights") = weights,
-        Rcpp::Named("oracles_loss") = oracles_loss,
-        Rcpp::Named("experts_loss") = loss_exp);
-
-    out.attr("class") = "profoc_oracle";
-
-    return out;
+  return out;
 }
